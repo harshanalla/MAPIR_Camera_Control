@@ -97,6 +97,7 @@ all_cameras = []
 if sys.platform == "win32":
     si = subprocess.STARTUPINFO()
     si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
 # if sys.platform == "win32":
 #       import exiftool
 #       exiftool.executable = modpath + os.sep + "exiftool.exe"
@@ -110,6 +111,40 @@ TIME_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_time.ui'))
 DEL_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_delete.ui'))
+TRANSFER_CLASS, _ = uic.loadUiType(os.path.join(
+    os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_transfer.ui'))
+
+class KernelTransfer(QtWidgets.QDialog, TRANSFER_CLASS):
+    parent = None
+
+    def __init__(self, parent=None):
+        """Constructor."""
+        super(KernelTransfer, self).__init__(parent=parent)
+        self.parent = parent
+        # Set up the user interface from Designer.
+        # After setupUI you can access any designer object by doing
+        # self.<objectname>, and you can use autoconnect slots - see
+        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
+        # #widgets-and-dialogs-with-auto-connect
+        self.setupUi(self)
+    def on_ModalBrowseButton_released(self):
+        with open(modpath + os.sep + "instring.txt", "r+") as instring:
+            self.ModalOutputFolder.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
+            instring.truncate(0)
+            instring.seek(0)
+            instring.write(self.ModalOutputFolder.text())
+            self.ModalSaveButton.setEnabled(True)
+    def on_ModalSaveButton_released(self):
+        self.parent.transferoutfolder  = self.ModalOutputFolder.text()
+        self.parent.yestransfer = True
+        self.parent.selection_made = True
+        self.close()
+
+    def on_ModalCancelButton_released(self):
+        self.parent.yestransfer = False
+        self.parent.selection_made = True
+        self.close()
+
 
 class KernelDelete(QtWidgets.QDialog, DEL_CLASS):
     parent = None
@@ -131,7 +166,7 @@ class KernelDelete(QtWidgets.QDialog, DEL_CLASS):
                 # try:
                 folders = glob.glob(drv + r":" + os.sep + r"dcim/*")
                 for fold in folders:
-                    shutil.rmtree(fold)
+                    os.unlink(fold)
         self.parent.KernelTransferButton.setChecked(False)
         self.close()
 
@@ -458,6 +493,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     qrcoeffs4 = []
     qrcoeffs5 = []
     qrcoeffs6 = []
+
     drivesfound = []
     ref = ""
     refindex = ["oldrefvalues", "newrefvalues"]
@@ -486,44 +522,45 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     },
     "newrefvalues":{
 
-        # "Mono450": [24.131129, 2.500000],
-        # "Mono550": [25.918403, 2.444385],
-        # "Mono650": [25.681838, 2.400000],
-        # "Mono725": [26.209292, 2.444148],
-        # "Mono808": [27.552786, 2.522048],
-        # "Mono850": [27.989664, 2.476279],
-        # "Mono405": [23.297778, 2.579408],
-        # "Mono518": [25.668374, 2.500000],
-        # "Mono632": [25.624361, 2.400000],
-        # "Mono615": [25.575475, 2.400000],
+        "Mono405": [0.6959473282,  0.2437485737, 0.1799017476, 0.0205591758],
+        "Mono450": [0.7882333002, 0.2501235178, 0.1848459584, 0.020036883],
+        "Mono490": [0.8348841674, 0.2580074987, 0.1890252099, 0.01975703],
+        "Mono518": [0.8572181897, 0.2628629357, 0.192259471, 0.0196629792],
+        "Mono550": [0.8686559344, 0.2655697585, 0.1960837144, 0.0195629009],
+        "Mono590": [0.874586922, 0.2676592931, 0.1993779934, 0.0193745668],
+        "Mono615": [0.8748454449, 0.2673426216, 0.1996415667, 0.0192891156],
+        "Mono632": [0.8758224323, 0.2670055225, 0.2023045295, 0.0192596465],
+        "Mono650": [0.8773469949, 0.2663571183, 0.199919444, 0.0192325637],
+        "Mono685": [0.8775925081, 0.2648548355, 0.1945563456, 0.0192860556],
+        "Mono725": [0.8756774317, 0.266883373, 0.21603525, 0.194527158],
+        "Mono780": [0.8722125382, 0.2721842015, 0.2238493387, 0.0196295938],
+        "Mono808": [0.8699458632, 0.2780141682, 0.2283300902, 0.0216592377],
+        "Mono850": [0.8649280907, 0.2800907016, 0.2340131491, 0.0195446727],
+        "Mono880": [0.8577996233, 0.2673899041, 0.2371926238, 0.0202034892],
+        "550/660/850": [[0.8689592421, 0.02656248359, 0.1961875592, 0.0195576511], [0.8775934407, 0.2661207692, 0.1987265874, 0.0192249327],
+                        [0.8653063177, 0.2798126291, 0.2337498097, 0.0193295348]],
+        "475/550/850": [[0.8348841674, 0.2580074987, 0.1890252099, 0.01975703], [0.8689592421, 0.02656248359, 0.1961875592, 0.0195576511],
+                        [0.8653063177, 0.2798126291, 0.2337498097, 0.0193295348]]
+        # "Mono450": [10.137101, 24.131129, 2.500000],
+        # "Mono550": [13.050459, 25.918403, 2.444385],
+        # "Mono650": [42.873777, 25.681838, 2.400000],
+        # "Mono725": [57.362319, 26.209292, 2.444148],
+        # "Mono808": [80.761967, 27.552786, 2.522048],
+        # "Mono850": [85.470884, 27.989664, 2.476279],
+        # "Mono405": [10.419592, 23.297778, 2.579408],
+        # "Mono518": [10.192879, 25.668374, 2.500000],
+        # "Mono632": [40.314177, 25.624361, 2.400000],
+        # "Mono615": [36.590561, 25.575475, 2.400000],
         #
-        # "Mono590": [25.614054, 2.400000],
-        # "Mono780": [27.114517, 2.500000],
-        # "Mono880": [28.33615, 2.387391],
-        # "550/660/850": [[25.91748, 2.444606], [25.67382, 2.40000],
-        #                 [27.943831, 2.47464]],
-        # "475/550/850": [[24.868873, 2.5], [25.919591, 2.440347],
-        #                 [27.952459, 2.516666]]
-        "Mono450": [10.137101, 24.131129, 2.500000],
-        "Mono550": [13.050459, 25.918403, 2.444385],
-        "Mono650": [42.873777, 25.681838, 2.400000],
-        "Mono725": [57.362319, 26.209292, 2.444148],
-        "Mono808": [80.761967, 27.552786, 2.522048],
-        "Mono850": [85.470884, 27.989664, 2.476279],
-        "Mono405": [10.419592, 23.297778, 2.579408],
-        "Mono518": [10.192879, 25.668374, 2.500000],
-        "Mono632": [40.314177, 25.624361, 2.400000],
-        "Mono615": [36.590561, 25.575475, 2.400000],
-
-        "Mono590": [28.088219, 25.614054, 2.400000],
-        "Mono780": [72.470173, 27.114517, 2.500000],
-        "Mono880": [86.40861, 28.33615, 2.387391],
-        # "550/660/850": [[0.12730952, .2591748, 0.02444606], [0.42100882, 0.2567382, 0.0240000],
-        #                 [0.85491034, 0.27943831, 0.0247464]],
-        "550/660/850": [[12.730952, 25.91748, 2.444606], [42.100882, 25.67382, 2.40000],
-                        [85.491034, 27.943831, 2.47464]],
-        "475/550/850": [[9.893005, 24.868873, 2.5], [14.1338, 25.919591, 2.440347],
-                        [85.217001, 27.952459, 2.516666]]
+        # "Mono590": [28.088219, 25.614054, 2.400000],
+        # "Mono780": [72.470173, 27.114517, 2.500000],
+        # "Mono880": [86.40861, 28.33615, 2.387391],
+        # # "550/660/850": [[0.12730952, .2591748, 0.02444606], [0.42100882, 0.2567382, 0.0240000],
+        # #                 [0.85491034, 0.27943831, 0.0247464]],
+        # "550/660/850": [[12.730952, 25.91748, 2.444606], [42.100882, 25.67382, 2.40000],
+        #                 [85.491034, 27.943831, 2.47464]],
+        # "475/550/850": [[9.893005, 24.868873, 2.5], [14.1338, 25.919591, 2.440347],
+        #                 [85.217001, 27.952459, 2.516666]]
 
     }}
     pixel_min_max = {"redmax": 0.0, "redmin": 65535.0,
@@ -538,6 +575,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     modalwindow = None
     array_indicator = False
     seed_pass = False
+    transferoutfolder = None
+    yestransfer = False
+    selection_made = False
     POLL_TIME = 3000
     # SLOW_POLL = 10000
     slow = 0
@@ -558,6 +598,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     SET_REGISTER_READ_REPORT = 9
     SET_REGISTER_BLOCK_READ_REPORT = 11
     SET_CAMERA = 13
+    display_image = None
+    image_loaded = False
     # mMutex = QMutex()
     regs = []
     paths_1_2 = []
@@ -576,8 +618,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         # self.timer.timeout.connect(self.tick)
 
     # def tick(self):
-    #     self.KernelUpdate()
+    # try:
+    #   self.KernelUpdate()
+# except Exception as e:
+# print(e
 
+    def on_KernelRefreshButton_released(self):
+        self.ConnectKernels()
     def on_KernelConnect_released(self):
         self.ConnectKernels()
     def ConnectKernels(self):
@@ -614,19 +661,19 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.KernelCameraSelect.addItem("All")
         self.KernelCameraSelect.blockSignals(False)
         try:
-            for path in self.paths:
+            for i, path in enumerate(self.paths):
                 self.camera = path
                 buf = [0] * 512
                 buf[0] = self.SET_REGISTER_BLOCK_READ_REPORT
                 buf[1] = eRegister.RG_MEDIA_FILE_NAME_A.value
                 buf[2] = 3
-                res = self.writeToKernel(buf)
-                print(chr(res[2]) + chr(res[3]) + chr(res[4]))
+                res = self.writeToKernel(buf, True)[0][i]
+                # print(chr(res[2]) + chr(res[3]) + chr(res[4]))
                 item = chr(res[2]) + chr(res[3]) + chr(res[4])
                 buf = [0] * 512
                 buf[0] = self.SET_REGISTER_READ_REPORT
                 buf[1] = eRegister.RG_SENSOR_ID.value
-                res = self.writeToKernel(buf)
+                res = self.writeToKernel(buf, True)[0][i]
                 if res[2] == 2:
                     self.paths_1_2.append(path)
                 elif res[2] == 1:
@@ -639,7 +686,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 self.KernelCameraSelect.blockSignals(False)
             self.camera = self.paths[0]
 
-            self.KernelUpdate()
+            try:
+                self.KernelUpdate()
+            except Exception as e:
+                print(e)
         except:
             self.KernelLog.append("Error connecting to camera, please ensure all cameras are connected properly and not in transfer mode.")
     def on_Kernel3LetterSave_released(self):
@@ -652,7 +702,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         buf[4] = ord(threeletter[1])
         buf[5] = ord(threeletter[2])
         res = self.writeToKernel(buf)
-        self.KernelUpdate()
+        try:
+            self.KernelUpdate()
+        except Exception as e:
+            print(e)
     def on_KernelCameraSelect_currentIndexChanged(self):
         if self.KernelCameraSelect.currentIndex() == 0:
             self.array_indicator = True
@@ -661,7 +714,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.camera = self.paths[self.KernelCameraSelect.currentIndex() - 1]
 
         if not self.KernelTransferButton.isChecked():
-            self.KernelUpdate()
+            try:
+                self.KernelUpdate()
+            except Exception as e:
+                print(e)
     # def on_KernelArraySelect_currentIndexChanged(self):
     #     if self.KernelArraySelect.currentIndex() == 0:
     #         self.array_indicator = False
@@ -669,14 +725,37 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     #     else:
     #         self.array_indicator = True
     #         self.KernelCameraSelect.setEnabled(False)
-    def on_KernelExposureMode_currentIndexChanged(self, int):
-        if self.KernelExposureMode.currentIndex() == 0:
-            self.KernelISO.setEnabled(False)
-            self.KernelShutterSpeed.setEnabled(False)
-        else:
-            self.KernelISO.setEnabled(True)
-            self.KernelShutterSpeed.setEnabled(True)
 
+
+    def on_KernelBrowserButton_released(self):
+        with open(modpath + os.sep + "instring.txt", "r+") as instring:
+            self.KernelBrowserFile.setText(QtWidgets.QFileDialog.getOpenFileName(directory=instring.read())[0])
+            instring.truncate(0)
+            instring.seek(0)
+            instring.write(self.KernelBrowserFile.text())
+        try:
+            self.display_image = cv2.imread(self.KernelBrowserFile.text(), 1)
+            # w = self.KernelBrowserViewer.width()
+            # h = self.KernelBrowserViewer.height()
+            self.image_loaded = True
+            self.KernelBrowserViewer.setPixmap(QtGui.QPixmap.fromImage(
+                QtGui.QImage(self.display_image.data, self.display_image.shape[1],
+                             self.display_image.shape[0], QtGui.QImage.Format_RGB888)).scaled(
+                self.KernelBrowserViewer.width(),
+                self.KernelBrowserViewer.height(), QtCore.Qt.KeepAspectRatio))
+
+            QtWidgets.QApplication.processEvents()
+        except Exception as e:
+            print(str(e))
+
+    def resizeEvent(self, event):
+        if self.image_loaded == True:
+            self.KernelBrowserViewer.setPixmap(QtGui.QPixmap.fromImage(
+                QtGui.QImage(self.display_image.data, self.display_image.shape[1],
+                             self.display_image.shape[0], QtGui.QImage.Format_RGB888)).scaled(
+                self.KernelBrowserViewer.width(),
+                self.KernelBrowserViewer.height(), QtCore.Qt.KeepAspectRatio))
+        print("resize")
     def KernelUpdate(self):
         self.KernelExposureMode.blockSignals(True)
         self.KernelShutterSpeed.blockSignals(True)
@@ -685,7 +764,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.KernelFolderCount.blockSignals(True)
         self.KernelBeep.blockSignals(True)
         self.KernelPWMSignal.blockSignals(True)
-
+        self.KernelGain.blockSignals(True)
+        self.KernelSetPoint.blockSignals(True)
         buf = [0] * 512
         buf[0] = self.SET_REGISTER_BLOCK_READ_REPORT
         buf[1] = eRegister.RG_CAMERA_SETTING.value
@@ -698,10 +778,14 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.KernelExposureMode.setCurrentIndex(0)
             self.KernelISO.setEnabled(False)
             self.KernelShutterSpeed.setEnabled(False)
+            self.KernelGain.setEnabled(True)
+            self.KernelSetPoint.setEnabled(True)
         else:
             self.KernelExposureMode.setCurrentIndex(1)
             self.KernelISO.setEnabled(True)
             self.KernelShutterSpeed.setEnabled(True)
+            self.KernelGain.setEnabled(False)
+            self.KernelSetPoint.setEnabled(False)
 
         self.KernelShutterSpeed.setCurrentIndex(shutter - 1)
 
@@ -758,7 +842,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.KernelPanel.append("Shutter: " + self.KernelShutterSpeed.itemText(self.getRegister(eRegister.RG_SHUTTER.value) -1) + " sec")
         self.KernelPanel.append("ISO: " + str(self.getRegister(eRegister.RG_ISO.value)) + "00")
         self.KernelPanel.append("WB: " + str(self.getRegister(eRegister.RG_WHITE_BALANCE.value)))
-        self.KernelPanel.append("EVC: " + str(self.getRegister(eRegister.RG_EV_CORRECTION.value)))
+        self.KernelPanel.append("AE Setpoint: " + str(self.getRegister(eRegister.RG_AE_SETPOINT.value)))
         self.KernelPanel.append("Video resolution: " + str(self.getRegister(eRegister.RG_VIDEO_RESOLUTION.value)))
         self.KernelPanel.append("Photo resolution: " + str(self.getRegister(eRegister.RG_PHOTO_RESOLUTION.value)/10) + " Mpix")
         buf = [0] * 512
@@ -779,6 +863,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.KernelFolderCount.blockSignals(False)
         self.KernelBeep.blockSignals(False)
         self.KernelPWMSignal.blockSignals(False)
+        self.KernelGain.blockSignals(False)
+        self.KernelSetPoint.blockSignals(False)
     def on_KernelFolderButton_released(self):
         with open(modpath + os.sep + "instring.txt", "r+") as instring:
             self.KernelTransferFolder.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
@@ -789,131 +875,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     cancel_auto = False
     def on_KernelAutoCancel_released(self):
         self.cancel_auto = True
-    def on_KernelAutoTransfer_released(self):
-        try:
+    # def on_KernelAutoTransfer_released(self):
+    #
+    #      Add the auto transfer check.
 
-            preconnect = False
-            if self.camera is not 0:
-                current_path = self.camera
-                preconnect = True
-            else:
-                try:
-                    self.ConnectKernels()
-                except:
 
-                    self.KernelLog.append("No Camera Found")
-                    QtWidgets.QApplication.processEvents()
-            count = 0
-            self.drivesfound = []
-            self.KernelTransferButton.setChecked(True)
-            for path in self.paths:
-                count += 1
-            #     self.camera = path
-            #     buf = [0] * 512
-            #     buf[0] = self.SET_COMMAND_REPORT
-            #     buf[1] = eCommand.CM_TRANSFER_MODE.value
-            #     self.writeToKernel(buf)
-            if preconnect == True:
-                self.camera = current_path
-            self.KernelLog.append("Looking for mounted cameras")
-            QtWidgets.QApplication.processEvents()
-            passes = 1
-            while len(self.drivesfound) < count:
-                if self.cancel_auto == True:
-                    self.cancel_auto == False
-                    return
-                drv = 'C'
-                if (passes % 20000) == 0:
-                    self.KernelLog.append(". . .")
-                passes += 1
-                QtWidgets.QApplication.processEvents()
-                while drv is not '[':
-                    # self.KernelLog.append(r"Checking Drive " + str(drv) + r":")
-                    QtWidgets.QApplication.processEvents()
-                    if os.path.isdir(drv + r":" + os.sep + r"dcim"):
-                        if drv in self.drivesfound:
-                            drv = chr(ord(drv) + 1)
-                        else:
-                            self.drivesfound.append(drv)
-                            files = glob.glob(drv + r":" + os.sep + r"dcim/*/*")
-                            self.KernelLog.append(str(files))
-                            try:
-                                namepart = files[0].split(os.sep)[-1][1:4]
-                                self.KernelLog.append("Found camera" + str(namepart))
-                            except Exception as e:
-                                self.KernelLog.append("No images found in drive " + drv + ":")
-                                QtWidgets.QApplication.processEvents()
 
-                            drv = chr(ord(drv) + 1)
-                            QtWidgets.QApplication.processEvents()
-                    else:
-                        drv = chr(ord(drv) + 1)
-
-            tmtf = r":/dcim/tmtf.txt"
-            drv = 'C'
-
-            count = 0
-            while drv is not '[':
-                QtWidgets.QApplication.processEvents()
-                pathidx = -1
-                if os.path.isdir(drv + r":" + os.sep + r"dcim"):
-                    # try:
-                    folders = glob.glob(drv + r":" + os.sep + r"dcim/*/")
-                    files = glob.glob(drv + r":" + os.sep + r"dcim/*/*")
-
-                    print(files)
-                    for idx, threechar in enumerate(self.pathnames):
-                        print(threechar)
-                        try:
-                            print(files[0].split(os.sep)[-1][1:4])
-                        except Exception as e:
-                            self.KernelLog.append("No images found in drive " + drv + ":")
-                            QtWidgets.QApplication.processEvents()
-                        if files[0].split(os.sep)[-1][1:4] == threechar:
-                            pathidx = idx
-                            self.driveletters[idx] = drv
-                            count += 1
-                            self.KernelLog.append("Found " + str(threechar) + ". Extracting images.")
-                            QtWidgets.QApplication.processEvents()
-                    if pathidx >= 0:
-                        if os.path.exists(self.KernelTransferFolder.text() + os.sep + self.pathnames[pathidx]):
-                            foldercount = 2
-                            endloop = False
-                            outdir = ""
-                            while endloop is False:
-                                outdir = self.KernelTransferFolder.text() + os.sep + self.pathnames[pathidx] + "_" + str(foldercount)
-                                if os.path.exists(outdir):
-                                    foldercount += 1
-                                else:
-                                    os.mkdir(outdir)
-                                    endloop = True
-                            for fold in folders:
-                                distutils.dir_util.copy_tree(fold, outdir)
-                        else:
-                            for fold in folders:
-                                distutils.dir_util.copy_tree(fold, self.KernelTransferFolder.text() + os.sep + self.pathnames[pathidx])
-                            raws = glob.glob(self.KernelTransferFolder.text() + os.sep + self.pathnames[pathidx] + r"*.mapir")
-                            for raw in raws:
-                                self.openMapir(raw, raw.split('.')[0] + ".tif")
-                        self.KernelLog.append("Finished extracting " + str(self.pathnames[pathidx]) + ".")
-
-                        QtWidgets.QApplication.processEvents()
-                    else:
-                        pass
-                    drv = chr(ord(drv) + 1)
-                    # except:
-                    #     drv = chr(ord(drv) + 1)
-                    #     pass
-                else:
-                    drv = chr(ord(drv) + 1)
-            self.modalwindow = KernelDelete(self)
-            self.modalwindow.resize(400, 200)
-            self.modalwindow.show()
-
-        except Exception as e:
-            self.KernelTransferButton.setChecked(False)
-            self.KernelLog.append(str(e))
-            QtWidgets.QApplication.processEvents()
     def on_KernelBandButton1_released(self):
         with open(modpath + os.sep + "instring.txt", "r+") as instring:
             self.KernelBand1.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
@@ -1020,7 +987,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                         underscore = underscore + 1
             self.KernelLog.append("Finished Renaming All Files.")
         except Exception as e:
-            self.KernelLog.append(str(e))
+            print(e)
     def on_KernelTransferButton_toggled(self):
 
             if self.camera is None:
@@ -1043,7 +1010,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 #             # try:
                 #
                 #             shutil.copytree(drv + r":" + os.sep + r"dcim" + os.sep,
-                #                             self.KernelTransferFolder.text() + os.sep + drv)
+                #                             self.transferoutfolder + os.sep + drv)
                 #             drv = chr(ord(drv) + 1)
                 #             # except:
                 #             #     drv = chr(ord(drv) + 1)
@@ -1051,7 +1018,17 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 #         else:
                 #             drv = chr(ord(drv) + 1)
                 # else:\
-                if self.KernelCameraSelect.currentIndex() == 0:
+                # if self.KernelCameraSelect.currentIndex() == 0:
+
+                # else:
+                #     try:
+                #         buf = [0] * 512
+                #         buf[0] = self.SET_COMMAND_REPORT
+                #         buf[1] = eCommand.CM_TRANSFER_MODE.value
+                #         self.writeToKernel(buf)
+                #     except:
+                #         self.KernelLog.append("Camera not found or in transfer mode already")
+                try:
                     for place, cam in enumerate(self.paths):
                         try:
                             self.camera = cam
@@ -1059,17 +1036,86 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                             buf[0] = self.SET_COMMAND_REPORT
                             buf[1] = eCommand.CM_TRANSFER_MODE.value
                             self.writeToKernel(buf)
+                            self.KernelLog.append("Camera " + str(place) + " entering Transfer mode")
+
                         except:
                             self.KernelLog.append("Camera " + str(place) + " not found or in transfer mode already")
+                            QtWidgets.QApplication.processEvents()
                     self.camera = self.paths[0]
-                else:
-                    try:
-                        buf = [0] * 512
-                        buf[0] = self.SET_COMMAND_REPORT
-                        buf[1] = eCommand.CM_TRANSFER_MODE.value
-                        self.writeToKernel(buf)
-                    except:
-                        self.KernelLog.append("Camera not found or in transfer mode already")
+                    self.modalwindow = KernelTransfer(self)
+                    self.modalwindow.resize(400, 200)
+                    self.modalwindow.exec_()
+
+                    if self.yestransfer == True:
+                        tmtf = r":/dcim/tmtf.txt"
+                        drv = 'C'
+                        # drv = 'C'
+
+                        count = 0
+                        while drv is not '[':
+                            QtWidgets.QApplication.processEvents()
+                            pathidx = -1
+                            if os.path.isdir(drv + r":" + os.sep + r"dcim"):
+                                # try:
+                                folders = glob.glob(drv + r":" + os.sep + r"dcim/*/")
+                                files = glob.glob(drv + r":" + os.sep + r"dcim/*/*")
+
+                                print(files)
+                                for idx, threechar in enumerate(self.pathnames):
+                                    print(threechar)
+                                    try:
+                                        print(files[0].split(os.sep)[-1][1:4])
+                                    except Exception as e:
+                                        self.KernelLog.append("No images found in drive " + drv + ":")
+                                        QtWidgets.QApplication.processEvents()
+                                    if files[0].split(os.sep)[-1][1:4] == threechar:
+                                        pathidx = idx
+                                        self.driveletters[idx] = drv
+                                        count += 1
+                                        self.KernelLog.append("Found " + str(threechar) + ". Extracting images.")
+                                        QtWidgets.QApplication.processEvents()
+                                if pathidx >= 0:
+                                    if os.path.exists(self.transferoutfolder + os.sep + self.pathnames[pathidx]):
+                                        foldercount = 2
+                                        endloop = False
+                                        outdir = ""
+                                        while endloop is False:
+                                            outdir = self.transferoutfolder + os.sep + self.pathnames[
+                                                pathidx] + "_" + str(foldercount)
+                                            if os.path.exists(outdir):
+                                                foldercount += 1
+                                            else:
+                                                os.mkdir(outdir)
+                                                endloop = True
+                                        for fold in folders:
+                                            distutils.dir_util.copy_tree(fold, outdir)
+                                    else:
+                                        for fold in folders:
+                                            distutils.dir_util.copy_tree(fold, self.transferoutfolder + os.sep +
+                                                                         self.pathnames[pathidx])
+                                        raws = glob.glob(self.transferoutfolder + os.sep + self.pathnames[
+                                            pathidx] + r"*.mapir")
+                                        for raw in raws:
+                                            self.openMapir(raw, raw.split('.')[0] + ".tif")
+                                    self.KernelLog.append("Finished extracting " + str(self.pathnames[pathidx]) + ".")
+
+                                    QtWidgets.QApplication.processEvents()
+                                else:
+                                    pass
+                                drv = chr(ord(drv) + 1)
+                                # except:
+                                #     drv = chr(ord(drv) + 1)
+                                #     pass
+                            else:
+                                drv = chr(ord(drv) + 1)
+                        self.modalwindow = KernelDelete(self)
+                        self.modalwindow.resize(400, 200)
+                        self.modalwindow.exec_()
+
+                except Exception as e:
+                    self.KernelTransferButton.setChecked(False)
+                    self.KernelLog.append(str(e))
+                    QtWidgets.QApplication.processEvents()
             else:
                 tmtf = r":/dcim/tmtf.txt"
                 drv = 'C'
@@ -1086,15 +1132,61 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     else:
                         drv = chr(ord(drv) + 1)
 
+    def on_KernelGain_currentIndexChanged(self):
+        buf = [0] * 512
+        buf[0] = self.SET_REGISTER_WRITE_REPORT
+        buf[1] = eRegister.RG_AE_GAIN.value
+        if self.KernelExposureMode.currentIndex() == 0:
+            buf[2] = self.KernelGain.currentIndex()
+        else:
+            buf[2] = 2
+        res = self.writeToKernel(buf)
+        try:
+            self.KernelUpdate()
+        except Exception as e:
+            print(e)
+
+    def on_KernelSetPoint_currentIndexChanged(self):
+        buf = [0] * 512
+        buf[0] = self.SET_REGISTER_WRITE_REPORT
+        buf[1] = eRegister.RG_AE_SETPOINT.value
+        if self.KernelExposureMode.currentIndex() == 0:
+            buf[2] = self.KernelSetPoint.currentIndex()
+        else:
+            buf[2] = 2
+        res = self.writeToKernel(buf)
+        try:
+            self.KernelUpdate()
+        except Exception as e:
+            print(e)
+
     def on_KernelExposureMode_currentIndexChanged(self):
         if self.KernelExposureMode.currentIndex() == 1:
             self.KernelShutterSpeed.setEnabled(True)
-
             self.KernelISO.setEnabled(True)
+            self.KernelGain.setEnabled(False)
+            self.KernelSetPoint.setEnabled(False)
+            buf = [0] * 512
+            buf[0] = self.SET_REGISTER_WRITE_REPORT
+            buf[1] = eRegister.RG_AE_GAIN.value
+            buf[2] = 2
+
+            res = self.writeToKernel(buf)
+            buf = [0] * 512
+            buf[0] = self.SET_REGISTER_WRITE_REPORT
+            buf[1] = eRegister.RG_AE_SETPOINT.value
+            buf[2] = 2
+
+            res = self.writeToKernel(buf)
+            try:
+                self.KernelUpdate()
+            except Exception as e:
+                print(e)
         else:
             self.KernelShutterSpeed.setEnabled(False)
-
             self.KernelISO.setEnabled(False)
+            self.KernelGain.setEnabled(True)
+            self.KernelSetPoint.setEnabled(True)
             buf = [0] * 512
             buf[0] = self.SET_REGISTER_WRITE_REPORT
             buf[1] = eRegister.RG_SHUTTER.value
@@ -1107,46 +1199,52 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             buf[2] = 8
 
             res = self.writeToKernel(buf)
-            self.KernelUpdate()
+            try:
+                self.KernelUpdate()
+            except Exception as e:
+                print(e)
     def on_KernelCaptureButton_released(self):
 
+        try:
+            buf = [0] * 512
 
-        buf = [0] * 512
-
-        buf[0] = self.SET_COMMAND_REPORT
-        if self.KernelCaptureMode.currentIndex() == 0:
-
-
-
-            buf[1] = eCommand.CM_CAPTURE_PHOTO.value
+            buf[0] = self.SET_COMMAND_REPORT
+            if self.KernelCaptureMode.currentIndex() == 0:
 
 
-        elif self.KernelCaptureMode.currentIndex() == 1:
-            buf[1] = eCommand.CM_CONTINUOUS.value
 
-        elif self.KernelCaptureMode.currentIndex() == 2:
-
-            buf[1] = eCommand.CM_TIME_LAPSE.value
-
-        elif self.KernelCaptureMode.currentIndex() == 3:
-
-            buf[1] = eCommand.CM_RECORD_VIDEO.value
-        elif self.KernelCaptureMode.currentIndex() == 4:
-
-            buf[1] = eCommand.CM_RECORD_LOOPING_VIDEO.value
-        else:
-            self.KernelLog.append("Invalid capture mode.")
-
-        if self.capturing == False:
-            buf[2] = 1
-            self.capturing = True
-        else:
-            buf[2] = 0
-            self.capturing = False
+                buf[1] = eCommand.CM_CAPTURE_PHOTO.value
 
 
-        res = self.writeToKernel(buf)
-        self.KernelUpdate()
+            elif self.KernelCaptureMode.currentIndex() == 1:
+                buf[1] = eCommand.CM_CONTINUOUS.value
+
+            elif self.KernelCaptureMode.currentIndex() == 2:
+
+                buf[1] = eCommand.CM_TIME_LAPSE.value
+
+            elif self.KernelCaptureMode.currentIndex() == 3:
+
+                buf[1] = eCommand.CM_RECORD_VIDEO.value
+            elif self.KernelCaptureMode.currentIndex() == 4:
+
+                buf[1] = eCommand.CM_RECORD_LOOPING_VIDEO.value
+            else:
+                self.KernelLog.append("Invalid capture mode.")
+
+            if self.capturing == False:
+                buf[2] = 1
+                self.capturing = True
+            else:
+                buf[2] = 0
+                self.capturing = False
+
+
+            res = self.writeToKernel(buf)
+
+            self.KernelUpdate()
+        except Exception as e:
+            print(e)
     def on_KernelShutterSpeed_currentIndexChanged(self):
         buf = [0] * 512
         buf[0] = self.SET_REGISTER_WRITE_REPORT
@@ -1155,7 +1253,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             buf[2] = self.KernelShutterSpeed.currentIndex() + 1
 
         res = self.writeToKernel(buf)
-        self.KernelUpdate()
+        try:
+            self.KernelUpdate()
+        except Exception as e:
+            print(e)
     def on_KernelISO_currentIndexChanged(self):
         buf = [0] * 512
         buf[0] = self.SET_REGISTER_WRITE_REPORT
@@ -1166,7 +1267,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             buf[2] = self.ISO_VALS[3]
 
         res = self.writeToKernel(buf)
-        self.KernelUpdate()
+        try:
+            self.KernelUpdate()
+        except Exception as e:
+            print(e)
 
     def getRegister(self, code):
         if code < eRegister.RG_SIZE.value:
@@ -1187,24 +1291,37 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         buf[1] = eRegister.RG_CAMERA_ARRAY_TYPE.value
         artype = self.writeToKernel(buf)[2]
         print(artype)
-        self.KernelUpdate()
-    def writeToKernel(self, buffer):
-        if self.array_indicator == False:
-            dev = hid.device()
-            dev.open_path(self.camera)
-            q = dev.write(buffer)
-            r = dev.read(self.BUFF_LEN)
-            dev.close()
-            return r
-        else:
-            r = []
-            q = []
-            for path in self.paths:
+        try:
+            self.KernelUpdate()
+        except Exception as e:
+            print(e)
+    def writeToKernel(self, buffer, rlist=False):
+        try:
+            if self.KernelCameraSelect.currentIndex() == 0:
+                r = []
+                q = []
+                rr = []
+                for i, path in enumerate(self.paths):
+                    dev = hid.device()
+                    dev.open_path(path)
+                    q.append(dev.write(buffer))
+                    r.append(dev.read(self.BUFF_LEN))
+                    dev.close()
+                    if i == 0 and rlist == False:
+                        rr = r
+                    else:
+                        rr.append(r)
+                return rr
+            else:
                 dev = hid.device()
-                dev.open_path(path)
-                q.append(dev.write(buffer))
-                r.append(dev.read(self.BUFF_LEN))
+                dev.open_path(self.camera)
+                q = dev.write(buffer)
+                r = dev.read(self.BUFF_LEN)
                 dev.close()
+                return r
+        except Exception as e:
+            self.KernelLog.append("Error: " + str(e))
+
 
     def on_KernelBeep_toggled(self):
         buf = [0] * 512
@@ -1217,7 +1334,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             buf[2] = 0
 
         res = self.writeToKernel(buf)
-        self.KernelUpdate()
+        try:
+            self.KernelUpdate()
+        except Exception as e:
+            print(e)
     def on_KernelPWMSignal_toggled(self):
         buf = [0] * 512
 
@@ -1229,14 +1349,20 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             buf[2] = 0
 
         res = self.writeToKernel(buf)
-        self.KernelUpdate()
+        try:
+            self.KernelUpdate()
+        except Exception as e:
+            print(e)
     def on_KernelResetButton_released(self):
         buf = [0] * 512
         buf[0] = self.SET_COMMAND_REPORT
         buf[1] = eRegister.CM_RESET_CAMERA.value
 
         self.writeToKernel(buf)
-        self.KernelUpdate()
+        try:
+            self.KernelUpdate()
+        except Exception as e:
+            print(e)
     def on_KernelFolderCount_currentIndexChanged(self):
         buf = [0] * 512
         buf[0] = self.SET_REGISTER_WRITE_REPORT
@@ -1244,7 +1370,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         buf[2] = self.KernelFolderCount.currentIndex()
 
         self.writeToKernel(buf)
-        self.KernelUpdate()
+        try:
+            self.KernelUpdate()
+        except Exception as e:
+            print(e)
     def on_KernelVideoOut_currentIndexChanged(self):
         if self.KernelVideoOut.currentIndex() == 0:  # No Output
             buf = [0] * 512
@@ -1303,29 +1432,41 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             buf[2] = 1
             self.writeToKernel(buf)
         # self.camera.close()
-        self.KernelUpdate()
+        try:
+            self.KernelUpdate()
+        except Exception as e:
+            print(e)
     def on_KernelIntervalButton_released(self):
         self.modalwindow = KernelModal(self)
         self.modalwindow.resize(400, 200)
-        self.modalwindow.show()
+        self.modalwindow.exec_()
 
         num = self.seconds % 168
         if num == 0:
             num = 1
         self.seconds = num
-        self.KernelUpdate()
+        try:
+            self.KernelUpdate()
+        except Exception as e:
+            print(e)
 
     def on_KernelCANButton_released(self):
         self.modalwindow = KernelCAN(self)
         self.modalwindow.resize(400, 200)
-        self.modalwindow.show()
-        self.KernelUpdate()
+        self.modalwindow.exec_()
+        try:
+            self.KernelUpdate()
+        except Exception as e:
+            print(e)
 
     def on_KernelTimeButton_released(self):
         self.modalwindow = KernelTime(self)
         self.modalwindow.resize(400, 200)
-        self.modalwindow.show()
-        self.KernelUpdate()
+        self.modalwindow.exec_()
+        try:
+            self.KernelUpdate()
+        except Exception as e:
+            print(e)
 
     def writeToIntervalLine(self):
         self.KernelIntervalLine.clear()
@@ -1335,10 +1476,17 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     #########Pre-Process Steps: Start#################
     def on_PreProcessCameraModel_currentIndexChanged(self, int):
-        if self.PreProcessCameraModel.currentIndex() == 0 or self.PreProcessCameraModel.currentIndex() == 1 or \
-                        self.PreProcessCameraModel.currentIndex() == 2:
+        if self.PreProcessCameraModel.currentIndex() == 0 or self.PreProcessCameraModel.currentIndex() == 1:
+
             self.PreProcessFilter.clear()
-            self.PreProcessFilter.addItems(["405", "450", "520", "550", "590", "632", "650", "615", "725", "780", "808", "850", "880", "550/660/850"])
+            self.PreProcessFilter.addItems(["405", "450", "490", "518", "550", "590", "615", "632", "650", "685", "725", "780", "808", "850", "880", "550/660/850", "475/550/850"])
+            self.PreProcessFilter.setEnabled(True)
+            self.PreProcessLens.clear()
+            self.PreProcessLens.setEnabled(False)
+        elif self.PreProcessCameraModel.currentIndex() == 2:
+            self.PreProcessFilter.clear()
+            self.PreProcessFilter.addItems(
+                ["550/660/850", "475/550/850"])
             self.PreProcessFilter.setEnabled(True)
             self.PreProcessLens.clear()
             self.PreProcessLens.setEnabled(False)
@@ -1391,10 +1539,16 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.PreProcessLens.setEnabled(False)
 
     def on_CalibrationCameraModel_currentIndexChanged(self, int):
-        if self.CalibrationCameraModel.currentIndex() == 0 or self.CalibrationCameraModel.currentIndex() == 1 or \
-                        self.CalibrationCameraModel.currentIndex() == 2:
+        if self.CalibrationCameraModel.currentIndex() == 0 or self.CalibrationCameraModel.currentIndex() == 1:
             self.CalibrationFilter.clear()
-            self.CalibrationFilter.addItems(["405", "450", "520", "550", "590", "632", "650", "615", "725", "780", "808", "850", "880", "550/660/850"])
+            self.CalibrationFilter.addItems(["405", "450", "490", "518", "550", "590", "615", "632", "650", "685", "725", "780", "808", "850", "880", "550/660/850", "475/550/850"])
+            self.CalibrationFilter.setEnabled(True)
+            self.CalibrationLens.clear()
+            self.CalibrationLens.setEnabled(False)
+        elif self.CalibrationCameraModel.currentIndex() == 2:
+            self.CalibrationFilter.clear()
+            self.CalibrationFilter.addItems(
+                ["550/660/850", "475/550/850"])
             self.CalibrationFilter.setEnabled(True)
             self.CalibrationLens.clear()
             self.CalibrationLens.setEnabled(False)
@@ -1457,6 +1611,383 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.CalibrationLens.clear()
             self.CalibrationLens.setEnabled(False)
 
+    def on_CalibrationCameraModel_2_currentIndexChanged(self, int):
+        if self.CalibrationCameraModel_2.currentIndex() == 0 or self.CalibrationCameraModel_2.currentIndex() == 1:
+            self.CalibrationFilter_2.clear()
+            self.CalibrationFilter_2.addItems(
+                ["405", "450", "490", "518", "550", "590", "615", "632", "650", "685", "725", "780", "808", "850",
+                 "880", "550/660/850", "475/550/850"])
+            self.CalibrationFilter_2.setEnabled(True)
+            self.CalibrationLens_2.clear()
+            self.CalibrationLens_2.setEnabled(False)
+        elif self.PreProcessCameraModel.currentIndex() == 2:
+            self.PreProcessFilter.clear()
+            self.PreProcessFilter.addItems(
+                ["550/660/850", "475/550/850"])
+            self.PreProcessFilter.setEnabled(True)
+            self.PreProcessLens.clear()
+            self.PreProcessLens.setEnabled(False)
+        elif self.CalibrationCameraModel_2.currentIndex() == 3:
+            self.CalibrationFilter_2.clear()
+            self.CalibrationFilter_2.addItems(["RGB", "RGN", "NGB", "NIR"])
+            self.CalibrationFilter_2.setEnabled(True)
+            self.CalibrationLens_2.clear()
+            self.CalibrationLens_2.addItems([" 3.37mm (Survey3W)", "8.25mm (Survey3N)"])
+            self.CalibrationLens_2.setEnabled(True)
+        elif self.CalibrationCameraModel_2.currentIndex() == 4:
+            self.CalibrationFilter_2.clear()
+            self.CalibrationFilter_2.addItems(["Red + NIR (NDVI)", "NIR", "Red", "Green", "Blue", "RGB"])
+            self.CalibrationFilter_2.setEnabled(True)
+            self.CalibrationLens_2.clear()
+            self.CalibrationLens_2.addItems(["3.97mm"])
+            self.CalibrationLens_2.setEnabled(False)
+        elif self.CalibrationCameraModel_2.currentIndex() == 5:
+            self.CalibrationFilter_2.clear()
+            self.CalibrationFilter_2.addItems(["Blue + NIR (NDVI)"])
+            self.CalibrationFilter_2.setEnabled(False)
+            self.CalibrationLens_2.clear()
+            self.CalibrationLens_2.addItems(["3.97mm"])
+            self.CalibrationLens_2.setEnabled(False)
+        elif self.CalibrationCameraModel_2.currentIndex() == 5:
+            self.CalibrationFilter_2.clear()
+            self.CalibrationFilter_2.addItems(["Red + NIR (NDVI)"])
+            self.CalibrationFilter_2.setEnabled(False)
+            self.CalibrationLens_2.clear()
+            self.CalibrationLens_2.addItems(["3.97mm"])
+            self.CalibrationLens_2.setEnabled(False)
+
+        elif self.CalibrationCameraModel_2.currentIndex() == 6:
+            self.CalibrationFilter_2.clear()
+            self.CalibrationFilter_2.addItems(["Red + NIR (NDVI)"])
+            self.CalibrationFilter_2.setEnabled(False)
+            self.CalibrationLens_2.clear()
+            self.CalibrationLens_2.addItems(["3.97mm"])
+            self.CalibrationLens_2.setEnabled(False)
+
+        elif self.CalibrationCameraModel_2.currentIndex() == 7:
+            self.CalibrationFilter_2.clear()
+            self.CalibrationFilter_2.addItems(["RGN"])
+            self.CalibrationFilter_2.setEnabled(False)
+            self.CalibrationLens_2.clear()
+            self.CalibrationLens_2.addItems(["3.97mm"])
+            self.CalibrationLens_2.setEnabled(False)
+        elif self.CalibrationCameraModel_2.currentIndex() > 7:
+            self.CalibrationFilter_2.clear()
+            self.CalibrationFilter_2.addItems(["Red + NIR (NDVI)"])
+            self.CalibrationFilter_2.setEnabled(False)
+            self.CalibrationLens_2.clear()
+            self.CalibrationLens_2.addItems(["3.97mm"])
+            self.CalibrationLens_2.setEnabled(False)
+
+
+        else:
+            self.CalibrationLens_2.clear()
+            self.CalibrationFilter_2.setEnabled(False)
+            self.CalibrationLens_2.clear()
+            self.CalibrationLens_2.setEnabled(False)
+
+    def on_CalibrationCameraModel_3_currentIndexChanged(self, int):
+        if self.CalibrationCameraModel_3.currentIndex() == 0 or self.CalibrationCameraModel_3.currentIndex() == 1:
+            self.CalibrationFilter_3.clear()
+            self.CalibrationFilter_3.addItems(
+                ["405", "450", "490", "518", "550", "590", "615", "632", "650", "685", "725", "780", "808", "850",
+                 "880", "550/660/850", "475/550/850"])
+            self.CalibrationFilter_3.setEnabled(True)
+            self.CalibrationLens_3.clear()
+            self.CalibrationLens_3.setEnabled(False)
+        elif self.PreProcessCameraModel.currentIndex() == 2:
+            self.PreProcessFilter.clear()
+            self.PreProcessFilter.addItems(
+                ["550/660/850", "475/550/850"])
+            self.PreProcessFilter.setEnabled(True)
+            self.PreProcessLens.clear()
+            self.PreProcessLens.setEnabled(False)
+        elif self.CalibrationCameraModel_3.currentIndex() == 3:
+            self.CalibrationFilter_3.clear()
+            self.CalibrationFilter_3.addItems(["RGB", "RGN", "NGB", "NIR"])
+            self.CalibrationFilter_3.setEnabled(True)
+            self.CalibrationLens_3.clear()
+            self.CalibrationLens_3.addItems([" 3.37mm (Survey3W)", "8.25mm (Survey3N)"])
+            self.CalibrationLens_3.setEnabled(True)
+        elif self.CalibrationCameraModel_3.currentIndex() == 4:
+            self.CalibrationFilter_3.clear()
+            self.CalibrationFilter_3.addItems(["Red + NIR (NDVI)", "NIR", "Red", "Green", "Blue", "RGB"])
+            self.CalibrationFilter_3.setEnabled(True)
+            self.CalibrationLens_3.clear()
+            self.CalibrationLens_3.addItems(["3.97mm"])
+            self.CalibrationLens_3.setEnabled(False)
+        elif self.CalibrationCameraModel_3.currentIndex() == 5:
+            self.CalibrationFilter_3.clear()
+            self.CalibrationFilter_3.addItems(["Blue + NIR (NDVI)"])
+            self.CalibrationFilter_3.setEnabled(False)
+            self.CalibrationLens_3.clear()
+            self.CalibrationLens_3.addItems(["3.97mm"])
+            self.CalibrationLens_3.setEnabled(False)
+        elif self.CalibrationCameraModel_3.currentIndex() == 5:
+            self.CalibrationFilter_3.clear()
+            self.CalibrationFilter_3.addItems(["Red + NIR (NDVI)"])
+            self.CalibrationFilter_3.setEnabled(False)
+            self.CalibrationLens_3.clear()
+            self.CalibrationLens_3.addItems(["3.97mm"])
+            self.CalibrationLens_3.setEnabled(False)
+
+        elif self.CalibrationCameraModel_3.currentIndex() == 6:
+            self.CalibrationFilter_3.clear()
+            self.CalibrationFilter_3.addItems(["Red + NIR (NDVI)"])
+            self.CalibrationFilter_3.setEnabled(False)
+            self.CalibrationLens_3.clear()
+            self.CalibrationLens_3.addItems(["3.97mm"])
+            self.CalibrationLens_3.setEnabled(False)
+
+        elif self.CalibrationCameraModel_3.currentIndex() == 7:
+            self.CalibrationFilter_3.clear()
+            self.CalibrationFilter_3.addItems(["RGN"])
+            self.CalibrationFilter_3.setEnabled(False)
+            self.CalibrationLens_3.clear()
+            self.CalibrationLens_3.addItems(["3.97mm"])
+            self.CalibrationLens_3.setEnabled(False)
+        elif self.CalibrationCameraModel_3.currentIndex() > 7:
+            self.CalibrationFilter_3.clear()
+            self.CalibrationFilter_3.addItems(["Red + NIR (NDVI)"])
+            self.CalibrationFilter_3.setEnabled(False)
+            self.CalibrationLens_3.clear()
+            self.CalibrationLens_3.addItems(["3.97mm"])
+            self.CalibrationLens_3.setEnabled(False)
+
+
+        else:
+            self.CalibrationLens_3.clear()
+            self.CalibrationFilter_3.setEnabled(False)
+            self.CalibrationLens_3.clear()
+            self.CalibrationLens_3.setEnabled(False)
+
+    def on_CalibrationCameraModel_4_currentIndexChanged(self, int):
+        if self.CalibrationCameraModel_4.currentIndex() == 0 or self.CalibrationCameraModel_4.currentIndex() == 1:
+            self.CalibrationFilter_4.clear()
+            self.CalibrationFilter_4.addItems(
+                ["405", "450", "490", "518", "550", "590", "615", "632", "650", "685", "725", "780", "808", "850",
+                 "880", "550/660/850", "475/550/850"])
+            self.CalibrationFilter_4.setEnabled(True)
+            self.CalibrationLens_4.clear()
+            self.CalibrationLens_4.setEnabled(False)
+        elif self.PreProcessCameraModel.currentIndex() == 2:
+            self.PreProcessFilter.clear()
+            self.PreProcessFilter.addItems(
+                ["550/660/850", "475/550/850"])
+            self.PreProcessFilter.setEnabled(True)
+            self.PreProcessLens.clear()
+            self.PreProcessLens.setEnabled(False)
+        elif self.CalibrationCameraModel_4.currentIndex() == 3:
+            self.CalibrationFilter_4.clear()
+            self.CalibrationFilter_4.addItems(["RGB", "RGN", "NGB", "NIR"])
+            self.CalibrationFilter_4.setEnabled(True)
+            self.CalibrationLens_4.clear()
+            self.CalibrationLens_4.addItems([" 3.37mm (Survey3W)", "8.25mm (Survey3N)"])
+            self.CalibrationLens_4.setEnabled(True)
+        elif self.CalibrationCameraModel_4.currentIndex() == 4:
+            self.CalibrationFilter_4.clear()
+            self.CalibrationFilter_4.addItems(["Red + NIR (NDVI)", "NIR", "Red", "Green", "Blue", "RGB"])
+            self.CalibrationFilter_4.setEnabled(True)
+            self.CalibrationLens_4.clear()
+            self.CalibrationLens_4.addItems(["3.97mm"])
+            self.CalibrationLens_4.setEnabled(False)
+        elif self.CalibrationCameraModel_4.currentIndex() == 5:
+            self.CalibrationFilter_4.clear()
+            self.CalibrationFilter_4.addItems(["Blue + NIR (NDVI)"])
+            self.CalibrationFilter_4.setEnabled(False)
+            self.CalibrationLens_4.clear()
+            self.CalibrationLens_4.addItems(["3.97mm"])
+            self.CalibrationLens_4.setEnabled(False)
+        elif self.CalibrationCameraModel_4.currentIndex() == 5:
+            self.CalibrationFilter_4.clear()
+            self.CalibrationFilter_4.addItems(["Red + NIR (NDVI)"])
+            self.CalibrationFilter_4.setEnabled(False)
+            self.CalibrationLens_4.clear()
+            self.CalibrationLens_4.addItems(["3.97mm"])
+            self.CalibrationLens_4.setEnabled(False)
+
+        elif self.CalibrationCameraModel_4.currentIndex() == 6:
+            self.CalibrationFilter_4.clear()
+            self.CalibrationFilter_4.addItems(["Red + NIR (NDVI)"])
+            self.CalibrationFilter_4.setEnabled(False)
+            self.CalibrationLens_4.clear()
+            self.CalibrationLens_4.addItems(["3.97mm"])
+            self.CalibrationLens_4.setEnabled(False)
+
+        elif self.CalibrationCameraModel_4.currentIndex() == 7:
+            self.CalibrationFilter_4.clear()
+            self.CalibrationFilter_4.addItems(["RGN"])
+            self.CalibrationFilter_4.setEnabled(False)
+            self.CalibrationLens_4.clear()
+            self.CalibrationLens_4.addItems(["3.97mm"])
+            self.CalibrationLens_4.setEnabled(False)
+        elif self.CalibrationCameraModel_4.currentIndex() > 7:
+            self.CalibrationFilter_4.clear()
+            self.CalibrationFilter_4.addItems(["Red + NIR (NDVI)"])
+            self.CalibrationFilter_4.setEnabled(False)
+            self.CalibrationLens_4.clear()
+            self.CalibrationLens_4.addItems(["3.97mm"])
+            self.CalibrationLens_4.setEnabled(False)
+
+
+        else:
+            self.CalibrationLens_4.clear()
+            self.CalibrationFilter_4.setEnabled(False)
+            self.CalibrationLens_4.clear()
+            self.CalibrationLens_4.setEnabled(False)
+
+    def on_CalibrationCameraModel_5_currentIndexChanged(self, int):
+        if self.CalibrationCameraModel_5.currentIndex() == 0 or self.CalibrationCameraModel_5.currentIndex() == 1:
+            self.CalibrationFilter_5.clear()
+            self.CalibrationFilter_5.addItems(
+                ["405", "450", "490", "518", "550", "590", "615", "632", "650", "685", "725", "780", "808", "850",
+                 "880", "550/660/850", "475/550/850"])
+            self.CalibrationFilter_5.setEnabled(True)
+            self.CalibrationLens_5.clear()
+            self.CalibrationLens_5.setEnabled(False)
+        elif self.PreProcessCameraModel.currentIndex() == 2:
+            self.PreProcessFilter.clear()
+            self.PreProcessFilter.addItems(
+                ["550/660/850", "475/550/850"])
+            self.PreProcessFilter.setEnabled(True)
+            self.PreProcessLens.clear()
+            self.PreProcessLens.setEnabled(False)
+        elif self.CalibrationCameraModel_5.currentIndex() == 3:
+            self.CalibrationFilter_5.clear()
+            self.CalibrationFilter_5.addItems(["RGB", "RGN", "NGB", "NIR"])
+            self.CalibrationFilter_5.setEnabled(True)
+            self.CalibrationLens_5.clear()
+            self.CalibrationLens_5.addItems([" 3.37mm (Survey3W)", "8.25mm (Survey3N)"])
+            self.CalibrationLens_5.setEnabled(True)
+        elif self.CalibrationCameraModel_5.currentIndex() == 4:
+            self.CalibrationFilter_5.clear()
+            self.CalibrationFilter_5.addItems(["Red + NIR (NDVI)", "NIR", "Red", "Green", "Blue", "RGB"])
+            self.CalibrationFilter_5.setEnabled(True)
+            self.CalibrationLens_5.clear()
+            self.CalibrationLens_5.addItems(["3.97mm"])
+            self.CalibrationLens_5.setEnabled(False)
+        elif self.CalibrationCameraModel_5.currentIndex() == 5:
+            self.CalibrationFilter_5.clear()
+            self.CalibrationFilter_5.addItems(["Blue + NIR (NDVI)"])
+            self.CalibrationFilter_5.setEnabled(False)
+            self.CalibrationLens_5.clear()
+            self.CalibrationLens_5.addItems(["3.97mm"])
+            self.CalibrationLens_5.setEnabled(False)
+        elif self.CalibrationCameraModel_5.currentIndex() == 5:
+            self.CalibrationFilter_5.clear()
+            self.CalibrationFilter_5.addItems(["Red + NIR (NDVI)"])
+            self.CalibrationFilter_5.setEnabled(False)
+            self.CalibrationLens_5.clear()
+            self.CalibrationLens_5.addItems(["3.97mm"])
+            self.CalibrationLens_5.setEnabled(False)
+
+        elif self.CalibrationCameraModel_5.currentIndex() == 6:
+            self.CalibrationFilter_5.clear()
+            self.CalibrationFilter_5.addItems(["Red + NIR (NDVI)"])
+            self.CalibrationFilter_5.setEnabled(False)
+            self.CalibrationLens_5.clear()
+            self.CalibrationLens_5.addItems(["3.97mm"])
+            self.CalibrationLens_5.setEnabled(False)
+
+        elif self.CalibrationCameraModel_5.currentIndex() == 7:
+            self.CalibrationFilter_5.clear()
+            self.CalibrationFilter_5.addItems(["RGN"])
+            self.CalibrationFilter_5.setEnabled(False)
+            self.CalibrationLens_5.clear()
+            self.CalibrationLens_5.addItems(["3.97mm"])
+            self.CalibrationLens_5.setEnabled(False)
+        elif self.CalibrationCameraModel_5.currentIndex() > 7:
+            self.CalibrationFilter_5.clear()
+            self.CalibrationFilter_5.addItems(["Red + NIR (NDVI)"])
+            self.CalibrationFilter_5.setEnabled(False)
+            self.CalibrationLens_5.clear()
+            self.CalibrationLens_5.addItems(["3.97mm"])
+            self.CalibrationLens_5.setEnabled(False)
+
+
+        else:
+            self.CalibrationLens_5.clear()
+            self.CalibrationFilter_5.setEnabled(False)
+            self.CalibrationLens_5.clear()
+            self.CalibrationLens_5.setEnabled(False)
+
+    def on_CalibrationCameraModel_6_currentIndexChanged(self, int):
+        if self.CalibrationCameraModel_6.currentIndex() == 0 or self.CalibrationCameraModel_6.currentIndex() == 1:
+            self.CalibrationFilter_6.clear()
+            self.CalibrationFilter_6.addItems(
+                ["405", "450", "490", "518", "550", "590", "615", "632", "650", "685", "725", "780", "808", "850",
+                 "880", "550/660/850", "475/550/850"])
+            self.CalibrationFilter_6.setEnabled(True)
+            self.CalibrationLens_6.clear()
+            self.CalibrationLens_6.setEnabled(False)
+        elif self.PreProcessCameraModel.currentIndex() == 2:
+            self.PreProcessFilter.clear()
+            self.PreProcessFilter.addItems(
+                ["550/660/850", "475/550/850"])
+            self.PreProcessFilter.setEnabled(True)
+            self.PreProcessLens.clear()
+            self.PreProcessLens.setEnabled(False)
+        elif self.CalibrationCameraModel_6.currentIndex() == 3:
+            self.CalibrationFilter_6.clear()
+            self.CalibrationFilter_6.addItems(["RGB", "RGN", "NGB", "NIR"])
+            self.CalibrationFilter_6.setEnabled(True)
+            self.CalibrationLens_6.clear()
+            self.CalibrationLens_6.addItems([" 3.37mm (Survey3W)", "8.25mm (Survey3N)"])
+            self.CalibrationLens_6.setEnabled(True)
+        elif self.CalibrationCameraModel_6.currentIndex() == 4:
+            self.CalibrationFilter_6.clear()
+            self.CalibrationFilter_6.addItems(["Red + NIR (NDVI)", "NIR", "Red", "Green", "Blue", "RGB"])
+            self.CalibrationFilter_6.setEnabled(True)
+            self.CalibrationLens_6.clear()
+            self.CalibrationLens_6.addItems(["3.97mm"])
+            self.CalibrationLens_6.setEnabled(False)
+        elif self.CalibrationCameraModel_6.currentIndex() == 5:
+            self.CalibrationFilter_6.clear()
+            self.CalibrationFilter_6.addItems(["Blue + NIR (NDVI)"])
+            self.CalibrationFilter_6.setEnabled(False)
+            self.CalibrationLens_6.clear()
+            self.CalibrationLens_6.addItems(["3.97mm"])
+            self.CalibrationLens_6.setEnabled(False)
+        elif self.CalibrationCameraModel_6.currentIndex() == 5:
+            self.CalibrationFilter_6.clear()
+            self.CalibrationFilter_6.addItems(["Red + NIR (NDVI)"])
+            self.CalibrationFilter_6.setEnabled(False)
+            self.CalibrationLens_6.clear()
+            self.CalibrationLens_6.addItems(["3.97mm"])
+            self.CalibrationLens_6.setEnabled(False)
+
+        elif self.CalibrationCameraModel_6.currentIndex() == 6:
+            self.CalibrationFilter_6.clear()
+            self.CalibrationFilter_6.addItems(["Red + NIR (NDVI)"])
+            self.CalibrationFilter_6.setEnabled(False)
+            self.CalibrationLens_6.clear()
+            self.CalibrationLens_6.addItems(["3.97mm"])
+            self.CalibrationLens_6.setEnabled(False)
+
+        elif self.CalibrationCameraModel_6.currentIndex() == 7:
+            self.CalibrationFilter_6.clear()
+            self.CalibrationFilter_6.addItems(["RGN"])
+            self.CalibrationFilter_6.setEnabled(False)
+            self.CalibrationLens_6.clear()
+            self.CalibrationLens_6.addItems(["3.97mm"])
+            self.CalibrationLens_6.setEnabled(False)
+        elif self.CalibrationCameraModel_6.currentIndex() > 7:
+            self.CalibrationFilter_6.clear()
+            self.CalibrationFilter_6.addItems(["Red + NIR (NDVI)"])
+            self.CalibrationFilter_6.setEnabled(False)
+            self.CalibrationLens_6.clear()
+            self.CalibrationLens_6.addItems(["3.97mm"])
+            self.CalibrationLens_6.setEnabled(False)
+
+
+        else:
+            self.CalibrationLens_6.clear()
+            self.CalibrationFilter_6.setEnabled(False)
+            self.CalibrationLens_6.clear()
+            self.CalibrationLens_6.setEnabled(False)
+
+
+
     def on_PreProcessInButton_released(self):
         with open(modpath + os.sep + "instring.txt", "r+") as instring:
             self.PreProcessInFolder.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
@@ -1497,8 +2028,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     os.mkdir(outfolder)
                     endloop = True
 
-            self.PreProcessLog.append("Input folder: " + infolder)
-            self.PreProcessLog.append("Output folder: " + outfolder)
+            # self.PreProcessLog.append("Input folder: " + infolder)
+            # self.PreProcessLog.append("Output folder: " + outfolder)
             try:
                 self.preProcessHelper(infolder, outfolder)
             except Exception as e:
@@ -1591,7 +2122,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             if self.CalibrationCameraModel.currentIndex() == -1:
                 self.CalibrationLog.append("Attention! Please select a camera model.\n")
             elif len(self.CalibrationQRFile.text()) > 0:
-                self.qrcoeffs = self.findQR(self.CalibrationQRFile.text())
+                self.qrcoeffs = self.findQR(self.CalibrationQRFile.text(), [self.CalibrationCameraModel.currentIndex(), self.CalibrationFilter.currentIndex(), self.CalibrationLens.currentIndex()])
                 self.useqr = True
             else:
                 self.CalibrationLog.append("Attention! Please select a target image.\n")
@@ -1599,10 +2130,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.CalibrationLog.append(str(e))
     def on_CalibrationGenButton_2_released(self):
         try:
-            if self.CalibrationCameraModel.currentIndex() == -1:
+            if self.CalibrationCameraModel_2.currentIndex() == -1:
                 self.CalibrationLog.append("Attention! Please select a camera model.\n")
             elif len(self.CalibrationQRFile_2.text()) > 0:
-                self.qrcoeffs2 = self.findQR(self.CalibrationQRFile_2.text())
+                self.qrcoeffs2 = self.findQR(self.CalibrationQRFile_2.text(), [self.CalibrationCameraModel_2.currentIndex(), self.CalibrationFilter_2.currentIndex(), self.CalibrationLens_2.currentIndex()])
                 self.useqr = True
             else:
                 self.CalibrationLog.append("Attention! Please select a target image.\n")
@@ -1610,10 +2141,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.CalibrationLog.append(str(e))
     def on_CalibrationGenButton_3_released(self):
         try:
-            if self.CalibrationCameraModel.currentIndex() == -1:
+            if self.CalibrationCameraModel_3.currentIndex() == -1:
                 self.CalibrationLog.append("Attention! Please select a camera model.\n")
             elif len(self.CalibrationQRFile_3.text()) > 0:
-                self.qrcoeffs3 = self.findQR(self.CalibrationQRFile_3.text())
+                self.qrcoeffs3 = self.findQR(self.CalibrationQRFile_3.text(), [self.CalibrationCameraModel_3.currentIndex(), self.CalibrationFilter_3.currentIndex(), self.CalibrationLens_3.currentIndex()])
                 self.useqr = True
             else:
                 self.CalibrationLog.append("Attention! Please select a target image.\n")
@@ -1621,10 +2152,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.CalibrationLog.append(str(e))
     def on_CalibrationGenButton_4_released(self):
         try:
-            if self.CalibrationCameraModel.currentIndex() == -1:
+            if self.CalibrationCameraModel_4.currentIndex() == -1:
                 self.CalibrationLog.append("Attention! Please select a camera model.\n")
             elif len(self.CalibrationQRFile_4.text()) > 0:
-                self.qrcoeffs4 = self.findQR(self.CalibrationQRFile_4.text())
+                self.qrcoeffs4 = self.findQR(self.CalibrationQRFile_4.text(), [self.CalibrationCameraModel_4.currentIndex(), self.CalibrationFilter_4.currentIndex(), self.CalibrationLens_4.currentIndex()])
                 self.useqr = True
             else:
                 self.CalibrationLog.append("Attention! Please select a target image.\n")
@@ -1632,10 +2163,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.CalibrationLog.append(str(e))
     def on_CalibrationGenButton_5_released(self):
         try:
-            if self.CalibrationCameraModel.currentIndex() == -1:
+            if self.CalibrationCameraModel_5.currentIndex() == -1:
                 self.CalibrationLog.append("Attention! Please select a camera model.\n")
             elif len(self.CalibrationQRFile_5.text()) > 0:
-                self.qrcoeffs5 = self.findQR(self.CalibrationQRFile_5.text())
+                self.qrcoeffs5 = self.findQR(self.CalibrationQRFile_5.text(), [self.CalibrationCameraModel_5.currentIndex(), self.CalibrationFilter_5.currentIndex(), self.CalibrationLens_5.currentIndex()])
                 self.useqr = True
             else:
                 self.CalibrationLog.append("Attention! Please select a target image.\n")
@@ -1643,10 +2174,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.CalibrationLog.append(str(e))
     def on_CalibrationGenButton_6_released(self):
         try:
-            if self.CalibrationCameraModel.currentIndex() == -1:
+            if self.CalibrationCameraModel_6.currentIndex() == -1:
                 self.CalibrationLog.append("Attention! Please select a camera model.\n")
             elif len(self.CalibrationQRFile_6.text()) > 0:
-                self.qrcoeffs6 = self.findQR(self.CalibrationQRFile_6.text())
+                self.qrcoeffs6 = self.findQR(self.CalibrationQRFile_6.text(), [self.CalibrationCameraModel_6.currentIndex(), self.CalibrationFilter_6.currentIndex(), self.CalibrationLens_6.currentIndex()])
                 self.useqr = True
             else:
                 self.CalibrationLog.append("Attention! Please select a target image.\n")
@@ -1655,9 +2186,19 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def on_CalibrateButton_released(self):
         try:
-            if self.CalibrationCameraModel.currentIndex() == -1:
+            if self.CalibrationCameraModel.currentIndex() == -1\
+                    and self.CalibrationCameraModel_2.currentIndex() == -1 \
+                    and self.CalibrationCameraModel_3.currentIndex() == -1 \
+                    and self.CalibrationCameraModel_4.currentIndex() == -1 \
+                    and self.CalibrationCameraModel_5.currentIndex() == -1 \
+                    and self.CalibrationCameraModel_6.currentIndex() == -1:
                 self.CalibrationLog.append("Attention! Please select a camera model.\n")
-            elif len(self.CalibrationInFolder.text()) <= 0:
+            elif len(self.CalibrationInFolder.text()) <= 0 \
+                    and len(self.CalibrationInFolder_2.text()) <= 0 \
+                    and len(self.CalibrationInFolder_3.text()) <= 0 \
+                    and len(self.CalibrationInFolder_4.text()) <= 0 \
+                    and len(self.CalibrationInFolder_5.text()) <= 0 \
+                    and len(self.CalibrationInFolder_6.text()) <= 0:
                 self.CalibrationLog.append("Attention! Please select a calibration folder.\n")
             else:
                 self.firstpass = True
@@ -1684,617 +2225,553 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
 
 
+                indexes = [[self.CalibrationCameraModel.currentIndex(), self.CalibrationFilter.currentIndex(), self.CalibrationLens.currentIndex()],
+                           [self.CalibrationCameraModel_2.currentIndex(), self.CalibrationFilter_2.currentIndex(),
+                            self.CalibrationLens_2.currentIndex()],
+                           [self.CalibrationCameraModel_3.currentIndex(), self.CalibrationFilter_3.currentIndex(),
+                            self.CalibrationLens_3.currentIndex()],
+                           [self.CalibrationCameraModel_4.currentIndex(), self.CalibrationFilter_4.currentIndex(),
+                            self.CalibrationLens_4.currentIndex()],
+                           [self.CalibrationCameraModel_5.currentIndex(), self.CalibrationFilter_5.currentIndex(),
+                            self.CalibrationLens_5.currentIndex()],
+                           [self.CalibrationCameraModel_6.currentIndex(), self.CalibrationFilter_6.currentIndex(),
+                            self.CalibrationLens_6.currentIndex()],
+                           ]
+                coeffslist = [self.qrcoeffs,
+                              self.qrcoeffs2,
+                              self.qrcoeffs3,
+                              self.qrcoeffs4,
+                              self.qrcoeffs5,
+                              self.qrcoeffs6]
 
+                folderind = [calfolder,
+                             calfolder2,
+                             calfolder3,
+                             calfolder4,
+                             calfolder5,
+                             calfolder6]
 
-
-
-                if self.CalibrationCameraModel.currentIndex() > 2:
-                    if os.path.exists(calfolder):
-                        # print("Cal1")
-                        files_to_calibrate = []
-                        os.chdir(calfolder)
-                        files_to_calibrate.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
-                        files_to_calibrate.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
-                        files_to_calibrate.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
-                        files_to_calibrate.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
-                        print(str(files_to_calibrate))
-                        if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate[0]:
-                            # self.CalibrationLog.append("Found files to Calibrate.\n")
-                            foldercount = 1
-                            endloop = False
-                            while endloop is False:
-                                outdir = calfolder + os.sep + "Calibrated_" + str(foldercount)
-                                if os.path.exists(outdir):
-                                    foldercount += 1
-                                else:
-                                    os.mkdir(outdir)
-                                    endloop = True
-                            for calpixel in files_to_calibrate:
-                                # print("MM1")
-                                os.chdir(calfolder)
-                                temp1 = cv2.imread(calpixel, -1)
-                                self.monominmax["min"] = min(temp1.min(), self.monominmax["min"])
-                                self.monominmax["max"] = max(temp1.max(), self.monominmax["max"])
-                            # or calfile in files_to_calibrate:
-                            # # print("cb1")
-                            # os.chdir(calfolder)
-                            # if self.useqr == True:
-                            #     # self.CalibrationLog.append("Using QR")
-                            #     self.CalibrateMono(calfile, self.qrcoeffs, outdir)
-                            # else:
-                            #     if self.CalibrationFilter.currentIndex() == 0:
-                            #         self.CalibrateMono(calfile, self.BASE_COEFF_KERNEL_F590, outdir)
-                            #     elif self.CalibrationFilter.currentIndex() == 1:
-                            #         self.CalibrateMono(calfile, self.BASE_COEFF_KERNEL_F650, outdir)
-                            #     elif self.CalibrationFilter.currentIndex() == 2:
-                            #         self.CalibrateMono(calfile, self.BASE_COEFF_KERNEL_F850, outdir)
-
-                    for calpixel in files_to_calibrate:
-
-                        img = cv2.imread(calpixel, -1)
-                        # kernel = np.ones((2, 2), np.uint16)
-                        # img = cv2.erode(img, kernel, iterations=1)
-                        # img = cv2.dilate(img, kernel, iterations=1)
-                        # imsize = np.shape(img)
-                        # if imsize[0] > self.imcols or imsize[1] > self.imrows:
-                        #     if "tif" or "TIF" in calpixel:
-                        #         tempimg = np.memmap(calpixel, dtype=np.uint16, shape=(imsize))
-                        #         refimg = None
-                        #         refimg = tempimg
-                        #     else:
-                        #         tempimg = np.memmap(calpixel, dtype=np.uint8, shape=(imsize))
-                        #         refimg = None
-                        #         refimg = tempimg
-                        blue = img[:, :, 0]
-                        green = img[:, :, 1]
-                        red = img[:, :, 2]
-                        if self.CalibrationCameraModel.currentIndex() == 5:  # Survey1_NDVI
-                            # img = img.astype('float')
-
-                            blue = img[:, :, 0] - ((img[:, :, 2] / 5) * 4)
-                            if self.useqr == True:
-                                red = (self.qrcoeffs[0] * red)
-                                green = (self.qrcoeffs[1] * green)
-                                blue = (self.qrcoeffs[2] * blue)
-                                # red = np.array(
-                                #     ((np.power(red, 2) * self.qrcoeffs[0][0]) + (red * self.qrcoeffs[0][1]) +
-                                #      self.qrcoeffs[0][2]),
-                                #     dtype=object)
-                                # green = np.array(
-                                #     ((np.power(green, 2) * self.qrcoeffs[1][0]) + (green * self.qrcoeffs[1][1]) +
-                                #      self.qrcoeffs[1][2]),
-                                #     dtype=object)
-                                # blue = np.array(
-                                #     ((np.power(blue, 2) * self.qrcoeffs[2][0]) + (blue * self.qrcoeffs[2][1]) +
-                                #      self.qrcoeffs[2][2]),
-                                #     dtype=object)
-                        elif ((self.CalibrationCameraModel.currentIndex() == 4) and (self.CalibrationFilter.currentIndex() == 0)) \
-                                or self.CalibrationCameraModel.currentIndex() == 5 \
-                                or self.CalibrationCameraModel.currentIndex() > 7:  # Survey2 NDVI, DJI NDVI cameras
-                            # img = img.astype('float')
-
-                            red = img[:, :, 2] - ((img[:, :, 0] / 5) * 4)
-                            if self.useqr == True:
-                                red = (self.qrcoeffs[0] * red)
-                                green = (self.qrcoeffs[1] * green)
-                                blue = (self.qrcoeffs[2] * blue)
-                                # red = np.array(
-                                #     ((np.power(red, 2) * self.qrcoeffs[0][0]) + (red * self.qrcoeffs[0][1]) +
-                                #      self.qrcoeffs[0][2]),
-                                #     dtype=object)
-                                # green = np.array(
-                                #     ((np.power(green, 2) * self.qrcoeffs[1][0]) + (green * self.qrcoeffs[1][1]) +
-                                #      self.qrcoeffs[1][2]),
-                                #     dtype=object)
-                                # blue = np.array(
-                                #     ((np.power(blue, 2) * self.qrcoeffs[2][0]) + (blue * self.qrcoeffs[2][1]) +
-                                #      self.qrcoeffs[2][2]),
-                                #     dtype=object)
-                        elif ((self.CalibrationCameraModel.currentIndex() == 3) and (self.CalibrationFilter.currentIndex() == 1)): #\
-                               # or self.CalibrationCameraModel.currentIndex() == 7:
-                            tblue = (img[:, :, 0] / 35) * 100
-                            red = img[:, :, 2] - ((tblue * 30) / 100)
-                            green = img[:, :, 1] - ((tblue * 35) / 100)
-                            red[red < 0] = 0
-                            green[green < 0] = 0
-                            if self.useqr == True:
-                                # red = np.array(
-                                #     ((np.power(red, 2) * self.qrcoeffs[0][0]) + (red * self.qrcoeffs[0][1]) +
-                                #      self.qrcoeffs[0][2]),
-                                #     dtype=object)
-                                # green = np.array(
-                                #     ((np.power(green, 2) * self.qrcoeffs[1][0]) + (green * self.qrcoeffs[1][1]) +
-                                #      self.qrcoeffs[1][2]),
-                                #     dtype=object)
-                                # blue = np.array(
-                                #     ((np.power(blue, 2) * self.qrcoeffs[2][0]) + (blue * self.qrcoeffs[2][1]) +
-                                #      self.qrcoeffs[2][2]),
-                                #     dtype=object)
-                                red = (self.qrcoeffs[0] * red)
-                                green = (self.qrcoeffs[1] * green)
-                                blue = (self.qrcoeffs[2] * blue)
-                        elif ((self.CalibrationCameraModel.currentIndex() == 3) and (self.CalibrationFilter.currentIndex() == 2)):
-                            tred = (img[:, :, 2] / 30) * 100
-                            blue = img[:, :, 0] - ((tred * 35) / 100)
-                            green = img[:, :, 1] - ((tred * 35) / 100)
-                            blue[blue < 0] = 0
-                            green[green < 0] = 0
-                            if self.useqr == True:
-                                red = (self.qrcoeffs[0] * red)
-                                green = (self.qrcoeffs[1] * green)
-                                blue = (self.qrcoeffs[2] * blue)
-                                # red = np.array(
-                                #     ((np.power(red, 2) * self.qrcoeffs[0][0]) + (red * self.qrcoeffs[0][1]) + self.qrcoeffs[0][2]),
-                                #     dtype=object)
-                                # green = np.array(
-                                #     ((np.power(green, 2) * self.qrcoeffs[1][0]) + (green * self.qrcoeffs[1][1]) + self.qrcoeffs[1][2]),
-                                #     dtype=object)
-                                # blue = np.array(
-                                #     ((np.power(blue, 2) * self.qrcoeffs[2][0]) + (blue * self.qrcoeffs[2][1]) + self.qrcoeffs[2][2]),
-                                #     dtype=object)
-                        # these are a little confusing, but the check to find the highest and lowest pixel value
-                        # in each channel in each image and keep the highest/lowest value found.
-                        if self.seed_pass == False:
-                            pixel_min_max["redmax"] = np.percentile(red, 99)
-                            pixel_min_max["redmin"] = np.percentile(red, 1)
-                            pixel_min_max["greenmax"] = np.percentile(green, 99)
-                            pixel_min_max["greenmin"] = np.percentile(green, 1)
-                            pixel_min_max["bluemax"] = np.percentile(blue, 99)
-                            pixel_min_max["bluemin"] = np.percentile(blue, 1)
-                            self.seed_pass = True
-                        else:
-                            pixel_min_max["redmax"] = max(np.percentile(red, 99), pixel_min_max["redmax"])
-                            pixel_min_max["redmin"] = min(np.percentile(red, 1), pixel_min_max["redmin"])
-                            pixel_min_max["greenmax"] = max(np.percentile(green, 99), pixel_min_max["greenmax"])
-                            pixel_min_max["greenmin"] = min(np.percentile(green, 1), pixel_min_max["greenmin"])
-                            pixel_min_max["bluemax"] = max(np.percentile(blue, 99), pixel_min_max["bluemax"])
-                            pixel_min_max["bluemin"] = min(np.percentile(blue, 1), pixel_min_max["bluemin"])
-
-
-                    if self.useqr == True:
+                for j, ind in enumerate(indexes):
+                    # self.CalibrationLog.append("Checking folder " + str(j + 1))
+                    if ind[0] == -1:
                         pass
-                    #     pixel_min_max["redmax"] = np.array(((np.power(pixel_min_max["redmax"], 2) * self.qrcoeffs[0][0]) + \
-                    #                               (pixel_min_max["redmax"] * self.qrcoeffs[0][1]) + \
-                    #                               self.qrcoeffs[0][2]), dtype=object)
-                    #     pixel_min_max["redmin"] = np.array(((np.power(pixel_min_max["redmin"], 2) * self.qrcoeffs[0][0]) + \
-                    #                               (pixel_min_max["redmin"] * self.qrcoeffs[0][1]) + \
-                    #                               self.qrcoeffs[0][2]), dtype=object)
-                    #     pixel_min_max["greenmax"] = np.array(((np.power(pixel_min_max["greenmax"], 2) * self.qrcoeffs[1][0]) + \
-                    #                               (pixel_min_max["greenmax"] * self.qrcoeffs[1][1]) + \
-                    #                               self.qrcoeffs[1][2]), dtype=object)
-                    #     pixel_min_max["greenmin"] = np.array(((np.power(pixel_min_max["greenmin"], 2) * self.qrcoeffs[1][0]) + \
-                    #                                 (pixel_min_max["greenmin"] * self.qrcoeffs[1][1]) + \
-                    #                                 self.qrcoeffs[1][2]), dtype=object)
-                    #     pixel_min_max["bluemax"] = np.array(((np.power(pixel_min_max["bluemax"], 2) * self.qrcoeffs[2][0]) + \
-                    #                                 (pixel_min_max["bluemax"] * self.qrcoeffs[2][1]) + \
-                    #                                 self.qrcoeffs[2][2]), dtype=object)
-                    #     pixel_min_max["bluemin"] = np.array(((np.power(pixel_min_max["bluemin"], 2) * self.qrcoeffs[2][0]) + \
-                    #                                (pixel_min_max["bluemin"] * self.qrcoeffs[2][1]) + \
-                    #                                self.qrcoeffs[2][2]), dtype=object)
-                        # pixel_min_max["redmax"] = pixel_min_max["redmax"] * self.qrcoeffs[1] + self.qrcoeffs[0]
-                        # pixel_min_max["redmin"] = pixel_min_max["redmin"] * self.qrcoeffs[1] + self.qrcoeffs[0]
-                        # pixel_min_max["greenmax"] = pixel_min_max["greenmax"] * self.qrcoeffs[3] + self.qrcoeffs[2]
-                        # pixel_min_max["greenmin"] = pixel_min_max["greenmin"] * self.qrcoeffs[3] + self.qrcoeffs[2]
-                        # pixel_min_max["bluemax"] = pixel_min_max["bluemax"] * self.qrcoeffs[5] + self.qrcoeffs[4]
-                        # pixel_min_max["bluemin"] = pixel_min_max["bluemin"] * self.qrcoeffs[5] + self.qrcoeffs[4]
+                    elif ind[0] > 1:
+                        if os.path.exists(folderind[j]):
+                            # print("Cal1")
+                            files_to_calibrate = []
+                            os.chdir(folderind[j])
+                            files_to_calibrate.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
+                            files_to_calibrate.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
+                            files_to_calibrate.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
+                            files_to_calibrate.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
+                            print(str(files_to_calibrate))
+                            if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate[0]:
+                                # self.CalibrationLog.append("Found files to Calibrate.\n")
+                                foldercount = 1
+                                endloop = False
+                                while endloop is False:
+                                    outdir = folderind[j] + os.sep + "Calibrated_" + str(foldercount)
+                                    if os.path.exists(outdir):
+                                        foldercount += 1
+                                    else:
+                                        os.mkdir(outdir)
+                                        endloop = True
+                                for calpixel in files_to_calibrate:
+                                    # print("MM1")
+                                    os.chdir(folderind[j])
+                                    temp1 = cv2.imread(calpixel, -1)
+                                    self.monominmax["min"] = min(temp1.min(), self.monominmax["min"])
+                                    self.monominmax["max"] = max(temp1.max(), self.monominmax["max"])
 
 
-                    else:
-                        if self.CalibrationCameraModel.currentIndex() == 5:  # Survey1_NDVI
-                                pixel_min_max["redmax"] = (pixel_min_max["redmax"] * self.BASE_COEFF_SURVEY1_NDVI_JPG[1]) \
-                                                          + self.BASE_COEFF_SURVEY1_NDVI_JPG[0]
-                                pixel_min_max["redmin"] = (pixel_min_max["redmin"] * self.BASE_COEFF_SURVEY1_NDVI_JPG[1]) \
-                                                          + self.BASE_COEFF_SURVEY1_NDVI_JPG[0]
-                                pixel_min_max["bluemin"] = (pixel_min_max["bluemin"] * self.BASE_COEFF_SURVEY1_NDVI_JPG[3]) \
-                                                           + self.BASE_COEFF_SURVEY1_NDVI_JPG[2]
-                                pixel_min_max["bluemax"] = (pixel_min_max["bluemax"] * self.BASE_COEFF_SURVEY1_NDVI_JPG[3]) \
-                                                           + self.BASE_COEFF_SURVEY1_NDVI_JPG[2]
-                        elif (self.CalibrationCameraModel.currentIndex() == 4) and self.CalibrationFilter.currentIndex() == 0:
-                            if "tif" or "TIF" in calpixel:
-                                pixel_min_max["redmax"] = (pixel_min_max["redmax"] * self.BASE_COEFF_SURVEY2_NDVI_TIF[1]) \
-                                                          + self.BASE_COEFF_SURVEY2_NDVI_TIF[0]
-                                pixel_min_max["redmin"] = (pixel_min_max["redmin"] * self.BASE_COEFF_SURVEY2_NDVI_TIF[1]) \
-                                                          + self.BASE_COEFF_SURVEY2_NDVI_TIF[0]
-                                pixel_min_max["bluemin"] = (pixel_min_max["bluemin"] * self.BASE_COEFF_SURVEY2_NDVI_TIF[3]) \
-                                                           + self.BASE_COEFF_SURVEY2_NDVI_TIF[2]
-                                pixel_min_max["bluemax"] = (pixel_min_max["bluemax"] * self.BASE_COEFF_SURVEY2_NDVI_TIF[3]) \
-                                                           + self.BASE_COEFF_SURVEY2_NDVI_TIF[2]
-                            elif "jpg" or "JPG" in calpixel:
-                                pixel_min_max["redmax"] = (pixel_min_max["redmax"] * self.BASE_COEFF_SURVEY2_NDVI_JPG[1]) \
-                                                          + self.BASE_COEFF_SURVEY2_NDVI_JPG[0]
-                                pixel_min_max["redmin"] = (pixel_min_max["redmin"] * self.BASE_COEFF_SURVEY2_NDVI_JPG[1]) \
-                                                          + self.BASE_COEFF_SURVEY2_NDVI_JPG[0]
-                                pixel_min_max["bluemin"] = (pixel_min_max["bluemin"] * self.BASE_COEFF_SURVEY2_NDVI_JPG[3]) \
-                                                           + self.BASE_COEFF_SURVEY2_NDVI_JPG[2]
-                                pixel_min_max["bluemax"] = (pixel_min_max["bluemax"] * self.BASE_COEFF_SURVEY2_NDVI_JPG[3]) \
-                                                           + self.BASE_COEFF_SURVEY2_NDVI_JPG[2]
-                        elif self.CalibrationCameraModel.currentIndex() == 8:
-                            if "tif" or "TIF" in calpixel:
-                                pixel_min_max["redmax"] = (pixel_min_max["redmax"] * self.BASE_COEFF_DJIX3_NDVI_TIF[1]) \
-                                                          + self.BASE_COEFF_DJIX3_NDVI_TIF[0]
-                                pixel_min_max["redmin"] = (pixel_min_max["redmin"] * self.BASE_COEFF_DJIX3_NDVI_TIF[1]) \
-                                                          + self.BASE_COEFF_DJIX3_NDVI_TIF[0]
-                                pixel_min_max["bluemin"] = (pixel_min_max["bluemin"] * self.BASE_COEFF_DJIX3_NDVI_TIF[3]) \
-                                                           + self.BASE_COEFF_DJIX3_NDVI_TIF[2]
-                                pixel_min_max["bluemax"] = (pixel_min_max["bluemax"] * self.BASE_COEFF_DJIX3_NDVI_TIF[3]) \
-                                                           + self.BASE_COEFF_DJIX3_NDVI_TIF[2]
-                            elif "jpg" or "JPG" in calpixel:
-                                pixel_min_max["redmax"] = (pixel_min_max["redmax"] * self.BASE_COEFF_DJIX3_NDVI_JPG[1]) \
-                                                          + self.BASE_COEFF_DJIX3_NDVI_JPG[0]
-                                pixel_min_max["redmin"] = (pixel_min_max["redmin"] * self.BASE_COEFF_DJIX3_NDVI_JPG[1]) \
-                                                          + self.BASE_COEFF_DJIX3_NDVI_JPG[0]
-                                pixel_min_max["bluemin"] = (pixel_min_max["bluemin"] * self.BASE_COEFF_DJIX3_NDVI_JPG[3]) \
-                                                           + self.BASE_COEFF_DJIX3_NDVI_JPG[2]
-                                pixel_min_max["bluemax"] = (pixel_min_max["bluemax"] * self.BASE_COEFF_DJIX3_NDVI_JPG[3]) \
-                                                           + self.BASE_COEFF_DJIX3_NDVI_JPG[2]
-                        elif self.CalibrationCameraModel.currentIndex() == 5:
-                            if "tif" or "TIF" in calpixel:
-                                pixel_min_max["redmax"] = (
-                                                          pixel_min_max["redmax"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[1]) \
-                                                          + self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[0]
-                                pixel_min_max["redmin"] = (
-                                                          pixel_min_max["redmin"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[1]) \
-                                                          + self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[0]
-                                pixel_min_max["bluemin"] = (pixel_min_max["bluemin"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[
-                                    3]) \
-                                                           + self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[2]
-                                pixel_min_max["bluemax"] = (pixel_min_max["bluemax"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[
-                                    3]) \
-                                                           + self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[2]
-                            elif "jpg" or "JPG" in calpixel:
-                                pixel_min_max["redmax"] = (
-                                                          pixel_min_max["redmax"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[1]) \
-                                                          + self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[0]
-                                pixel_min_max["redmin"] = (
-                                                          pixel_min_max["redmin"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[1]) \
-                                                          + self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[0]
-                                pixel_min_max["bluemin"] = (pixel_min_max["bluemin"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[
-                                    3]) \
-                                                           + self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[2]
-                                pixel_min_max["bluemax"] = (pixel_min_max["bluemax"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[
-                                    3]) \
-                                                           + self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[2]
-                        elif self.CalibrationCameraModel.currentIndex() == 6 or self.CalibrationCameraModel.currentIndex() > 7:
-                            if "tif" or "TIF" in calpixel:
-                                pixel_min_max["redmax"] = (
-                                                          pixel_min_max["redmax"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[1]) \
-                                                          + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[0]
-                                pixel_min_max["redmin"] = (
-                                                          pixel_min_max["redmin"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[1]) \
-                                                          + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[0]
-                                pixel_min_max["bluemin"] = (pixel_min_max["bluemin"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[
-                                    3]) \
-                                                           + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[2]
-                                pixel_min_max["bluemax"] = (pixel_min_max["bluemax"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[
-                                    3]) \
-                                                           + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[2]
-                            elif "jpg" or "JPG" in calpixel:
-                                pixel_min_max["redmax"] = (
-                                                          pixel_min_max["redmax"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[1]) \
-                                                          + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[0]
-                                pixel_min_max["redmin"] = (
-                                                          pixel_min_max["redmin"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[1]) \
-                                                          + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[0]
-                                pixel_min_max["bluemin"] = (pixel_min_max["bluemin"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[
-                                    3]) \
-                                                           + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[2]
-                                pixel_min_max["bluemax"] = (pixel_min_max["bluemax"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[
-                                    3]) \
-                                                           + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[2]
+                        for calpixel in files_to_calibrate:
 
-                    for i, calfile in enumerate(files_to_calibrate):
+                            img = cv2.imread(calpixel, -1)
 
-                        cameramodel = self.CalibrationCameraModel.currentIndex()
-                        if self.useqr == True:
-                            # self.CalibrationLog.append("Using QR")
-                            try:
-                                self.CalibrationLog.append("Calibrating image " + str(i + 1) + " of " + str(len(files_to_calibrate)))
-                                QtWidgets.QApplication.processEvents()
-                                self.CalibratePhotos(calfile, self.qrcoeffs, pixel_min_max, outdir)
-                            except Exception as e:
-                                self.CalibrationLog.append(str(e))
-                        else:
-                            # self.CalibrationLog.append("NOT Using QR")
-                            if cameramodel == 3 and self.CalibrationFilter.currentIndex() == 0:  # Survey2 NDVI
-                                if "TIF" in calfile.split('.')[2].upper():
-                                    self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY2_NDVI_TIF, pixel_min_max, outdir)
-                                elif "JPG" in calfile.split('.')[2].upper():
-                                    self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY2_NDVI_JPG, pixel_min_max, outdir)
-                            elif cameramodel == 3 and self.CalibrationFilter.currentIndex() == 1:  # Survey2 NIR
-                                if "TIF" in calfile.split('.')[2].upper():
-                                    self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY2_NIR_TIF, pixel_min_max, outdir)
-                                elif "JPG" in calfile.split('.')[2].upper():
-                                    self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY2_NIR_JPG, pixel_min_max, outdir)
-                            elif cameramodel == 3 and self.CalibrationFilter.currentIndex() == 2:  # Survey2 RED
-                                if "TIF" in calfile.split('.')[2].upper():
-                                    self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY2_RED_TIF, pixel_min_max, outdir)
-                                elif "JPG" in calfile.split('.')[2].upper():
-                                    self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY2_RED_JPG, pixel_min_max, outdir)
-                            elif cameramodel == 3 and self.CalibrationFilter.currentIndex() == 3:  # Survey2 GREEN
-                                if "TIF" in calfile.split('.')[2].upper():
-                                    self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY2_GREEN_TIF, pixel_min_max, outdir)
-                                elif "JPG" in calfile.split('.')[2].upper():
-                                    self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY2_GREEN_JPG, pixel_min_max, outdir)
-                            elif cameramodel == 3 and self.CalibrationFilter.currentIndex() == 4:  # Survey2 BLUE
-                                if "TIF" in calfile.split('.')[2].upper():
-                                    self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY2_BLUE_TIF, pixel_min_max, outdir)
-                                elif "JPG" in calfile.split('.')[2].upper():
-                                    self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY2_BLUE_JPG, pixel_min_max, outdir)
-                            elif cameramodel == 4:  # Survey1 NDVI
-                                if "JPG" in calfile.split('.')[2].upper():
-                                    self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY1_NDVI_JPG, pixel_min_max, outdir)
-                            elif cameramodel == 8:  # DJI X3 NDVI
-                                if "TIF" in calfile.split('.')[2].upper():
-                                    self.CalibratePhotos(calfile, self.BASE_COEFF_DJIX3_NDVI_TIF, pixel_min_max, outdir)
-                                elif "JPG" in calfile.split('.')[2].upper():
-                                    self.CalibratePhotos(calfile, self.BASE_COEFF_DJIX3_NDVI_JPG, pixel_min_max, outdir)
-                            elif cameramodel == 5:  # DJI Phantom4 NDVI
-                                if "TIF" in calfile.split('.')[2].upper():
-                                    self.CalibratePhotos(calfile, self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF, pixel_min_max,
-                                                         outdir)
-                                elif "JPG" in calfile.split('.')[2].upper():
-                                    self.CalibratePhotos(calfile, self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG, pixel_min_max,
-                                                         outdir)
-                            elif cameramodel == 6 or cameramodel == 7:  # DJI PHANTOM3 NDVI
-                                if "TIF" in calfile.split('.')[2].upper():
-                                    self.CalibratePhotos(calfile, self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF, pixel_min_max,
-                                                         outdir)
-                                elif "JPG" in calfile.split('.')[2].upper():
-                                    self.CalibratePhotos(calfile, self.BASE_COEFF_DJIPHANTOM3_NDVI_JPG, pixel_min_max,
-                                                         outdir)
+                            blue = img[:, :, 0]
+                            green = img[:, :, 1]
+                            red = img[:, :, 2]
+                            if ind[0] == 5:  # Survey1_NDVI
+                                # img = img.astype('float')
+
+                                blue = img[:, :, 0] - ((img[:, :, 2] / 5) * 4)
+
+
+                            elif ((ind[0] == 4) and (ind[1] == 0)): # Survey2 NDVI
+                                # img = img.astype('float')
+
+                                red = img[:, :, 2] - ((img[:, :, 0] / 5) * 4)
+
+                            elif ((ind[0] == 3) and (ind[1] == 1)): #\
+                                   # or ind == 7:
+                                # blue = (img[:, :, 0] / 35) * 100
+                                red = img[:, :, 2] - blue
+                                green = img[:, :, 1] - (blue * 0.62)
+                                # red[red < 0] = 0
+                                # green[green < 0] = 0
+
+                            elif ((ind[0] == 3) and (ind[1] == 2)):
+                                red = (img[:, :, 2] / 30) * 100
+                                blue = img[:, :, 0] - ((red * 35) / 100)
+                                green = img[:, :, 1] - ((red * 35) / 100)
+#                                 # blue[blue < 0] = 0
+#                                 # green[green < 0] = 0
+
+                            if self.useqr == True:
+                                red = (coeffslist[j][0] * red)
+                                green = (coeffslist[j][1] * green)
+                                blue = (coeffslist[j][2] * blue)
+                            # these are a little confusing, but the check to find the highest and lowest pixel value
+                            # in each channel in each image and keep the highest/lowest value found.
+                            if self.seed_pass == False:
+                                # pixel_min_max["redmax"] = np.percentile(red, 99)
+                                # pixel_min_max["redmin"] = np.percentile(red, 1)
+                                # pixel_min_max["greenmax"] = np.percentile(green, 99)
+                                # pixel_min_max["greenmin"] = np.percentile(green, 1)
+                                # pixel_min_max["bluemax"] = np.percentile(blue, 99)
+                                # pixel_min_max["bluemin"] = np.percentile(blue, 1)
+
+                                pixel_min_max["redmax"] = red.max()
+                                pixel_min_max["redmin"] = red.min()
+                                pixel_min_max["greenmax"] = green.max()
+                                pixel_min_max["greenmin"] = green.min()
+                                pixel_min_max["bluemax"] = blue.max()
+                                pixel_min_max["bluemin"] = blue.min()
+                                self.seed_pass = True
                             else:
-                                self.CalibrationLog.append(
-                                    "No default calibration data for selected camera model. Please please supply a MAPIR Reflectance Target to proceed.\n")
-                                break
-                else:
-                    if os.path.exists(calfolder):
-                        # print("Cal1")
-                        files_to_calibrate = []
-                        os.chdir(calfolder)
-                        files_to_calibrate.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
-                        files_to_calibrate.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
-                        files_to_calibrate.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
-                        files_to_calibrate.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
-                        print(str(files_to_calibrate))
-                        if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate[0]:
-                            # self.CalibrationLog.append("Found files to Calibrate.\n")
-                            foldercount = 1
-                            endloop = False
-                            while endloop is False:
-                                outdir = calfolder + os.sep + "Calibrated_" + str(foldercount)
-                                if os.path.exists(outdir):
-                                    foldercount += 1
-                                else:
-                                    os.mkdir(outdir)
-                                    endloop = True
-                            for calpixel in files_to_calibrate:
-                                # print("MM1")
-                                os.chdir(calfolder)
-                                temp1 = cv2.imread(calpixel, -1)
-                                self.monominmax["min"] = min(temp1.min(), self.monominmax["min"])
-                                self.monominmax["max"] = max(temp1.max(), self.monominmax["max"])
-                            for i, calfile in enumerate(files_to_calibrate):
-                                # print("cb1")
-                                self.CalibrationLog.append("Calibrating image " + str(i + 1) + " from folder 1")
-                                QtWidgets.QApplication.processEvents()
-                                os.chdir(calfolder)
-                                if self.useqr == True:
-                                    # self.CalibrationLog.append("Using QR")
-                                    self.CalibrateMono(calfile, self.qrcoeffs, outdir)
-                                else:
-                                    if self.CalibrationFilter.currentIndex() == 0:
-                                        self.CalibrateMono(calfile, self.BASE_COEFF_KERNEL_F590, outdir)
-                                    elif self.CalibrationFilter.currentIndex() == 1:
-                                        self.CalibrateMono(calfile, self.BASE_COEFF_KERNEL_F650, outdir)
-                                    elif self.CalibrationFilter.currentIndex() == 2:
-                                        self.CalibrateMono(calfile, self.BASE_COEFF_KERNEL_F850, outdir)
-                    if os.path.exists(calfolder2):
-    #                     # print("Cal2")
-                        files_to_calibrate2 = []
-                        os.chdir(calfolder2)
-                        files_to_calibrate2.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
-                        files_to_calibrate2.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
-                        files_to_calibrate2.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
-                        files_to_calibrate2.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
-                        print(str(files_to_calibrate2))
-                        if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate2[0]:
-                            foldercount = 1
-                            endloop = False
-                            while endloop is False:
-                                outdir2 = calfolder2 + os.sep + "Calibrated_" + str(foldercount)
-                                if os.path.exists(outdir2):
-                                    foldercount += 1
-                                else:
-                                    os.mkdir(outdir2)
-                                    endloop = True
-                            for calpixel2 in files_to_calibrate2:
-                                # print("MM2")
-                                os.chdir(calfolder2)
-                                temp2 = cv2.imread(calpixel2, -1)
+                                pixel_min_max["redmax"] = max(red.max(), pixel_min_max["redmax"])
+                                pixel_min_max["redmin"] = min(red.min(), pixel_min_max["redmin"])
+                                pixel_min_max["greenmax"] = max(green.max(), pixel_min_max["greenmax"])
+                                pixel_min_max["greenmin"] = min(green.min(), pixel_min_max["greenmin"])
+                                pixel_min_max["bluemax"] = max(blue.max(), pixel_min_max["bluemax"])
+                                pixel_min_max["bluemin"] = min(blue.min(), pixel_min_max["bluemin"])
 
-                                self.monominmax["min"] = min(temp2.min(), self.monominmax["min"])
-                                self.monominmax["max"] = max(temp2.max(), self.monominmax["max"])
-                            for i, calfile2 in enumerate(files_to_calibrate2):
-                                # print("cb2")
-                                self.CalibrationLog.append("Calibrating image " + str(i + 1) + " from folder 2")
-                                QtWidgets.QApplication.processEvents()
-                                os.chdir(calfolder2)
-                                if self.useqr == True:
-                                    # self.CalibrationLog.append("Using QR")
-                                    self.CalibrateMono(calfile2, self.qrcoeffs2, outdir2)
-                                else:
-                                    if self.CalibrationFilter.currentIndex() == 0:
-                                        self.CalibrateMono(calfile2, self.BASE_COEFF_KERNEL_F590, outdir2)
-                                    elif self.CalibrationFilter.currentIndex() == 1:
-                                        self.CalibrateMono(calfile2, self.BASE_COEFF_KERNEL_F650, outdir2)
-                                    elif self.CalibrationFilter.currentIndex() == 2:
-                                        self.CalibrateMono(calfile2, self.BASE_COEFF_KERNEL_F850, outdir2)
-                    if os.path.exists(calfolder3):
-    #                     # print("Cal3")
-                        files_to_calibrate3 = []
-                        os.chdir(calfolder3)
-                        files_to_calibrate3.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
-                        files_to_calibrate3.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
-                        files_to_calibrate3.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
-                        files_to_calibrate3.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
-                        print(str(files_to_calibrate3))
-                        if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate3[0]:
-                            foldercount = 1
-                            endloop = False
-                            while endloop is False:
-                                outdir3 = calfolder3 + os.sep + "Calibrated_" + str(foldercount)
-                                if os.path.exists(outdir3):
-                                    foldercount += 1
-                                else:
-                                    os.mkdir(outdir3)
-                                    endloop = True
-                            for calpixel3 in files_to_calibrate3:
-                                # print("MM3")
-                                os.chdir(calfolder3)
-                                temp3 = cv2.imread(calpixel3, -1)
+                                # pixel_min_max["redmax"] = max(np.percentile(red, 99), pixel_min_max["redmax"])
+                                # pixel_min_max["redmin"] = min(np.percentile(red, 1), pixel_min_max["redmin"])
+                                # pixel_min_max["greenmax"] = max(np.percentile(green, 99), pixel_min_max["greenmax"])
+                                # pixel_min_max["greenmin"] = min(np.percentile(green, 1), pixel_min_max["greenmin"])
+                                # pixel_min_max["bluemax"] = max(np.percentile(blue, 99), pixel_min_max["bluemax"])
+                                # pixel_min_max["bluemin"] = min(np.percentile(blue, 1), pixel_min_max["bluemin"])
 
-                                self.monominmax["min"] = min(temp3.min(), self.monominmax["min"])
-                                self.monominmax["max"] = max(temp3.max(), self.monominmax["max"])
-                            for i, calfile3 in enumerate(files_to_calibrate3):
-                                # print("cb3")
-                                self.CalibrationLog.append("Calibrating image " + str(i + 1) + " from folder 3")
-                                QtWidgets.QApplication.processEvents()
-                                os.chdir(calfolder3)
-                                if self.useqr == True:
-                                    # self.CalibrationLog.append("Using QR")
-                                    self.CalibrateMono(calfile3, self.qrcoeffs3, outdir3)
-                                else:
-                                    if self.CalibrationFilter.currentIndex() == 0:
-                                        self.CalibrateMono(calfile3, self.BASE_COEFF_KERNEL_F590, outdir3)
-                                    elif self.CalibrationFilter.currentIndex() == 1:
-                                        self.CalibrateMono(calfile3, self.BASE_COEFF_KERNEL_F650, outdir3)
-                                    elif self.CalibrationFilter.currentIndex() == 2:
-                                        self.CalibrateMono(calfile3, self.BASE_COEFF_KERNEL_F850, outdir3)
-                    if os.path.exists(calfolder4):
-                        # print("Cal4")
-                        files_to_calibrate4 = []
-                        os.chdir(calfolder4)
-                        files_to_calibrate4.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
-                        files_to_calibrate4.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
-                        files_to_calibrate4.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
-                        files_to_calibrate4.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
-                        print(str(files_to_calibrate4))
-                        if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate4[0]:
-                            foldercount = 1
-                            endloop = False
-                            while endloop is False:
-                                outdir4 = calfolder4 + os.sep + "Calibrated_" + str(foldercount)
-                                if os.path.exists(outdir4):
-                                    foldercount += 1
-                                else:
-                                    os.mkdir(outdir4)
-                                    endloop = True
-                            for calpixel4 in files_to_calibrate4:
-                                # print("MM4")
-                                os.chdir(calfolder4)
-                                temp4 = cv2.imread(calpixel4, -1)
 
-                                self.monominmax["min"] = min(temp4.min(), self.monominmax["min"])
-                                self.monominmax["max"] = max(temp4.max(), self.monominmax["max"])
-                            for i, calfile4 in enumerate(files_to_calibrate4):
-                                # print("cb2")
-                                self.CalibrationLog.append("Calibrating image " + str(i + 1) + " from folder 4")
-                                QtWidgets.QApplication.processEvents()
-                                os.chdir(calfolder4)
-                                if self.useqr == True:
-                                    # self.CalibrationLog.append("Using QR")
-                                    self.CalibrateMono(calfile4, self.qrcoeffs4, outdir4)
-                                else:
-                                    if self.CalibrationFilter.currentIndex() == 0:
-                                        self.CalibrateMono(calfile4, self.BASE_COEFF_KERNEL_F590, outdir4)
-                                    elif self.CalibrationFilter.currentIndex() == 1:
-                                        self.CalibrateMono(calfile4, self.BASE_COEFF_KERNEL_F650, outdir4)
-                                    elif self.CalibrationFilter.currentIndex() == 2:
-                                        self.CalibrateMono(calfile4, self.BASE_COEFF_KERNEL_F850, outdir4)
-                    if os.path.exists(calfolder5):
-                        # print("Cal5")
-                        files_to_calibrate5 = []
-                        os.chdir(calfolder5)
-                        files_to_calibrate5.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
-                        files_to_calibrate5.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
-                        files_to_calibrate5.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
-                        files_to_calibrate5.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
-                        print(str(files_to_calibrate5))
-                        if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate5[0]:
-                            foldercount = 1
-                            endloop = False
-                            while endloop is False:
-                                outdir5 = calfolder5 + os.sep + "Calibrated_" + str(foldercount)
-                                if os.path.exists(outdir5):
-                                    foldercount += 1
-                                else:
-                                    os.mkdir(outdir5)
-                                    endloop = True
-                            for calpixel5 in files_to_calibrate5:
-                                # print("MM5")
-                                os.chdir(calfolder5)
-                                temp5 = cv2.imread(calpixel5, -1)
+                        else:
+                            if ind[0] == 5:  # Survey1_NDVI
+                                    pixel_min_max["redmax"] = (pixel_min_max["redmax"] * self.BASE_COEFF_SURVEY1_NDVI_JPG[1]) \
+                                                              + self.BASE_COEFF_SURVEY1_NDVI_JPG[0]
+                                    pixel_min_max["redmin"] = (pixel_min_max["redmin"] * self.BASE_COEFF_SURVEY1_NDVI_JPG[1]) \
+                                                              + self.BASE_COEFF_SURVEY1_NDVI_JPG[0]
+                                    pixel_min_max["bluemin"] = (pixel_min_max["bluemin"] * self.BASE_COEFF_SURVEY1_NDVI_JPG[3]) \
+                                                               + self.BASE_COEFF_SURVEY1_NDVI_JPG[2]
+                                    pixel_min_max["bluemax"] = (pixel_min_max["bluemax"] * self.BASE_COEFF_SURVEY1_NDVI_JPG[3]) \
+                                                               + self.BASE_COEFF_SURVEY1_NDVI_JPG[2]
+                            elif (ind[0] == 4) and ind[1] == 0:
+                                if "tif" or "TIF" in calpixel:
+                                    pixel_min_max["redmax"] = (pixel_min_max["redmax"] * self.BASE_COEFF_SURVEY2_NDVI_TIF[1]) \
+                                                              + self.BASE_COEFF_SURVEY2_NDVI_TIF[0]
+                                    pixel_min_max["redmin"] = (pixel_min_max["redmin"] * self.BASE_COEFF_SURVEY2_NDVI_TIF[1]) \
+                                                              + self.BASE_COEFF_SURVEY2_NDVI_TIF[0]
+                                    pixel_min_max["bluemin"] = (pixel_min_max["bluemin"] * self.BASE_COEFF_SURVEY2_NDVI_TIF[3]) \
+                                                               + self.BASE_COEFF_SURVEY2_NDVI_TIF[2]
+                                    pixel_min_max["bluemax"] = (pixel_min_max["bluemax"] * self.BASE_COEFF_SURVEY2_NDVI_TIF[3]) \
+                                                               + self.BASE_COEFF_SURVEY2_NDVI_TIF[2]
+                                elif "jpg" or "JPG" in calpixel:
+                                    pixel_min_max["redmax"] = (pixel_min_max["redmax"] * self.BASE_COEFF_SURVEY2_NDVI_JPG[1]) \
+                                                              + self.BASE_COEFF_SURVEY2_NDVI_JPG[0]
+                                    pixel_min_max["redmin"] = (pixel_min_max["redmin"] * self.BASE_COEFF_SURVEY2_NDVI_JPG[1]) \
+                                                              + self.BASE_COEFF_SURVEY2_NDVI_JPG[0]
+                                    pixel_min_max["bluemin"] = (pixel_min_max["bluemin"] * self.BASE_COEFF_SURVEY2_NDVI_JPG[3]) \
+                                                               + self.BASE_COEFF_SURVEY2_NDVI_JPG[2]
+                                    pixel_min_max["bluemax"] = (pixel_min_max["bluemax"] * self.BASE_COEFF_SURVEY2_NDVI_JPG[3]) \
+                                                               + self.BASE_COEFF_SURVEY2_NDVI_JPG[2]
+                            elif ind[0] == 8:
+                                if "tif" or "TIF" in calpixel:
+                                    pixel_min_max["redmax"] = (pixel_min_max["redmax"] * self.BASE_COEFF_DJIX3_NDVI_TIF[1]) \
+                                                              + self.BASE_COEFF_DJIX3_NDVI_TIF[0]
+                                    pixel_min_max["redmin"] = (pixel_min_max["redmin"] * self.BASE_COEFF_DJIX3_NDVI_TIF[1]) \
+                                                              + self.BASE_COEFF_DJIX3_NDVI_TIF[0]
+                                    pixel_min_max["bluemin"] = (pixel_min_max["bluemin"] * self.BASE_COEFF_DJIX3_NDVI_TIF[3]) \
+                                                               + self.BASE_COEFF_DJIX3_NDVI_TIF[2]
+                                    pixel_min_max["bluemax"] = (pixel_min_max["bluemax"] * self.BASE_COEFF_DJIX3_NDVI_TIF[3]) \
+                                                               + self.BASE_COEFF_DJIX3_NDVI_TIF[2]
+                                elif "jpg" or "JPG" in calpixel:
+                                    pixel_min_max["redmax"] = (pixel_min_max["redmax"] * self.BASE_COEFF_DJIX3_NDVI_JPG[1]) \
+                                                              + self.BASE_COEFF_DJIX3_NDVI_JPG[0]
+                                    pixel_min_max["redmin"] = (pixel_min_max["redmin"] * self.BASE_COEFF_DJIX3_NDVI_JPG[1]) \
+                                                              + self.BASE_COEFF_DJIX3_NDVI_JPG[0]
+                                    pixel_min_max["bluemin"] = (pixel_min_max["bluemin"] * self.BASE_COEFF_DJIX3_NDVI_JPG[3]) \
+                                                               + self.BASE_COEFF_DJIX3_NDVI_JPG[2]
+                                    pixel_min_max["bluemax"] = (pixel_min_max["bluemax"] * self.BASE_COEFF_DJIX3_NDVI_JPG[3]) \
+                                                               + self.BASE_COEFF_DJIX3_NDVI_JPG[2]
+                            elif ind[0] == 5:
+                                if "tif" or "TIF" in calpixel:
+                                    pixel_min_max["redmax"] = (
+                                                              pixel_min_max["redmax"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[1]) \
+                                                              + self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[0]
+                                    pixel_min_max["redmin"] = (
+                                                              pixel_min_max["redmin"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[1]) \
+                                                              + self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[0]
+                                    pixel_min_max["bluemin"] = (pixel_min_max["bluemin"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[
+                                        3]) \
+                                                               + self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[2]
+                                    pixel_min_max["bluemax"] = (pixel_min_max["bluemax"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[
+                                        3]) \
+                                                               + self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[2]
+                                elif "jpg" or "JPG" in calpixel:
+                                    pixel_min_max["redmax"] = (
+                                                              pixel_min_max["redmax"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[1]) \
+                                                              + self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[0]
+                                    pixel_min_max["redmin"] = (
+                                                              pixel_min_max["redmin"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[1]) \
+                                                              + self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[0]
+                                    pixel_min_max["bluemin"] = (pixel_min_max["bluemin"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[
+                                        3]) \
+                                                               + self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[2]
+                                    pixel_min_max["bluemax"] = (pixel_min_max["bluemax"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[
+                                        3]) \
+                                                               + self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[2]
+                            elif ind[0] == 6 or ind[0] > 7:
+                                if "tif" or "TIF" in calpixel:
+                                    pixel_min_max["redmax"] = (
+                                                              pixel_min_max["redmax"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[1]) \
+                                                              + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[0]
+                                    pixel_min_max["redmin"] = (
+                                                              pixel_min_max["redmin"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[1]) \
+                                                              + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[0]
+                                    pixel_min_max["bluemin"] = (pixel_min_max["bluemin"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[
+                                        3]) \
+                                                               + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[2]
+                                    pixel_min_max["bluemax"] = (pixel_min_max["bluemax"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[
+                                        3]) \
+                                                               + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[2]
+                                elif "jpg" or "JPG" in calpixel:
+                                    pixel_min_max["redmax"] = (
+                                                              pixel_min_max["redmax"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[1]) \
+                                                              + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[0]
+                                    pixel_min_max["redmin"] = (
+                                                              pixel_min_max["redmin"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[1]) \
+                                                              + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[0]
+                                    pixel_min_max["bluemin"] = (pixel_min_max["bluemin"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[
+                                        3]) \
+                                                               + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[2]
+                                    pixel_min_max["bluemax"] = (pixel_min_max["bluemax"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[
+                                        3]) \
+                                                               + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[2]
 
-                                self.monominmax["min"] = min(temp5.min(), self.monominmax["min"])
-                                self.monominmax["max"] = max(temp5.max(), self.monominmax["max"])
-                            for i, calfile5 in enumerate(files_to_calibrate5):
-                                # print("cb5")
-                                self.CalibrationLog.append("Calibrating image " + str(i + 1) + " from folder 5")
-                                QtWidgets.QApplication.processEvents()
-                                os.chdir(calfolder5)
-                                if self.useqr == True:
-                                    # self.CalibrationLog.append("Using QR")
-                                    self.CalibrateMono(calfile5, self.qrcoeffs5, outdir5)
-                                else:
-                                    if self.CalibrationFilter.currentIndex() == 0:
-                                        self.CalibrateMono(calfile5, self.BASE_COEFF_KERNEL_F590, outdir5)
-                                    elif self.CalibrationFilter.currentIndex() == 1:
-                                        self.CalibrateMono(calfile5, self.BASE_COEFF_KERNEL_F650, outdir5)
-                                    elif self.CalibrationFilter.currentIndex() == 2:
-                                        self.CalibrateMono(calfile5, self.BASE_COEFF_KERNEL_F850, outdir5)
-                    if os.path.exists(calfolder6):
-                        # print("Cal6")
-                        files_to_calibrate6 = []
-                        os.chdir(calfolder6)
-                        files_to_calibrate6.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
-                        files_to_calibrate6.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
-                        files_to_calibrate6.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
-                        files_to_calibrate6.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
-                        print(str(files_to_calibrate6))
-                        if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate6[0]:
-                            foldercount = 1
-                            endloop = False
-                            while endloop is False:
-                                outdir6 = calfolder6 + os.sep + "Calibrated_" + str(foldercount)
-                                if os.path.exists(outdir6):
-                                    foldercount += 1
-                                else:
-                                    os.mkdir(outdir6)
-                                    endloop = True
+                        for i, calfile in enumerate(files_to_calibrate):
 
-                            for calpixel6 in files_to_calibrate6:
-                                # print("MM6")
-                                os.chdir(calfolder6)
-                                temp6 = cv2.imread(calpixel6, -1)
+                            cameramodel = ind
+                            if self.useqr == True:
+                                # self.CalibrationLog.append("Using QR")
+                                try:
+                                    self.CalibrationLog.append("Calibrating image " + str(i + 1) + " of " + str(len(files_to_calibrate)))
+                                    QtWidgets.QApplication.processEvents()
 
-                                self.monominmax["min"] = min(temp6.min(), self.monominmax["min"])
-                                self.monominmax["max"] = max(temp6.max(), self.monominmax["max"])
 
-                            for i, calfile6 in enumerate(files_to_calibrate6):
-                                # print("cb6")
-                                self.CalibrationLog.append("Calibrating image " + str(i + 1) + " from folder 6")
-                                QtWidgets.QApplication.processEvents()
-                                os.chdir(calfolder6)
-                                if self.useqr == True:
-                                    # self.CalibrationLog.append("Using QR")
-                                    self.CalibrateMono(calfile6, self.qrcoeffs6, outdir6)
+                                    self.CalibratePhotos(calfile, coeffslist[j], pixel_min_max, outdir, ind)
+                                except Exception as e:
+                                    self.CalibrationLog.append(str(e))
+                            else:
+                                # self.CalibrationLog.append("NOT Using QR")
+                                if cameramodel == 3 and self.CalibrationFilter.currentIndex() == 0:  # Survey2 NDVI
+                                    if "TIF" in calfile.split('.')[2].upper():
+                                        self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY2_NDVI_TIF, pixel_min_max, outdir, ind)
+                                    elif "JPG" in calfile.split('.')[2].upper():
+                                        self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY2_NDVI_JPG, pixel_min_max, outdir, ind)
+                                elif cameramodel == 3 and self.CalibrationFilter.currentIndex() == 1:  # Survey2 NIR
+                                    if "TIF" in calfile.split('.')[2].upper():
+                                        self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY2_NIR_TIF, pixel_min_max, outdir, ind)
+                                    elif "JPG" in calfile.split('.')[2].upper():
+                                        self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY2_NIR_JPG, pixel_min_max, outdir, ind)
+                                elif cameramodel == 3 and self.CalibrationFilter.currentIndex() == 2:  # Survey2 RED
+                                    if "TIF" in calfile.split('.')[2].upper():
+                                        self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY2_RED_TIF, pixel_min_max, outdir, ind)
+                                    elif "JPG" in calfile.split('.')[2].upper():
+                                        self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY2_RED_JPG, pixel_min_max, outdir, ind)
+                                elif cameramodel == 3 and self.CalibrationFilter.currentIndex() == 3:  # Survey2 GREEN
+                                    if "TIF" in calfile.split('.')[2].upper():
+                                        self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY2_GREEN_TIF, pixel_min_max, outdir, ind)
+                                    elif "JPG" in calfile.split('.')[2].upper():
+                                        self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY2_GREEN_JPG, pixel_min_max, outdir, ind)
+                                elif cameramodel == 3 and self.CalibrationFilter.currentIndex() == 4:  # Survey2 BLUE
+                                    if "TIF" in calfile.split('.')[2].upper():
+                                        self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY2_BLUE_TIF, pixel_min_max, outdir, ind)
+                                    elif "JPG" in calfile.split('.')[2].upper():
+                                        self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY2_BLUE_JPG, pixel_min_max, outdir, ind)
+                                elif cameramodel == 4:  # Survey1 NDVI
+                                    if "JPG" in calfile.split('.')[2].upper():
+                                        self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY1_NDVI_JPG, pixel_min_max, outdir, ind)
+                                elif cameramodel == 8:  # DJI X3 NDVI
+                                    if "TIF" in calfile.split('.')[2].upper():
+                                        self.CalibratePhotos(calfile, self.BASE_COEFF_DJIX3_NDVI_TIF, pixel_min_max, outdir, ind)
+                                    elif "JPG" in calfile.split('.')[2].upper():
+                                        self.CalibratePhotos(calfile, self.BASE_COEFF_DJIX3_NDVI_JPG, pixel_min_max, outdir, ind)
+                                elif cameramodel == 5:  # DJI Phantom4 NDVI
+                                    if "TIF" in calfile.split('.')[2].upper():
+                                        self.CalibratePhotos(calfile, self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF, pixel_min_max,
+                                                             outdir, ind)
+                                    elif "JPG" in calfile.split('.')[2].upper():
+                                        self.CalibratePhotos(calfile, self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG, pixel_min_max,
+                                                             outdir, ind)
+                                elif cameramodel == 6 or cameramodel == 7:  # DJI PHANTOM3 NDVI
+                                    if "TIF" in calfile.split('.')[2].upper():
+                                        self.CalibratePhotos(calfile, self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF, pixel_min_max,
+                                                             outdir, ind)
+                                    elif "JPG" in calfile.split('.')[2].upper():
+                                        self.CalibratePhotos(calfile, self.BASE_COEFF_DJIPHANTOM3_NDVI_JPG, pixel_min_max,
+                                                             outdir, ind)
                                 else:
-                                    if self.CalibrationFilter.currentIndex() == 0:
-                                        self.CalibrateMono(calfile6, self.BASE_COEFF_KERNEL_F590, outdir6)
-                                    elif self.CalibrationFilter.currentIndex() == 1:
-                                        self.CalibrateMono(calfile6, self.BASE_COEFF_KERNEL_F650, outdir6)
-                                    elif self.CalibrationFilter.currentIndex() == 2:
-                                        self.CalibrateMono(calfile6, self.BASE_COEFF_KERNEL_F850, outdir6)
+                                    self.CalibrationLog.append(
+                                        "No default calibration data for selected camera model. Please please supply a MAPIR Reflectance Target to proceed.\n")
+                                    break
+                    else:
+                        if os.path.exists(calfolder):
+                            # print("Cal1")
+                            files_to_calibrate = []
+                            os.chdir(calfolder)
+                            files_to_calibrate.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
+                            files_to_calibrate.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
+                            files_to_calibrate.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
+                            files_to_calibrate.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
+                            print(str(files_to_calibrate))
+                            if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate[0]:
+                                # self.CalibrationLog.append("Found files to Calibrate.\n")
+                                foldercount = 1
+                                endloop = False
+                                while endloop is False:
+                                    outdir = calfolder + os.sep + "Calibrated_" + str(foldercount)
+                                    if os.path.exists(outdir):
+                                        foldercount += 1
+                                    else:
+                                        os.mkdir(outdir)
+                                        endloop = True
+                                for calpixel in files_to_calibrate:
+                                    # print("MM1")
+                                    os.chdir(calfolder)
+                                    temp1 = cv2.imread(calpixel, -1)
+                                    self.monominmax["min"] = min(temp1.min(), self.monominmax["min"])
+                                    self.monominmax["max"] = max(temp1.max(), self.monominmax["max"])
+                                for i, calfile in enumerate(files_to_calibrate):
+                                    # print("cb1")
+                                    self.CalibrationLog.append("Calibrating image " + str(i + 1) + " from folder 1")
+                                    QtWidgets.QApplication.processEvents()
+                                    os.chdir(calfolder)
+                                    if self.useqr == True:
+                                        # self.CalibrationLog.append("Using QR")
+                                        self.CalibrateMono(calfile, self.qrcoeffs, outdir, ind)
+                                    else:
+                                        if self.CalibrationFilter.currentIndex() == 0:
+                                            self.CalibrateMono(calfile, self.BASE_COEFF_KERNEL_F590, outdir, ind)
+                                        elif self.CalibrationFilter.currentIndex() == 1:
+                                            self.CalibrateMono(calfile, self.BASE_COEFF_KERNEL_F650, outdir, ind)
+                                        elif self.CalibrationFilter.currentIndex() == 2:
+                                            self.CalibrateMono(calfile, self.BASE_COEFF_KERNEL_F850, outdir, ind)
+                        if os.path.exists(calfolder2):
+        #                     # print("Cal2")
+                            files_to_calibrate2 = []
+                            os.chdir(calfolder2)
+                            files_to_calibrate2.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
+                            files_to_calibrate2.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
+                            files_to_calibrate2.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
+                            files_to_calibrate2.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
+                            print(str(files_to_calibrate2))
+                            if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate2[0]:
+                                foldercount = 1
+                                endloop = False
+                                while endloop is False:
+                                    outdir2 = calfolder2 + os.sep + "Calibrated_" + str(foldercount)
+                                    if os.path.exists(outdir2):
+                                        foldercount += 1
+                                    else:
+                                        os.mkdir(outdir2)
+                                        endloop = True
+                                for calpixel2 in files_to_calibrate2:
+                                    # print("MM2")
+                                    os.chdir(calfolder2)
+                                    temp2 = cv2.imread(calpixel2, -1)
+
+                                    self.monominmax["min"] = min(temp2.min(), self.monominmax["min"])
+                                    self.monominmax["max"] = max(temp2.max(), self.monominmax["max"])
+                                for i, calfile2 in enumerate(files_to_calibrate2):
+                                    # print("cb2")
+                                    self.CalibrationLog.append("Calibrating image " + str(i + 1) + " from folder 2")
+                                    QtWidgets.QApplication.processEvents()
+                                    os.chdir(calfolder2)
+                                    if self.useqr == True:
+                                        # self.CalibrationLog.append("Using QR")
+                                        self.CalibrateMono(calfile2, self.qrcoeffs2, outdir2, ind)
+                                    else:
+                                        if self.CalibrationFilter.currentIndex() == 0:
+                                            self.CalibrateMono(calfile2, self.BASE_COEFF_KERNEL_F590, outdir2)
+                                        elif self.CalibrationFilter.currentIndex() == 1:
+                                            self.CalibrateMono(calfile2, self.BASE_COEFF_KERNEL_F650, outdir2)
+                                        elif self.CalibrationFilter.currentIndex() == 2:
+                                            self.CalibrateMono(calfile2, self.BASE_COEFF_KERNEL_F850, outdir2)
+                        if os.path.exists(calfolder3):
+        #                     # print("Cal3")
+                            files_to_calibrate3 = []
+                            os.chdir(calfolder3)
+                            files_to_calibrate3.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
+                            files_to_calibrate3.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
+                            files_to_calibrate3.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
+                            files_to_calibrate3.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
+                            print(str(files_to_calibrate3))
+                            if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate3[0]:
+                                foldercount = 1
+                                endloop = False
+                                while endloop is False:
+                                    outdir3 = calfolder3 + os.sep + "Calibrated_" + str(foldercount)
+                                    if os.path.exists(outdir3):
+                                        foldercount += 1
+                                    else:
+                                        os.mkdir(outdir3)
+                                        endloop = True
+                                for calpixel3 in files_to_calibrate3:
+                                    # print("MM3")
+                                    os.chdir(calfolder3)
+                                    temp3 = cv2.imread(calpixel3, -1)
+
+                                    self.monominmax["min"] = min(temp3.min(), self.monominmax["min"])
+                                    self.monominmax["max"] = max(temp3.max(), self.monominmax["max"])
+                                for i, calfile3 in enumerate(files_to_calibrate3):
+                                    # print("cb3")
+                                    self.CalibrationLog.append("Calibrating image " + str(i + 1) + " from folder 3")
+                                    QtWidgets.QApplication.processEvents()
+                                    os.chdir(calfolder3)
+                                    if self.useqr == True:
+                                        # self.CalibrationLog.append("Using QR")
+                                        self.CalibrateMono(calfile3, self.qrcoeffs3, outdir3, ind)
+                                    else:
+                                        if self.CalibrationFilter.currentIndex() == 0:
+                                            self.CalibrateMono(calfile3, self.BASE_COEFF_KERNEL_F590, outdir3)
+                                        elif self.CalibrationFilter.currentIndex() == 1:
+                                            self.CalibrateMono(calfile3, self.BASE_COEFF_KERNEL_F650, outdir3)
+                                        elif self.CalibrationFilter.currentIndex() == 2:
+                                            self.CalibrateMono(calfile3, self.BASE_COEFF_KERNEL_F850, outdir3)
+                        if os.path.exists(calfolder4):
+                            # print("Cal4")
+                            files_to_calibrate4 = []
+                            os.chdir(calfolder4)
+                            files_to_calibrate4.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
+                            files_to_calibrate4.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
+                            files_to_calibrate4.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
+                            files_to_calibrate4.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
+                            print(str(files_to_calibrate4))
+                            if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate4[0]:
+                                foldercount = 1
+                                endloop = False
+                                while endloop is False:
+                                    outdir4 = calfolder4 + os.sep + "Calibrated_" + str(foldercount)
+                                    if os.path.exists(outdir4):
+                                        foldercount += 1
+                                    else:
+                                        os.mkdir(outdir4)
+                                        endloop = True
+                                for calpixel4 in files_to_calibrate4:
+                                    # print("MM4")
+                                    os.chdir(calfolder4)
+                                    temp4 = cv2.imread(calpixel4, -1)
+
+                                    self.monominmax["min"] = min(temp4.min(), self.monominmax["min"])
+                                    self.monominmax["max"] = max(temp4.max(), self.monominmax["max"])
+                                for i, calfile4 in enumerate(files_to_calibrate4):
+                                    # print("cb2")
+                                    self.CalibrationLog.append("Calibrating image " + str(i + 1) + " from folder 4")
+                                    QtWidgets.QApplication.processEvents()
+                                    os.chdir(calfolder4)
+                                    if self.useqr == True:
+                                        # self.CalibrationLog.append("Using QR")
+                                        self.CalibrateMono(calfile4, self.qrcoeffs4, outdir4, ind)
+                                    else:
+                                        if self.CalibrationFilter.currentIndex() == 0:
+                                            self.CalibrateMono(calfile4, self.BASE_COEFF_KERNEL_F590, outdir4)
+                                        elif self.CalibrationFilter.currentIndex() == 1:
+                                            self.CalibrateMono(calfile4, self.BASE_COEFF_KERNEL_F650, outdir4)
+                                        elif self.CalibrationFilter.currentIndex() == 2:
+                                            self.CalibrateMono(calfile4, self.BASE_COEFF_KERNEL_F850, outdir4)
+                        if os.path.exists(calfolder5):
+                            # print("Cal5")
+                            files_to_calibrate5 = []
+                            os.chdir(calfolder5)
+                            files_to_calibrate5.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
+                            files_to_calibrate5.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
+                            files_to_calibrate5.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
+                            files_to_calibrate5.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
+                            print(str(files_to_calibrate5))
+                            if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate5[0]:
+                                foldercount = 1
+                                endloop = False
+                                while endloop is False:
+                                    outdir5 = calfolder5 + os.sep + "Calibrated_" + str(foldercount)
+                                    if os.path.exists(outdir5):
+                                        foldercount += 1
+                                    else:
+                                        os.mkdir(outdir5)
+                                        endloop = True
+                                for calpixel5 in files_to_calibrate5:
+                                    # print("MM5")
+                                    os.chdir(calfolder5)
+                                    temp5 = cv2.imread(calpixel5, -1)
+
+                                    self.monominmax["min"] = min(temp5.min(), self.monominmax["min"])
+                                    self.monominmax["max"] = max(temp5.max(), self.monominmax["max"])
+                                for i, calfile5 in enumerate(files_to_calibrate5):
+                                    # print("cb5")
+                                    self.CalibrationLog.append("Calibrating image " + str(i + 1) + " from folder 5")
+                                    QtWidgets.QApplication.processEvents()
+                                    os.chdir(calfolder5)
+                                    if self.useqr == True:
+                                        # self.CalibrationLog.append("Using QR")
+                                        self.CalibrateMono(calfile5, self.qrcoeffs5, outdir5, ind)
+                                    else:
+                                        if self.CalibrationFilter.currentIndex() == 0:
+                                            self.CalibrateMono(calfile5, self.BASE_COEFF_KERNEL_F590, outdir5)
+                                        elif self.CalibrationFilter.currentIndex() == 1:
+                                            self.CalibrateMono(calfile5, self.BASE_COEFF_KERNEL_F650, outdir5)
+                                        elif self.CalibrationFilter.currentIndex() == 2:
+                                            self.CalibrateMono(calfile5, self.BASE_COEFF_KERNEL_F850, outdir5)
+                        if os.path.exists(calfolder6):
+                            # print("Cal6")
+                            files_to_calibrate6 = []
+                            os.chdir(calfolder6)
+                            files_to_calibrate6.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
+                            files_to_calibrate6.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
+                            files_to_calibrate6.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
+                            files_to_calibrate6.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
+                            print(str(files_to_calibrate6))
+                            if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate6[0]:
+                                foldercount = 1
+                                endloop = False
+                                while endloop is False:
+                                    outdir6 = calfolder6 + os.sep + "Calibrated_" + str(foldercount)
+                                    if os.path.exists(outdir6):
+                                        foldercount += 1
+                                    else:
+                                        os.mkdir(outdir6)
+                                        endloop = True
+
+                                for calpixel6 in files_to_calibrate6:
+                                    # print("MM6")
+                                    os.chdir(calfolder6)
+                                    temp6 = cv2.imread(calpixel6, -1)
+
+                                    self.monominmax["min"] = min(temp6.min(), self.monominmax["min"])
+                                    self.monominmax["max"] = max(temp6.max(), self.monominmax["max"])
+
+                                for i, calfile6 in enumerate(files_to_calibrate6):
+                                    # print("cb6")
+                                    self.CalibrationLog.append("Calibrating image " + str(i + 1) + " from folder 6")
+                                    QtWidgets.QApplication.processEvents()
+                                    os.chdir(calfolder6)
+                                    if self.useqr == True:
+                                        # self.CalibrationLog.append("Using QR")
+                                        self.CalibrateMono(calfile6, self.qrcoeffs6, outdir6, ind)
+                                    else:
+                                        if self.CalibrationFilter.currentIndex() == 0:
+                                            self.CalibrateMono(calfile6, self.BASE_COEFF_KERNEL_F590, outdir6)
+                                        elif self.CalibrationFilter.currentIndex() == 1:
+                                            self.CalibrateMono(calfile6, self.BASE_COEFF_KERNEL_F650, outdir6)
+                                        elif self.CalibrationFilter.currentIndex() == 2:
+                                            self.CalibrateMono(calfile6, self.BASE_COEFF_KERNEL_F850, outdir6)
 
 
                 self.CalibrationLog.append("Finished Calibrating " + str(len(files_to_calibrate) + len(files_to_calibrate2) + len(files_to_calibrate3) + len(files_to_calibrate4) + len(files_to_calibrate5) + len(files_to_calibrate6)) + " images\n")
@@ -2302,15 +2779,15 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         except Exception as e:
             print(repr(e))
             self.CalibrationLog.append(str(repr(e)))
-    def CalibrateMono(self, photo, coeffs, output_directory):
+    def CalibrateMono(self, photo, coeffs, output_directory, ind):
         refimg = cv2.imread(photo, -1)
         print(str(refimg))
         if len(refimg.shape) > 2:
             refimg = refimg[:,:,0]
         refimg = refimg.astype("uint16")
-        pixmin = coeffs(pixmin)
-        pixmax = coeffs(pixmax)
-        tempim = coeffs(tempim)
+        pixmin = coeffs(self.monominmax["min"])
+        pixmax = coeffs(self.monominmax["max"])
+        tempim = coeffs(refimg)
         # pixmin = np.array((((self.monominmax["min"] ^ 2) * coeffs[0]) + (self.monominmax["min"] * coeffs[1]) + coeffs[1]), dtype=object)
         # pixmax = np.array((((self.monominmax["max"] ^ 2) * coeffs[0]) + (self.monominmax["max"] * coeffs[1]) + coeffs[1]), dtype=object)
         # tempim = np.array(((np.power(refimg, 2) * coeffs[0]) + (refimg * coeffs[1]) + coeffs[2]), dtype=object)
@@ -2319,13 +2796,14 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         # tempim = (refimg * coeffs[1]) + coeffs[0]
         tempim -= pixmin
         tempim /= (pixmax - pixmin)
-        tempim *= 65535.0
+        if self.IndexBox.checkState() == 0:
+            tempim *= 65535.0
 
-        tempim = tempim.astype("uint16")
-        print(str(tempim))
+            tempim = tempim.astype("uint16")
+        # print(str(tempim))
         # tempim = np.floor((refimg * coeffs[1]) + coeffs[0]).astype("uint16")
         # tempim[tempim > 65535] = 65535
-        # tempim[tempim < 0] = 0
+#         # tempim[tempim < 0] = 0
         #
         # tempimg = tempim / tempim.max()
         #
@@ -2337,7 +2815,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         newimg = output_directory + photo.split('.')[1] + "_CALIBRATED." + photo.split('.')[2]
 
-        cv2.imencode(".tiff", refimg)
+        cv2.imencode(".tif", refimg)
         cv2.imwrite(newimg, refimg)
         srin = gdal.Open(photo)
         inproj = srin.GetProjection()
@@ -2349,212 +2827,245 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         srout.SetGCPs(gcpcount, srin.GetGCPProjection())
         self.copyExif(photo, newimg)
 
-    def CalibratePhotos(self, photo, coeffs, minmaxes, output_directory):
+    def CalibratePhotos(self, photo, coeffs, minmaxes, output_directory, ind):
         refimg = cv2.imread(photo, -1)
-        # kernel = np.ones((2, 2), np.uint16)
-        # refimg = cv2.erode(refimg, kernel, iterations=1)
-        # refimg = cv2.dilate(refimg, kernel, iterations=1)
-        # imsize = np.shape(refimg)
-        # if imsize[0] > self.imcols or imsize[1] > self.imrows:
-        #     if "tif" or "TIF" in photo:
-        #             tempimg = np.memmap(photo, dtype=np.uint16, shape=(imsize))
-        #             refimg = None
-        #             refimg = tempimg
-        #     else:
-        #             tempimg = np.memmap(photo, dtype=np.uint8, shape=(imsize))
-        #             refimg = None
-        #             refimg = tempimg
 
-        ### split channels (using cv2.split caused too much overhead and made the host program crash)
-        alpha = []
-        blue = refimg[:, :, 0]
-        green = refimg[:, :, 1]
-        red = refimg[:, :, 2]
-        if refimg.shape[2] > 3:
-            alpha = refimg[:, :, 3]
-            refimg = refimg[:, :, :3]
-
-        ### find the maximum and minimum pixel values over the entire directory.
-        if self.CalibrationCameraModel.currentIndex() == 5:  ###Survey1 NDVI
-            maxpixel = minmaxes["redmax"] if minmaxes["redmax"] > minmaxes["bluemax"] else minmaxes["bluemax"]
-            minpixel = minmaxes["redmin"] if minmaxes["redmin"] < minmaxes["bluemin"] else minmaxes["bluemin"]
-            blue = refimg[:, :, 0] - (refimg[:, :, 2] * 0.80)  # Subtract the NIR bleed over from the blue channel
-        elif ((self.CalibrationCameraModel.currentIndex() == 3) and (self.CalibrationFilter.currentIndex() == 3)) \
-                or ((self.CalibrationCameraModel.currentIndex() == 4) \
-                and (self.CalibrationFilter.currentIndex() == 1 or self.CalibrationFilter.currentIndex() == 2)):
-            ### red and NIR
-            maxpixel = minmaxes["redmax"]
-            minpixel = minmaxes["redmin"]
-        elif (self.CalibrationCameraModel.currentIndex() == 4) and self.CalibrationFilter.currentIndex() == 3:
-            ### green
-            maxpixel = minmaxes["greenmax"]
-            minpixel = minmaxes["greenmin"]
-        elif ((self.CalibrationCameraModel.currentIndex() == 4)) and self.CalibrationFilter.currentIndex() == 4:
-            ### blue
-            maxpixel = minmaxes["bluemax"]
-            minpixel = minmaxes["bluemin"]
-        elif (self.CalibrationCameraModel.currentIndex() == 3 and self.CalibrationFilter.currentIndex() == 1): # \
-                # or self.CalibrationCameraModel.currentIndex() == 7:
-            ### RGN
-            maxpixel = minmaxes["redmax"] if minmaxes["redmax"] > minmaxes["bluemax"] else minmaxes["bluemax"]
-            maxpixel = minmaxes["greenmax"] if minmaxes["greenmax"] > maxpixel else maxpixel
-            minpixel = minmaxes["redmin"] if minmaxes["redmin"] < minmaxes["bluemin"] else minmaxes["bluemin"]
-            minpixel = minmaxes["greenmin"] if minmaxes["greenmin"] < minpixel else minpixel
-            tblue = (refimg[:, :, 0] / 35) * 100
-            red = refimg[:, :, 2] - ((tblue * 30) / 100)
-            green = refimg[:, :, 1] - ((tblue * 35) / 100)
-            red[red < 0] = 0
-            green[green < 0] = 0
-            # tempimg = cv2.merge((blue, green, red)).astype("uint16")
-            #
-            # cv2.imwrite(str(output_directory + photo.split('.')[1] + "_SUBTRACTION." + photo.split('.')[2]), tempimg)
-            # blue = blue.astype("uint16")
-            # red = red.astype("uint16")
-            # green = green.astype("uint16")
-        elif (self.CalibrationCameraModel.currentIndex() == 3 and self.CalibrationFilter.currentIndex() == 2):
-            maxpixel = minmaxes["redmax"] if minmaxes["redmax"] > minmaxes["bluemax"] else minmaxes["bluemax"]
-            maxpixel = minmaxes["greenmax"] if minmaxes["greenmax"] > maxpixel else maxpixel
-            minpixel = minmaxes["redmin"] if minmaxes["redmin"] < minmaxes["bluemin"] else minmaxes["bluemin"]
-            minpixel = minmaxes["greenmin"] if minmaxes["greenmin"] < minpixel else minpixel
-            tred = (refimg[:, :, 2] / 30) * 100
-            blue = refimg[:, :, 0] - ((tred * 35) / 100)
-            green = refimg[:, :, 1] - ((tred * 35) / 100)
-            blue[blue < 0] = 0
-            green[green < 0] = 0
-            # blue = blue.astype("uint16")
-            # red = red.astype("uint16")
-            # green = green.astype("uint16")
-        else:  ###Survey2 NDVI or any DJI ndvi
-            maxpixel = minmaxes["redmax"] if minmaxes["redmax"] > minmaxes["bluemax"] else minmaxes["bluemax"]
-            minpixel = minmaxes["redmin"] if minmaxes["redmin"] < minmaxes["bluemin"] else minmaxes["bluemin"]
-            red = refimg[:, :, 2] - (refimg[:, :, 0] * 0.80)  # Subtract the NIR bleed over from the red channel
-
-
-
-            ### Calibrate pixels based on the default reflectance values (or the values gathered from the MAPIR reflectance target)
-
-        red = (coeffs[0] * red)
-        green = (coeffs[1] * green)
-        blue = (coeffs[2] * blue)
-
-        # index = self.calculateIndex(red, blue)
-        # cv2.imwrite(output_directory + photo.split('.')[1] + "_SCALED_INDEX." + photo.split('.')[2], index)
-
-        # if photo.split('.')[2].upper() == "JPG" or photo.split('.')[
-        #     2].upper() == "JPEG" or self.Tiff2JpgBox.checkState() > 0:
-        #     tempimg = cv2.merge((blue, green, red)).astype("uint8")
+        if True:
+        #     clist = np.array([self.qrcoeffs,
+        #              self.qrcoeffs2,
+        #              self.qrcoeffs3,
+        #              self.qrcoeffs4,
+        #              self.qrcoeffs5,
+        #              self.qrcoeffs6])
+        #     refimg *= clist
+        #
+        #     refimg -= self.monominmax["min"]
+        #     refimg /= (self.monominmax["max"] + self.monominmax["min"])
+        #     refimg *= 65535
+        #
+        #     refimg = refimg.astype("uint16")
         # else:
-        #     tempimg = cv2.merge((blue, green, red)).astype("uint16")
-        # cv2.imwrite(output_directory + photo.split('.')[1] + "_SCALED." + photo.split('.')[2], tempimg)
-        # red = np.array(((np.power(red, 2) * coeffs[0][0]) + (red * coeffs[0][1]) + coeffs[0][2]), dtype=object)
-        # green = np.array(((np.power(green, 2) * coeffs[1][0]) + (green * coeffs[1][1]) + coeffs[1][2]), dtype=object)
-        # blue = np.array(((np.power(blue, 2) * coeffs[2][0]) + (blue * coeffs[2][1]) + coeffs[2][2]), dtype=object)
-        # red = (red * coeffs[1]) + coeffs[0]
-        # green = (green * coeffs[3]) + coeffs[2]
-        # blue = (blue * coeffs[5]) + coeffs[4]
+            # kernel = np.ones((2, 2), np.uint16)
+            # refimg = cv2.erode(refimg, kernel, iterations=1)
+            # refimg = cv2.dilate(refimg, kernel, iterations=1)
+            # imsize = np.shape(refimg)
+            # if imsize[0] > self.imcols or imsize[1] > self.imrows:
+            #     if "tif" or "TIF" in photo:
+            #             tempimg = np.memmap(photo, dtype=np.uint16, shape=(imsize))
+            #             refimg = None
+            #             refimg = tempimg
+            #     else:
+            #             tempimg = np.memmap(photo, dtype=np.uint8, shape=(imsize))
+            #             refimg = None
+            #             refimg = tempimg
 
-        ### Scale calibrated values back down to a useable range (Adding 1 to avaoid 0 value pixels, as they will cause a
-        #### devide by zero case when creating an index image.
-        if photo.split('.')[2].upper() == "JPG" or photo.split('.')[
-            2].upper() == "JPEG" or self.Tiff2JpgBox.checkState() > 0:
-            self.CalibrationLog.append("Entering JPG")
-            QtWidgets.QApplication.processEvents()
-            red = (((red - minpixel) / (maxpixel - minpixel)))
-            green = (((green - minpixel) / (maxpixel - minpixel)))
-            blue = (((blue - minpixel) / (maxpixel - minpixel)))
-            # tempimg = cv2.merge((blue, green, red)).astype("uint8")
-            # cv2.imwrite(output_directory + photo.split('.')[1] + "_Stretched." + photo.split('.')[2], tempimg)
-            self.CalibrationLog.append("Removing Gamma")
-            QtWidgets.QApplication.processEvents()
-            # red = np.power(red, 0.455)
-            # green = np.power(green, 0.455)
-            # blue = np.power(blue, 0.455)
-            green[green < 0] = 0
-            red[red < 0] = 0
-            blue[blue < 0] = 0
-            red[red > 255] = 255
-            green[green > 255] = 255
-            blue[blue > 255] = 255
-            index = self.calculateIndex(red, blue)
-            # cv2.imwrite(output_directory + photo.split('.')[1] + "_CALIBRATED_INDEX." + photo.split('.')[2], index)
-        else:
-            # maxpixel *= 10
-            # minpixel *= 10
-            red = (((red - minpixel) / (maxpixel - minpixel)))
-            green = (((green - minpixel) / (maxpixel - minpixel)))
-            blue = (((blue - minpixel) / (maxpixel - minpixel)))
-            # tempimg = cv2.merge((blue, green, red)).astype("float32")
-            # cv2.imwrite(output_directory + photo.split('.')[1] + "_Percent." + photo.split('.')[2], tempimg)
-            red *= 65535
-            green *= 65535
-            blue *= 65535
-            # red[blue > 65535] = 65535
-            # red[green > 65535] = 65535
-            #
-            # green[red > 65535] = 65535
-            # green[blue > 65535] = 65535
-            #
-            # blue[red > 65535] = 65535
-            # blue[green > 65535] = 65535
-
-            green[green > 65535] = 65535
-            red[red > 65535] = 65535
-            blue[blue > 65535] = 65535
-
-            # red[blue < 0] = 0
-            # red[green < 0] = 0
-            #
-            # green[red < 0] = 0
-            # green[blue < 0] = 0
-            #
-            # blue[red < 0] = 0
-            # blue[green < 0] = 0
-
-            green[green < 0] = 0
-            red[red < 0] = 0
-            blue[blue < 0] = 0
-        # if photo.split('.')[2].upper() == "JPG":  # Remove the gamma correction that is automaticall applied to JPGs
-        #     index = self.calculateIndex(red, blue)
-            # cv2.imwrite(output_directory + photo.split('.')[1] + "_CALIBRATED_INDEX." + photo.split('.')[2], index)
-
-            ### Merge the channels back into a single image
-        red = red.astype("uint16")
-        green = green.astype("uint16")
-        blue = blue.astype("uint16")
-        # if alpha == []:
-        refimg = cv2.merge((blue, green, red))
-        # else:
-        #     alpha = alpha.astype("uint16")
-        #     refimg = cv2.merge((blue, green, red, alpha))
-        # if refimg.shape[2] > 3:
-        #     white_background_image = np.ones_like(refimg, dtype=np.uint8) * 255
-        #     a_factor = alpha[:, :, np.newaxis].astype(np.float32) / 255.0
-        #     a_factor = np.concatenate((a_factor, a_factor, a_factor), axis=2)
-        #     base = refimg.astype(np.float32) * a_factor
-        #     white = white_background_image.astype(np.float32) * (1 - a_factor)
-        #     refimg = base + white
-        #     ### If the image is a .tiff then change it to a 16 bit color image
-        if "TIF" in photo.split('.')[2].upper() and not self.Tiff2JpgBox.checkState() > 0:
-            refimg = refimg.astype("uint16")
+            ### split channels (using cv2.split caused too much overhead and made the host program crash)
+            alpha = []
+            blue = refimg[:, :, 0]
+            green = refimg[:, :, 1]
+            red = refimg[:, :, 2]
+            if refimg.shape[2] > 3:
+                alpha = refimg[:, :, 3]
+                refimg = refimg[:, :, :3]
 
 
-        if (((self.CalibrationCameraModel.currentIndex() == 4)) and self.CalibrationFilter.currentIndex() == 0) \
-                or (self.CalibrationCameraModel.currentIndex() > 4 and self.CalibrationCameraModel.currentIndex() != 7):
-            ### Remove green information if NDVI camera
-            refimg[:, :, 1] = 1
-        elif (self.CalibrationCameraModel.currentIndex() == 4 and self.CalibrationFilter.currentIndex() == 1) \
-                or (self.CalibrationCameraModel.currentIndex() == 3 and self.CalibrationFilter.currentIndex() == 3) or (self.CalibrationCameraModel.currentIndex() == 4 and self.CalibrationFilter.currentIn0dex() == 2):
-            ### Remove blue and green information if NIR or Red camera
-            refimg[:, :, 0] = 1
-            refimg[:, :, 1] = 1
-        elif ((self.CalibrationCameraModel.currentIndex() == 4)) and self.CalibrationFilter.currentIndex() == 3:
-            ### Remove blue and red information if GREEN camera
-            refimg[:, :, 0] = 1
-            refimg[:, :, 2] = 1
-        elif ((self.CalibrationCameraModel.currentIndex() == 4)) and self.CalibrationFilter.currentIndex() == 4:
-            ### Remove red and green information if BLUE camera
-            refimg[:, :, 1] = 1
-            refimg[:, :, 2] = 1
+
+            ### find the maximum and minimum pixel values over the entire directory.
+            if ind[0] == 5:  ###Survey1 NDVI
+                maxpixel = minmaxes["redmax"] if minmaxes["redmax"] > minmaxes["bluemax"] else minmaxes["bluemax"]
+                minpixel = minmaxes["redmin"] if minmaxes["redmin"] < minmaxes["bluemin"] else minmaxes["bluemin"]
+                blue = refimg[:, :, 0] - (refimg[:, :, 2] * 0.80)  # Subtract the NIR bleed over from the blue channel
+            elif ((ind[0] == 3) and (ind[1] == 3)) \
+                    or ((ind[0] == 4) \
+                    and (ind[1] == 1 or ind[1] == 2)):
+                ### red and NIR
+                maxpixel = minmaxes["redmax"]
+                minpixel = minmaxes["redmin"]
+            elif (ind[0] == 4) and ind[1] == 3:
+                ### green
+                maxpixel = minmaxes["greenmax"]
+                minpixel = minmaxes["greenmin"]
+            elif ((ind[0] == 4)) and ind[1] == 4:
+                ### blue
+                maxpixel = minmaxes["bluemax"]
+                minpixel = minmaxes["bluemin"]
+            elif (ind[0] == 3 and ind[1] == 1) or ind[0] == 2:
+                ## RGN
+                maxpixel = minmaxes["redmax"] if minmaxes["redmax"] > minmaxes["bluemax"] else minmaxes["bluemax"]
+                maxpixel = minmaxes["greenmax"] if minmaxes["greenmax"] > maxpixel else maxpixel
+                minpixel = minmaxes["redmin"] if minmaxes["redmin"] < minmaxes["bluemin"] else minmaxes["bluemin"]
+                minpixel = minmaxes["greenmin"] if minmaxes["greenmin"] < minpixel else minpixel
+                # blue = (refimg[:, :, 0] / 35) * 100
+                red = refimg[:, :, 2] - (blue)
+                green = refimg[:, :, 1] - (blue * 0.62)
+#                 # red[red < 0] = 0
+#                 # green[green < 0] = 0
+                # tempimg = cv2.merge((blue, green, red)).astype("uint16")
+                #
+                # cv2.imwrite(str(output_directory + photo.split('.')[1] + "_SUBTRACTION." + photo.split('.')[2]), tempimg)
+                # blue = blue.astype("uint16")
+                # red = red.astype("uint16")
+                # green = green.astype("uint16")
+            elif (ind[0] == 3 and ind[1] == 2):
+                maxpixel = minmaxes["redmax"] if minmaxes["redmax"] > minmaxes["bluemax"] else minmaxes["bluemax"]
+                maxpixel = minmaxes["greenmax"] if minmaxes["greenmax"] > maxpixel else maxpixel
+                minpixel = minmaxes["redmin"] if minmaxes["redmin"] < minmaxes["bluemin"] else minmaxes["bluemin"]
+                minpixel = minmaxes["greenmin"] if minmaxes["greenmin"] < minpixel else minpixel
+                red = (refimg[:, :, 2] / 30) * 100
+                blue = refimg[:, :, 0] - ((red * 35) / 100)
+                green = refimg[:, :, 1] - ((red * 35) / 100)
+#                 # blue[blue < 0] = 0
+#                 # green[green < 0] = 0
+                # blue = blue.astype("uint16")
+                # red = red.astype("uint16")
+                # green = green.astype("uint16")
+            elif ind[0] == 7:
+                maxpixel = minmaxes["redmax"] if minmaxes["redmax"] > minmaxes["bluemax"] else minmaxes["bluemax"]
+                maxpixel = minmaxes["greenmax"] if minmaxes["greenmax"] > maxpixel else maxpixel
+                minpixel = minmaxes["redmin"] if minmaxes["redmin"] < minmaxes["bluemin"] else minmaxes["bluemin"]
+                minpixel = minmaxes["greenmin"] if minmaxes["greenmin"] < minpixel else minpixel
+            else:  ###Survey2 NDVI
+                maxpixel = minmaxes["redmax"] if minmaxes["redmax"] > minmaxes["bluemax"] else minmaxes["bluemax"]
+                minpixel = minmaxes["redmin"] if minmaxes["redmin"] < minmaxes["bluemin"] else minmaxes["bluemin"]
+                if ind[0] == 4:
+                    red = refimg[:, :, 2] - (refimg[:, :, 0] * 0.80)  # Subtract the NIR bleed over from the red channel
+
+
+
+                ### Calibrate pixels based on the default reflectance values (or the values gathered from the MAPIR reflectance target)
+
+            red = (coeffs[0] * red)
+            green = (coeffs[1] * green)
+            blue = (coeffs[2] * blue)
+
+
+
+            # index = self.calculateIndex(red, blue)
+            # cv2.imwrite(output_directory + photo.split('.')[1] + "_SCALED_INDEX." + photo.split('.')[2], index)
+
+            # if photo.split('.')[2].upper() == "JPG" or photo.split('.')[
+            #     2].upper() == "JPEG" or self.Tiff2JpgBox.checkState() > 0:
+            #     tempimg = cv2.merge((blue, green, red)).astype("uint8")
+            # else:
+            #     tempimg = cv2.merge((blue, green, red)).astype("uint16")
+            # cv2.imwrite(output_directory + photo.split('.')[1] + "_SCALED." + photo.split('.')[2], tempimg)
+            # red = np.array(((np.power(red, 2) * coeffs[0][0]) + (red * coeffs[0][1]) + coeffs[0][2]), dtype=object)
+            # green = np.array(((np.power(green, 2) * coeffs[1][0]) + (green * coeffs[1][1]) + coeffs[1][2]), dtype=object)
+            # blue = np.array(((np.power(blue, 2) * coeffs[2][0]) + (blue * coeffs[2][1]) + coeffs[2][2]), dtype=object)
+            # red = (red * coeffs[1]) + coeffs[0]
+            # green = (green * coeffs[3]) + coeffs[2]
+            # blue = (blue * coeffs[5]) + coeffs[4]
+
+            ### Scale calibrated values back down to a useable range (Adding 1 to avaoid 0 value pixels, as they will cause a
+            #### devide by zero case when creating an index image.
+            if photo.split('.')[2].upper() == "JPG" or photo.split('.')[
+                2].upper() == "JPEG" or self.Tiff2JpgBox.checkState() > 0:
+                self.CalibrationLog.append("Entering JPG")
+                QtWidgets.QApplication.processEvents()
+                red = (((red - minpixel) / (maxpixel - minpixel)))
+                green = (((green - minpixel) / (maxpixel - minpixel)))
+                blue = (((blue - minpixel) / (maxpixel - minpixel)))
+                # tempimg = cv2.merge((blue, green, red)).astype("uint8")
+                # cv2.imwrite(output_directory + photo.split('.')[1] + "_Stretched." + photo.split('.')[2], tempimg)
+                self.CalibrationLog.append("Removing Gamma")
+                QtWidgets.QApplication.processEvents()
+                # red = np.power(red, 0.455)
+                # green = np.power(green, 0.455)
+                # blue = np.power(blue, 0.455)
+                if self.IndexBox.checkState() == 0:
+                    red *= 255
+                    green *= 255
+                    blue *= 255
+                    green[green < 0] = 0
+                    red[red < 0] = 0
+                    blue[blue < 0] = 0
+                    red[red > 255] = 255
+                    green[green > 255] = 255
+                    blue[blue > 255] = 255
+                    # index = self.calculateIndex(red, blue)
+                    # cv2.imwrite(output_directory + photo.split('.')[1] + "_CALIBRATED_INDEX." + photo.split('.')[2], index)
+                    red = red.astype("uint8")
+                    green = green.astype("uint8")
+                    blue = blue.astype("uint8")
+            else:
+                # maxpixel *= 10
+                # minpixel *= 10
+                red = (((red - minpixel) / (maxpixel - minpixel)))
+                green = (((green - minpixel) / (maxpixel - minpixel)))
+                blue = (((blue - minpixel) / (maxpixel - minpixel)))
+                # tempimg = cv2.merge((blue, green, red)).astype("float32")
+                # cv2.imwrite(output_directory + photo.split('.')[1] + "_Percent." + photo.split('.')[2], tempimg)
+                if self.IndexBox.checkState() == 0:
+                    red *= 65535
+                    green *= 65535
+                    blue *= 65535
+                    # red[blue > 65535] = 65535
+                    # red[green > 65535] = 65535
+                    #
+                    # green[red > 65535] = 65535
+                    # green[blue > 65535] = 65535
+                    #
+                    # blue[red > 65535] = 65535
+                    # blue[green > 65535] = 65535
+
+                    green[green > 65535] = 65535
+                    red[red > 65535] = 65535
+                    blue[blue > 65535] = 65535
+
+    #                 # red[blue < 0] = 0
+    #                 # red[green < 0] = 0
+                    #
+    #                 # green[red < 0] = 0
+    #                 # green[blue < 0] = 0
+                    #
+    #                 # blue[red < 0] = 0
+    #                 # blue[green < 0] = 0
+    #
+                    green[green < 0] = 0
+                    red[red < 0] = 0
+                    blue[blue < 0] = 0
+                # if photo.split('.')[2].upper() == "JPG":  # Remove the gamma correction that is automaticall applied to JPGs
+                #     index = self.calculateIndex(red, blue)
+                    # cv2.imwrite(output_directory + photo.split('.')[1] + "_CALIBRATED_INDEX." + photo.split('.')[2], index)
+
+                    ### Merge the channels back into a single image
+                    red = red.astype("uint16")
+                    green = green.astype("uint16")
+                    blue = blue.astype("uint16")
+            # if alpha == []:
+            refimg = cv2.merge((blue, green, red))
+            # else:
+            #     alpha = alpha.astype("uint16")
+            #     refimg = cv2.merge((blue, green, red, alpha))
+            # if refimg.shape[2] > 3:
+            #     white_background_image = np.ones_like(refimg, dtype=np.uint8) * 255
+            #     a_factor = alpha[:, :, np.newaxis].astype(np.float32) / 255.0
+            #     a_factor = np.concatenate((a_factor, a_factor, a_factor), axis=2)
+            #     base = refimg.astype(np.float32) * a_factor
+            #     white = white_background_image.astype(np.float32) * (1 - a_factor)
+            #     refimg = base + white
+            #     ### If the image is a .tiff then change it to a 16 bit color image
+            # if "TIF" in photo.split('.')[2].upper() and not self.Tiff2JpgBox.checkState() > 0:
+            #     refimg = refimg.astype("uint16")
+
+
+            if (((ind[0] == 4)) and ind[1] == 0) or ((ind[0] > 4) and (ind[0] != 7)):
+                ### Remove green information if NDVI camera
+                refimg[:, :, 1] = 1
+
+            elif (ind[0] == 4 and ind[1] == 1) \
+                    or (ind[0] == 3 and ind[1] == 3) or (ind[0] == 4 and self.CalibrationFilter.currentIn0dex() == 2):
+                ### Remove blue and green information if NIR or Red camera
+                refimg[:, :, 0] = 1
+                refimg[:, :, 1] = 1
+            elif ((ind[0] == 4)) and ind[1] == 3:
+                ### Remove blue and red information if GREEN camera
+                refimg[:, :, 0] = 1
+                refimg[:, :, 2] = 1
+            elif ((ind[0] == 4)) and ind[1] == 4:
+                ### Remove red and green information if BLUE camera
+                refimg[:, :, 1] = 1
+                refimg[:, :, 2] = 1
 
         if self.Tiff2JpgBox.checkState() > 0:
             self.CalibrationLog.append("Making JPG")
@@ -2568,7 +3079,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         else:
             newimg = output_directory + photo.split('.')[1] + "_CALIBRATED." + photo.split('.')[2]
             if 'tif' in photo.split('.')[2].lower():
-                cv2.imencode(".tiff", refimg)
+                cv2.imencode(".tif", refimg)
                 cv2.imwrite(newimg, refimg)
                 srin = gdal.Open(photo)
                 inproj = srin.GetProjection()
@@ -2589,7 +3100,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         return ((nir - visible)/(nir + visible))
 
 ####Function for finding he QR target and calculating the calibration coeficients\
-    def findQR(self, image):
+    def findQR(self, image, ind):
         try:
             self.ref = ""
             subprocess.call([modpath + os.sep + r'FiducialFinder.exe', image], startupinfo=si)
@@ -2610,7 +3121,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 # self.CalibrationLog.append(str(coords))
             else:
                 self.ref = self.refindex[0]
-                if self.CalibrationCameraModel.currentIndex() > 2:
+                if ind[0] > 2:
                     im = cv2.imread(image)
                     grayscale = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
 
@@ -2741,38 +3252,41 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             # kernel = np.ones((2, 2), np.uint16)
             # im2 = cv2.erode(im2, kernel, iterations=1)
             # im2 = cv2.dilate(im2, kernel, iterations=1)
-            if self.CalibrationCameraModel.currentIndex() > 2 or ((self.CalibrationCameraModel.currentIndex() <= 2) and (self.CalibrationFilter.currentIndex() > 10)):
+            if ind[0] > 1 or ((ind[0] < 2) and (ind[1] > 10)):
                 blue = im2[:, :, 0]
                 green = im2[:, :, 1]
                 red = im2[:, :, 2]
-                if self.CalibrationCameraModel.currentIndex() == 5:  # Survey1_NDVI
+                if ind[0] == 5:  # Survey1_NDVI
 
                     blue = im2[:, :, 0] - ((im2[:, :, 2] / 5) * 4)
 
-                elif ((self.CalibrationCameraModel.currentIndex() == 4) and (self.CalibrationFilter.currentIndex() == 0)) \
-                        or self.CalibrationCameraModel.currentIndex() == 5 \
-                        or self.CalibrationCameraModel.currentIndex() > 7:  # Survey2 NDVI, DJI NDVI cameras
+                elif ((ind[0] == 4) and (ind[1] == 0)):  # Survey2 NDVI
 
                     red = im2[:, :, 2] - ((im2[:, :, 0] / 5) * 4)
 
-                elif ((self.CalibrationCameraModel.currentIndex() == 3) and (self.CalibrationFilter.currentIndex() == 1)): #\
-                        # or self.CalibrationCameraModel.currentIndex() == 7:
-                    tblue = (im2[:, :, 0] / 35) * 100
-                    red = im2[:, :, 2] - ((tblue * 30) / 100)
-                    green = im2[:, :, 1] - ((tblue * 35) / 100)
-                    red[red < 0] = 0
-                    green[green < 0] = 0
-                elif ((self.CalibrationCameraModel.currentIndex() == 3) and (self.CalibrationFilter.currentIndex() == 2)):
-                    tred = (im2[:, :, 2] / 30) * 100
-                    blue = im2[:, :, 0] - ((tred * 35) / 100)
-                    green = im2[:, :, 1] - ((tred * 35) / 100)
-                    blue[blue < 0] = 0
-                    green[green < 0] = 0
+                elif ((ind[0] == 3) and (ind[1] == 1)): #\
+                        # or ind[0 == 7:
+                    # blue = (im2[:, :, 0] / 35) * 100
+                    red = im2[:, :, 2] - (blue)
+                    green = im2[:, :, 1] - (blue * 0.62)
+                    # blue[blue > 65535] = 65535
+                    # red[red < 0] = 0
+                    # green[green < 0] = 0
+                elif ((ind[0] == 3) and (ind[1] == 2)):
+                    red = (im2[:, :, 2] / 30) * 100
+                    blue = im2[:, :, 0] - ((red * 35) / 100)
+                    green = im2[:, :, 1] - ((red * 35) / 100)
+#                     # blue[blue < 0] = 0
+#                     # green[green < 0] = 0
 
-                maxpixel = max(np.percentile(red, 99), np.percentile(green, 99))
-                maxpixel = max(maxpixel, np.percentile(blue, 99))
-                minpixel = min(np.percentile(red, 1), np.percentile(green, 1))
-                minpixel = min(minpixel, np.percentile(blue, 1))
+                # maxpixel = max(np.percentile(red, 99), np.percentile(green, 99))
+                # maxpixel = max(maxpixel, np.percentile(blue, 99))
+                # minpixel = min(np.percentile(red, 1), np.percentile(green, 1))
+                # minpixel = min(minpixel, np.percentile(blue, 1))
+                maxpixel = max(red.max(), green.max())
+                maxpixel = max(maxpixel, blue.max())
+                minpixel = min(red.min(), green.min())
+                minpixel = min(minpixel, blue.min())
                 if "TIF" in image.split('.')[1].upper():
                     red = ((red - minpixel) / (maxpixel - minpixel) * 65535)
                     blue = ((blue - minpixel) / (maxpixel - minpixel) * 65535)
@@ -2822,9 +3336,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     yblue = [0.87, 0.51, 0.23, 0.0]
                     ygreen = [0.87, 0.51, 0.23, 0.0]
 
-                    xred = [t1redmean, t3redmean, t4redmean]
-                    xgreen = [t1greenmean, t3greenmean, t4greenmean]
-                    xblue = [t1bluemean, t3bluemean, t4bluemean]
+                    xred = [t1redmean, t2redmean, t3redmean, t4redmean]
+                    xgreen = [t1greenmean, t2redmean, t3greenmean, t4greenmean]
+                    xblue = [t1bluemean, t2redmean, t3bluemean, t4bluemean]
                     #
                     # xred = [t3redmean, t4redmean]
                     # xgreen = [t3greenmean, t4greenmean]
@@ -2839,29 +3353,29 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     xgreen = [t1greenmean, t2greenmean, t3greenmean]
                     xblue = [t1bluemean, t2bluemean, t3bluemean]
 
-                if self.CalibrationFilter.currentIndex() == 1 and (self.CalibrationCameraModel.currentIndex() == 4) \
-                        or (self.CalibrationCameraModel.currentIndex() == 3 and self.CalibrationFilter.currentIndex() == 3):
+                if ind[1] == 1 and (ind[0] == 4) \
+                        or (ind[0] == 3 and ind[1] == 3):
                     yred = self.refvalues[self.ref]["850"][0]
                     ygreen = self.refvalues[self.ref]["850"][1]
                     yblue = self.refvalues[self.ref]["850"][2]
-                elif self.CalibrationFilter.currentIndex() == 2 and (self.CalibrationCameraModel.currentIndex() == 4):
+                elif ind[1] == 2 and (ind[0] == 4):
                     yred = self.refvalues[self.ref]["650"][0]
                     ygreen = self.refvalues[self.ref]["650"][1]
                     yblue = self.refvalues[self.ref]["650"][2]
-                elif self.CalibrationFilter.currentIndex() == 3 and (self.CalibrationCameraModel.currentIndex() == 4):
+                elif ind[1] == 3 and (ind[0] == 4):
                     yred = self.refvalues[self.ref]["550"][0]
                     ygreen = self.refvalues[self.ref]["550"][1]
                     yblue = self.refvalues[self.ref]["550"][2]
-                elif self.CalibrationFilter.currentIndex() == 4 and (self.CalibrationCameraModel.currentIndex() == 4):
+                elif ind[1] == 4 and (ind[0] == 4):
                     yred = self.refvalues[self.ref]["450"][0]
                     ygreen = self.refvalues[self.ref]["450"][1]
                     yblue = self.refvalues[self.ref]["450"][2]
-                elif (self.CalibrationFilter.currentIndex() == 1 and self.CalibrationCameraModel.currentIndex() == 3) or (
-                    self.CalibrationCameraModel.currentIndex() == 7):
+                elif (ind[1] == 1 and ind[0] == 3) or (
+                    ind[0] == 7) or (ind[0] == 2 and ind[1] == 0):
                     yred = self.refvalues[self.ref]["550/660/850"][0]
                     ygreen = self.refvalues[self.ref]["550/660/850"][1]
                     yblue = self.refvalues[self.ref]["550/660/850"][2]
-                elif (self.CalibrationCameraModel.currentIndex() == 3 and self.CalibrationFilter.currentIndex() == 2):
+                elif (ind[0] == 3 and ind[1] == 2) or (ind[0] == 2 and ind[1] == 1):
                     yred = self.refvalues[self.ref]["475/550/850"][0]
                     ygreen = self.refvalues[self.ref]["475/550/850"][1]
                     yblue = self.refvalues[self.ref]["475/550/850"][2]
@@ -2959,37 +3473,41 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                         t3mean = np.mean(targ3values)
                         t4mean = np.mean(targ4values)
                     y = [0.87, 0.51, 0.23, 0.0]
-                    if self.CalibrationFilter.currentIndex() == 0:
+                    if ind[1] == 0:
                         y = self.refvalues[self.ref]["Mono405"]
 
-                    elif self.CalibrationFilter.currentIndex() == 1:
+                    elif ind[1] == 1:
                         y = self.refvalues[self.ref]["Mono450"]
 
+                    elif ind[1] == 2:
+                        y = self.refvalues[self.ref]["Mono490"]
 
-                    elif self.CalibrationFilter.currentIndex() == 2:
+                    elif ind[1] == 3:
                         y = self.refvalues[self.ref]["Mono518"]
 
 
-                    elif self.CalibrationFilter.currentIndex() == 3:
+                    elif ind[1] == 4:
                         y = self.refvalues[self.ref]["Mono550"]
 
 
-                    elif self.CalibrationFilter.currentIndex() == 4:
+                    elif ind[1] == 5:
                         y = self.refvalues[self.ref]["Mono590"]
-                    elif self.CalibrationFilter.currentIndex() == 5:
-                        y = self.refvalues[self.ref]["Mono632"]
-                    elif self.CalibrationFilter.currentIndex() == 6:
-                        y = self.refvalues[self.ref]["Mono650"]
-                    elif self.CalibrationFilter.currentIndex() == 7:
+                    elif ind[1] == 6:
                         y = self.refvalues[self.ref]["Mono615"]
-                    elif self.CalibrationFilter.currentIndex() == 8:
+                    elif ind[1] == 7:
+                        y = self.refvalues[self.ref]["Mono632"]
+                    elif ind[1] == 8:
+                        y = self.refvalues[self.ref]["Mono650"]
+                    elif ind[1] == 9:
+                        y = self.refvalues[self.ref]["Mono685"]
+                    elif ind[1] == 10:
                         y = self.refvalues[self.ref]["Mono725"]
-                    elif self.CalibrationFilter.currentIndex() == 9:
+                    elif ind[1] == 11:
                         y = self.refvalues[self.ref]["Mono808"]
-                    elif self.CalibrationFilter.currentIndex() == 10:
+                    elif ind[1] == 12:
                         y = self.refvalues[self.ref]["Mono850"]
 
-                    x = [t4mean, t3mean]
+                    x = [t1mean, t2mean, t3mean, t4mean]
                 else:
                     targ1values = im2[int(target1[1] - ((pixelinch * 0.75) / 2)):(target1[1] + ((pixelinch * 0.75) / 2)),
                                   int(target1[0] - ((pixelinch * 0.75) / 2)):(target1[0] + ((pixelinch * 0.75) / 2))]
@@ -3006,51 +3524,55 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                         t2mean = np.mean(targ2values)
                         t3mean = np.mean(targ3values)
                     y = [0.87, 0.51, 0.23]
-                    if self.CalibrationFilter.currentIndex() == 0:
+                    if ind[1] == 0:
                         y = self.refvalues[self.ref]["Mono405"]
 
-                    elif self.CalibrationFilter.currentIndex() == 1:
+                    elif ind[1] == 1:
                         y = self.refvalues[self.ref]["Mono450"]
 
 
-                    elif self.CalibrationFilter.currentIndex() == 2:
+                    elif ind[1] == 2:
                         y = self.refvalues[self.ref]["Mono518"]
 
 
-                    elif self.CalibrationFilter.currentIndex() == 3:
+                    elif ind[1] == 3:
                         y = self.refvalues[self.ref]["Mono550"]
 
 
-                    elif self.CalibrationFilter.currentIndex() == 4:
+                    elif ind[1] == 4:
                         y = self.refvalues[self.ref]["Mono590"]
-                    elif self.CalibrationFilter.currentIndex() == 5:
+                    elif ind[1] == 5:
                         y = self.refvalues[self.ref]["Mono632"]
-                    elif self.CalibrationFilter.currentIndex() == 6:
+                    elif ind[1] == 6:
                         y = self.refvalues[self.ref]["Mono650"]
-                    elif self.CalibrationFilter.currentIndex() == 7:
+                    elif ind[1] == 7:
                         y = self.refvalues[self.ref]["Mono615"]
-                    elif self.CalibrationFilter.currentIndex() == 8:
+                    elif ind[1] == 8:
                         y = self.refvalues[self.ref]["Mono725"]
-                    elif self.CalibrationFilter.currentIndex() == 9:
+                    elif ind[1] == 9:
                         y = self.refvalues[self.ref]["Mono780"]
-                    elif self.CalibrationFilter.currentIndex() == 10:
+                    elif ind[1] == 10:
                         y = self.refvalues[self.ref]["Mono808"]
 
-                    elif self.CalibrationFilter.currentIndex() == 11:
+                    elif ind[1] == 11:
                         y = self.refvalues[self.ref]["Mono850"]
-                    elif self.CalibrationFilter.currentIndex() == 12:
+                    elif ind[1] == 12:
                         y = self.refvalues[self.ref]["Mono880"]
 
 
                     x = [t1mean, t2mean, t3mean]
-                if self.ref == "oldrefvalues":
-                    p, _ = np.polyfit(x, y, 2)
-                else:
-                    p, _ = np.polyfit(x, y, 3)
+                x = np.array(x)
+
+
+                y = np.array(y)
+
+
+                a = x.dot(y) / x.dot(x)
+
 
                 self.CalibrationLog.append("Found QR Target, please proceed with calibration.")
                 QtWidgets.QApplication.processEvents()
-                return p
+                return a
         except Exception as e:
             self.CalibrationLog.append(str(e))
             return
@@ -3091,10 +3613,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     " " + input.split(os.sep)[1])
                 QtWidgets.QApplication.processEvents()
                 filename = input.split('.')
-                outputfilename = filename[1] + '.tiff'
-                print(infolder + input.split('.')[1] + "." + input.split('.')[2])
-                print(outfolder + outputfilename)
-                self.openMapir(infolder + input.split('.')[1] + "." + input.split('.')[2], outfolder + outputfilename)
+                outputfilename = outfolder + filename[1] + '.tif'
+                # print(infolder + input.split('.')[1] + "." + input.split('.')[2])
+                # print(outfolder + outputfilename)
+                self.openMapir(infolder + input.split('.')[1] + "." + input.split('.')[2],  outputfilename)
 
 
                 counter += 1
@@ -3123,8 +3645,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                             color = cv2.cvtColor(img, cv2.COLOR_BAYER_RG2RGB)
 
                             filename = input.split('.')
-                            outputfilename = filename[1] + '.tiff'
-                            cv2.imencode(".tiff", color)
+                            outputfilename = filename[1] + '.tif'
+                            cv2.imencode(".tif", color)
                             cv2.imwrite(outfolder + outputfilename, color)
                             if customerdata == True:
                                 self.copyExif(infolder + infiles[counter + 1], outfolder + outputfilename)
@@ -3151,7 +3673,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def openDNG(self, inphoto, outfolder, customerdata=True):
         inphoto = str(inphoto)
-        newfile = inphoto.split(".")[0] + ".tiff"
+        newfile = inphoto.split(".")[0] + ".tif"
         if not os.path.exists(outfolder + os.sep + newfile.rsplit(os.sep, 1)[1]):
             if sys.platform == "win32":
                 subprocess.call([modpath + os.sep + 'dcraw.exe', '-6', '-T', inphoto], startupinfo=si)
@@ -3164,31 +3686,56 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.PreProcessLog.append("Attention!: " + str(newfile) + " already exists.")
 
     def openMapir(self, inphoto, outphoto):
-        if "mapir" in inphoto.split('.')[1]:
-            if self.PreProcessDarkBox.isChecked():
-                subprocess.call(
-                    [modpath + os.sep + r'Mapir_Converter.exe -d', os.path.abspath(inphoto),
-                     os.path.abspath(outphoto)], startupinfo=si)
+        # self.PreProcessLog.append(str(inphoto) + " " + str(outphoto))
+        try:
+            if "mapir" in inphoto.split('.')[1]:
+                if self.PreProcessDarkBox.isChecked():
+                    subprocess.call(
+                        [modpath + os.sep + r'Mapir_Converter.exe', '-d', os.path.abspath(inphoto),
+                         os.path.abspath(outphoto)], startupinfo=si)
+                else:
+                    subprocess.call(
+                        [modpath + os.sep + r'Mapir_Converter.exe', os.path.abspath(inphoto),
+                         os.path.abspath(outphoto)], startupinfo=si)
+                img = cv2.imread(outphoto, -1)
+                try:
+
+                    if self.PreProcessFilter.currentIndex() >= 13 or self.PreProcessCameraModel.currentIndex() == 2:
+                        cv2.imwrite(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], img)
+                        self.copyExif(outphoto, outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
+                        color = cv2.cvtColor(img, cv2.COLOR_BAYER_GR2RGB).astype("uint16")
+                        self.PreProcessLog.append("Debayering")
+                        cv2.imencode(".tif", color)
+                        cv2.imwrite(outphoto, color)
+                        self.copyExif(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], outphoto)
+                        os.unlink(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
+                        self.PreProcessLog.append("Done Debayering")
+                    else:
+                        self.copyExif(outphoto, outphoto)
+                        self.PreProcessLog.append("Skipped Debayering")
+                except Exception as e:
+                    print(str(e))
             else:
-                subprocess.call(
-                    [modpath + os.sep + r'Mapir_Converter.exe', os.path.abspath(inphoto),
-                     os.path.abspath(outphoto)], startupinfo=si)
-            img = cv2.imread(outphoto, -1)
-            cv2.imwrite(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], img)
-            self.copyExif(outphoto, outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
-            color = cv2.cvtColor(img, cv2.COLOR_BAYER_GR2RGB).astype("uint16")
+                try:
 
-            cv2.imencode(".tiff", color)
-            cv2.imwrite(outphoto, color)
-            self.copyExif(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], outphoto)
-            os.unlink(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
-        else:
-            img = cv2.imread(inphoto, -1)
-            color = cv2.cvtColor(img, cv2.COLOR_BAYER_GR2RGB).astype("uint16")
-
-            cv2.imencode(".tiff", color)
-            cv2.imwrite(outphoto, color)
-            self.copyExif(inphoto, outphoto)
+                    if self.PreProcessFilter.currentIndex() >= 13:
+                        img = cv2.imread(inphoto, -1)
+                        color = cv2.cvtColor(img, cv2.COLOR_BAYER_GR2RGB).astype("uint16")
+                        self.PreProcessLog.append("Debayering")
+                        cv2.imencode(".tif", color)
+                        cv2.imwrite(outphoto, color)
+                        self.copyExif(inphoto, outphoto)
+                        self.PreProcessLog.append("Done Debayering")
+                    else:
+                        if "mapir" not in inphoto.split('.')[1]:
+                            self.copyExif(inphoto, outphoto)
+                        else:
+                            self.copyExif(outphoto, outphoto)
+                        self.PreProcessLog.append("Skipped Debayering")
+                except Exception as e:
+                    print(str(e))
+        except Exception as e:
+            self.PreProcessLog.appen("Error in function openMapir(): " + str(e))
 
 
     def copyExif(self, inphoto, outphoto):
@@ -3196,15 +3743,58 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             # with exiftool.ExifTool() as et:
             #     et.execute(r' -overwrite_original -tagsFromFile ' + os.path.abspath(inphoto) + ' ' + os.path.abspath(outphoto))
 
-            subprocess.call(
-                [modpath + os.sep + r'exiftool.exe', r'-overwrite_original', r'-tagsFromFile',
-                 os.path.abspath(inphoto),
-                 r'-all:all<all:all',
-                 os.path.abspath(outphoto)], startupinfo=si)
+            try:
+                # self.PreProcessLog.append(str(modpath + os.sep + r'exiftool.exe') + ' ' + inphoto + ' ' + outphoto)
+                subprocess._cleanup()
+                ypr = subprocess.run(
+                    args=[modpath + os.sep + r'exiftool.exe', '-m', r'-UserComment', os.path.abspath(inphoto)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, startupinfo=si).stdout.decode("utf-8").split(':')[1].split()[0:3]
+                ypr[0] = float(ypr[0])
+                ypr[1] = float(ypr[1])
+                ypr[2] = float(ypr[2])
+
+            except Exception as e:
+                ypr = None
+                print(e)
+                if self.MapirTab.currentIndex() == 0:
+                    self.PreProcessLog.append("Warning: No userdefined tags detected")
+                elif self.MapirTab.currentIndex() == 1:
+                    self.PreProcessLog.append("Warning: No userdefined tags detected")
+
+                subprocess.call(
+                    [modpath + os.sep + r'exiftool.exe', '-m', r'-overwrite_original', r'-tagsFromFile',
+                     os.path.abspath(inphoto),
+                     # r'-all:all<all:all',
+                     os.path.abspath(outphoto)], startupinfo=si)
+            finally:
+                if ypr is not None:
+                    try:
+
+                        exifout = subprocess.run(
+                            [modpath + os.sep + r'exiftool.exe',  r'-config', modpath + os.sep + r'mapir.config', '-m', r'-overwrite_original', r'-tagsFromFile',
+                             os.path.abspath(inphoto),
+                             r'-all:all<all:all',
+
+                             r'-xmp-camera:yaw=' + str(ypr[0]),
+                             r'-xmp-camera:pitch=' + str(ypr[1]),
+                             r'-xmp-camera:roll=' + str(ypr[2]),
+                             os.path.abspath(outphoto)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, startupinfo=si).stderr.decode("utf-8")
+
+                    except Exception as e:
+                        if self.MapirTab.currentIndex() == 0:
+                            self.PreProcessLog.append("Error: " + str(e))
+                        elif self.MapirTab.currentIndex() == 1:
+                            self.CalibrationLog.append("Error: " + str(e))
+                else:
+                    self.PreProcessLog.append("No IMU data detected.")
+                    subprocess.call(
+                        [modpath + os.sep + r'exiftool.exe', '-m', r'-overwrite_original', r'-tagsFromFile',
+                         os.path.abspath(inphoto),
+                         # r'-all:all<all:all',
+                         os.path.abspath(outphoto)], startupinfo=si)
         else:
             subprocess.call(
                 [r'exiftool', r'-overwrite_original', r'-addTagsFromFile', os.path.abspath(inphoto),
-                 r'-all:all<all:all',
+                 # r'-all:all<all:all',
                  os.path.abspath(outphoto)])
     def on_DarkCurrentInputButton_released(self):
         with open(modpath + os.sep + "instring.txt", "r+") as instring:
@@ -3225,7 +3815,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             QtWidgets.QApplication.processEvents()
             self.KernelLog.append("Updating " + str(img))
             subprocess.call(
-                [modpath + os.sep + r'exiftool.exe', r'-overwrite_original', r'-ifd0:blacklevelrepeatdim=2 2',  img], startupinfo=si)
+                [modpath + os.sep + r'exiftool.exe', '-m', r'-overwrite_original', r'-ifd0:blacklevelrepeatdim=2 2',  img], startupinfo=si)
 
         self.KernelLog.append("Finished updating")
 
