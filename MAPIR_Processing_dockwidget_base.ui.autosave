@@ -3122,16 +3122,22 @@ p, li { white-space: pre-wrap; }
            <bool>false</bool>
           </property>
           <property name="tabletTracking">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
           <property name="focusPolicy">
            <enum>Qt::StrongFocus</enum>
+          </property>
+          <property name="acceptDrops">
+           <bool>false</bool>
           </property>
           <property name="verticalScrollBarPolicy">
            <enum>Qt::ScrollBarAlwaysOff</enum>
           </property>
           <property name="horizontalScrollBarPolicy">
            <enum>Qt::ScrollBarAlwaysOff</enum>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
           </property>
           <property name="interactive">
            <bool>false</bool>
