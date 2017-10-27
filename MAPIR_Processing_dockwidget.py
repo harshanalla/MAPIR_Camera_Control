@@ -89,7 +89,7 @@ if not os.path.exists(modpath + os.sep + "instring.txt"):
 #     sys.path.append(r'/usr/local/bin/exiftool')
 #     sys.path.append(r'/usr/local/bin/opencv2')
 
-import gdal
+# import gdal
 
 import glob
 
@@ -781,7 +781,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.display_image = cv2.imread(self.KernelBrowserFile.text(), 1)
             self.display_image = cv2.cvtColor(self.display_image, cv2.COLOR_BGR2RGB)
             h, w = self.display_image.shape[:2]
-            self.frame = QtGui.QImage(self.display_image.data, w, h, w*3, QtGui.QImage.Format_RGB888)
+            if len(self.display_image.shape) > 2:
+                self.frame = QtGui.QImage(self.display_image.data, w, h, w*3, QtGui.QImage.Format_RGB888)
+            else:
+                self.frame = QtGui.QImage(self.display_image.data, w, h, w, QtGui.QImage.Format_RGB888)
             # w = self.KernelBrowserViewer.width()
             # h = self.KernelBrowserViewer.height()
             self.image_loaded = True
@@ -797,17 +800,17 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         except Exception as e:
             print(str(e))
 
-    def wheelEvent(self, event):
-        if self.image_loaded == True:
-            try:
-                self.KernelBrowserViewer.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
-                factor = 1.15
-                if int(event.angleDelta().y()) > 0:
-                    self.KernelBrowserViewer.scale(factor, factor)
-                else:
-                    self.KernelBrowserViewer.scale(1.0/factor, 1.0/factor)
-            except Exception as e:
-                print(str(e))
+    # def wheelEvent(self, event):
+    #     if self.image_loaded == True:
+    #         try:
+    #             self.KernelBrowserViewer.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
+    #             factor = 1.15
+    #             if int(event.angleDelta().y()) > 0:
+    #                 self.KernelBrowserViewer.scale(factor, factor)
+    #             else:
+    #                 self.KernelBrowserViewer.scale(1.0/factor, 1.0/factor)
+    #         except Exception as e:
+    #             print(str(e))
     def resizeEvent(self, event):
         # redraw the image in the viewer every time the window is resized
         if self.image_loaded == True:
@@ -2868,11 +2871,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         cv2.imencode(".tif", refimg)
         cv2.imwrite(newimg, refimg)
-        srin = gdal.Open(photo)
+        # srin = gdal.Open(photo)
         inproj = srin.GetProjection()
         transform = srin.GetGeoTransform()
         gcpcount = srin.GetGCPs()
-        srout = gdal.Open(newimg, gdal.GA_Update)
+        # srout = gdal.Open(newimg, gdal.GA_Update)
         srout.SetProjection(inproj)
         srout.SetGeoTransform(transform)
         srout.SetGCPs(gcpcount, srin.GetGCPProjection())
@@ -3147,11 +3150,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             if 'tif' in photo.split('.')[2].lower():
                 # cv2.imencode(".tif", refimg)
                 cv2.imwrite(newimg, refimg)
-                srin = gdal.Open(photo)
+                # srin = gdal.Open(photo)
                 inproj = srin.GetProjection()
                 transform = srin.GetGeoTransform()
                 gcpcount = srin.GetGCPs()
-                srout = gdal.Open(newimg, gdal.GA_Update)
+                # srout = gdal.Open(newimg, gdal.GA_Update)
                 srout.SetProjection(inproj)
                 srout.SetGeoTransform(transform)
                 srout.SetGCPs(gcpcount, srin.GetGCPProjection())
