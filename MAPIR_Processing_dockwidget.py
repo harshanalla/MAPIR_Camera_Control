@@ -38,13 +38,17 @@ from scipy import stats
 import numpy as np
 import subprocess
 import cv2
-
+import copy
 import hid
 import time
 import distutils
 from distutils import dir_util
 from MAPIR_Enums import *
+from Calculator import *
+from LUT_Dialog import *
+from ViewerSave_Dialog import *
 import struct
+# import KernelBrowserViewer
 
 modpath = os.path.dirname(os.path.realpath(__file__))
 
@@ -89,7 +93,7 @@ if not os.path.exists(modpath + os.sep + "instring.txt"):
 #     sys.path.append(r'/usr/local/bin/exiftool')
 #     sys.path.append(r'/usr/local/bin/opencv2')
 
-import gdal
+# import gdal
 
 import glob
 
@@ -138,11 +142,13 @@ class KernelTransfer(QtWidgets.QDialog, TRANSFER_CLASS):
         self.parent.transferoutfolder  = self.ModalOutputFolder.text()
         self.parent.yestransfer = True
         self.parent.selection_made = True
+        QtWidgets.QApplication.processEvents()
         self.close()
 
     def on_ModalCancelButton_released(self):
         self.parent.yestransfer = False
         self.parent.selection_made = True
+        QtWidgets.QApplication.processEvents()
         self.close()
 
 
@@ -161,7 +167,7 @@ class KernelDelete(QtWidgets.QDialog, DEL_CLASS):
         self.setupUi(self)
 
     def on_ModalSaveButton_released(self):
-        for drv in self.parent.drivesfound:
+        for drv in self.parent.driveletters:
             if os.path.isdir(drv + r":" + os.sep + r"dcim"):
                 # try:
                 files = glob.glob(drv + r":" + os.sep + r"dcim/*/*")
@@ -433,6 +439,12 @@ class tEventInfo:
         focusing = 0
         inversion = 0
         nr_faces = 0
+
+
+
+
+
+
 class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     BASE_COEFF_SURVEY2_RED_JPG = [-2.55421832, 16.01240929, 0.0, 0.0, 0.0, 0.0]
     BASE_COEFF_SURVEY2_GREEN_JPG = [0.0, 0.0, -0.60437250, 4.82869470, 0.0, 0.0]
@@ -467,6 +479,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     BASE_COEFF_KERNEL_F660_850 = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     BASE_COEFF_KERNEL_F475_550_850 = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     BASE_COEFF_KERNEL_F550_660_850 = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+    # eFilter = mousewheelFilter()
     camera = 0
     poll = []
     ei = tEventInfo()
@@ -492,7 +506,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     qrcoeffs5 = []
     qrcoeffs6 = []
 
-    drivesfound = []
+    # drivesfound = []
     ref = ""
     refindex = ["oldrefvalues", "newrefvalues"]
     refvalues = {
@@ -572,6 +586,14 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     minutes = 0
     seconds = 1
     modalwindow = None
+    calcwindow = None
+    LUTwindow = None
+    ndvipsuedo = None
+    savewindow = None
+    index_to_save = None
+    LUT_to_save = None
+    LUT_Min = -1.0
+    LUT_Max = 1.0
     array_indicator = False
     seed_pass = False
     transferoutfolder = None
@@ -598,8 +620,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     SET_REGISTER_BLOCK_READ_REPORT = 11
     SET_CAMERA = 13
     display_image = None
+    display_image_original = None
+    displaymax = None
+    displaymin = None
     mapscene = None
     frame = None
+    legend_frame = None
+    legend_scene = None
     image_loaded = False
     # mMutex = QMutex()
     regs = []
@@ -616,6 +643,22 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
+        try:
+
+            img = cv2.imread(os.path.dirname(__file__) + "/lut_legend.jpg")
+            # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            # legend = cv2.cvtColor(legend, cv2.COLOR_GRAY2RGB)
+            legh, legw = legend.shape[:2]
+            self.legend_frame = QtGui.QImage(legend.data, legw, legh, legw, QtGui.QImage.Format_Grayscale8)
+            self.LUTGraphic.setPixmap(QtGui.QPixmap.fromImage(img2))
+            self.LUTGraphic.setPixmap(QtGui.QPixmap.fromImage(
+                QtGui.QImage(self.legend_frame)))
+        except Exception as e:
+            print(e)
+        # try:
+        #     self.KernelViewer = KernelBrowserViewer.KernelBrowserViewer(self)
+        # except Exception as e:
+        #     print(e)
         # self.timer.timeout.connect(self.tick)
 
     # def tick(self):
@@ -631,16 +674,18 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 if os.path.isdir(drv + r":/dcim/"):
                     try:
                         if not os.path.exists(drv + tmtf):
+                            self.KernelLog.append("Camera mounted at drive " + drv + " leaving transfer mode")
                             file = open(drv + tmtf, "w")
                             file.close()
                     except:
                         self.KernelLog.append("Error disconnecting drive " + drv)
 
-                    drv = chr(ord(drv) + 1)
+                drv = chr(ord(drv) + 1)
         else:
             if os.path.isdir(drv + r":/dcim/"):
                 try:
                     if not os.path.exists(drv + tmtf):
+                        self.KernelLog.append("Camera mounted at drive " + drv + " leaving transfer mode")
                         file = open(drv + tmtf, "w")
                         file.close()
                 except:
@@ -648,8 +693,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def on_KernelRefreshButton_released(self):
         self.ConnectKernels()
     def on_KernelConnect_released(self):
+
         self.ConnectKernels()
     def ConnectKernels(self):
+        self.KernelLog.append(' ')
         all_cameras = hid.enumerate(self.VENDOR_ID, self.PRODUCT_ID)
 
         if all_cameras == []:
@@ -661,7 +708,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             # self.paths_3_0.clear()
             # self.paths_14_0.clear()
             for cam in all_cameras:
-                self.KernelLog.append("Subscript1")
+                # self.KernelLog.append("Subscript1")
                 self.paths.append(cam['path'])
 
 
@@ -703,7 +750,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                         times += 1
                     # self.KernelLog.append(str(line + 6))
                     # print(chr(res[2]) + chr(res[3]) + chr(res[4]))
-                    self.KernelLog.append("Subscript2")
+                    # self.KernelLog.append("Subscript2")
                     item = chr(res[2]) + chr(res[3]) + chr(res[4])
                     # self.KernelLog.append(str(line + 7))
                     self.KernelLog.append("Found Camera: " + str(item))
@@ -726,7 +773,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     # self.KernelLog.append(str(line + 11))
                     self.KernelCameraSelect.blockSignals(False)
                     # self.KernelLog.append(str(line + 12))
-                self.KernelLog.append("Subscript3")
+                # self.KernelLog.append("Subscript3")
                 self.camera = self.paths[0]
 
                 try:
@@ -770,7 +817,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     #         self.array_indicator = True
     #         self.KernelCameraSelect.setEnabled(False)
 
-
     def on_KernelBrowserButton_released(self):
         with open(modpath + os.sep + "instring.txt", "r+") as instring:
             self.KernelBrowserFile.setText(QtWidgets.QFileDialog.getOpenFileName(directory=instring.read())[0])
@@ -778,10 +824,33 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             instring.seek(0)
             instring.write(self.KernelBrowserFile.text())
         try:
+            # self.KernelViewer.verticalScrollBar().blockSignals(True)
+            # self.KernelViewer.horizontalScrollBar().blockSignals(True)
+
+            # self.KernelViewer.installEventFilter(self.eFilter)
+            if os.path.exists(self.KernelBrowserFile.text()):
+                self.display_image = cv2.imread(self.KernelBrowserFile.text(), -1)
+                if self.display_image.dtype == np.dtype("uint16"):
+                    self.display_image = self.display_image / 65535.0
+                    self.display_image = self.display_image * 255.0
+                    self.display_image = self.display_image.astype("uint8")
+                self.displaymax = np.percentile(self.display_image, 98)
+                self.displaymin = np.percentile(self.display_image, 2)
+                self.display_image[self.display_image > self.displaymax] = self.displaymax
+                self.display_image[self.display_image < self.displaymin] = self.displaymin
+                if len(self.display_image.shape) > 2:
+                    self.display_image = cv2.cvtColor(self.display_image, cv2.COLOR_BGR2RGB)
+                else:
+                    self.display_image = cv2.cvtColor(self.display_image, cv2.COLOR_GRAY2RGB)
+                self.display_image_original = copy.deepcopy(self.display_image)
+                h, w = self.display_image.shape[:2]
             self.display_image = cv2.imread(self.KernelBrowserFile.text(), 1)
             self.display_image = cv2.cvtColor(self.display_image, cv2.COLOR_BGR2RGB)
             h, w = self.display_image.shape[:2]
-            self.frame = QtGui.QImage(self.display_image.data, w, h, w*3, QtGui.QImage.Format_RGB888)
+            if len(self.display_image.shape) > 2:
+                self.frame = QtGui.QImage(self.display_image.data, w, h, w*3, QtGui.QImage.Format_RGB888)
+            else:
+                self.frame = QtGui.QImage(self.display_image.data, w, h, w, QtGui.QImage.Format_RGB888)
             # w = self.KernelBrowserViewer.width()
             # h = self.KernelBrowserViewer.height()
             self.image_loaded = True
@@ -789,25 +858,236 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.mapscene.addPixmap(QtGui.QPixmap.fromImage(
                 QtGui.QImage(self.frame)))
 
-            self.KernelBrowserViewer.setScene(self.mapscene)
-            self.KernelBrowserViewer.setFocus()
-            # self.KernelBrowserViewer.setWheelAction(2)
-            QtWidgets.QApplication.processEvents()
+
+            self.image_loaded = True
+            self.stretchView()
+            # self.display_image = ((self.display_image - self.display_image.min())/(self.display_image.max() - self.display_image.min())) * 255.0
+
+            self.display_image = self.display_image.astype("uint8")
+
+            if len(self.display_image.shape) > 2:
+                self.frame = QtGui.QImage(self.display_image.data, w, h, w*3, QtGui.QImage.Format_RGB888)
+            else:
+                self.frame = QtGui.QImage(self.display_image.data, w, h, w, QtGui.QImage.Format_RGB888)
+
+            # browser_w = self.KernelViewer.width()
+            # browser_h = self.KernelViewer.height()
+
+            self.image_loaded = True
+            self.ViewerCalcButton.setEnabled(True)
+            # self.LUTButton.setEnabled(True)
+            self.updateViewer(keepAspectRatio=True)
 
         except Exception as e:
             print(str(e))
+    def on_ViewerStretchBox_toggled(self):
+        self.stretchView()
+    def stretchView(self):
+        try:
+            if self.image_loaded:
+                if self.ViewerStretchBox.isChecked():
+                    h, w = self.display_image.shape[:2]
 
-    def wheelEvent(self, event):
+                    if len(self.display_image.shape) > 2:
+                        self.display_image[:, :, 0] = cv2.equalizeHist(self.display_image[:, :, 0])
+                        self.display_image[:, :, 1] = cv2.equalizeHist(self.display_image[:, :, 1])
+                        self.display_image[:, :, 2] = cv2.equalizeHist(self.display_image[:, :, 2])
+                    else:
+                        self.display_image = cv2.equalizeHist(self.display_image)
+                    if not (self.ViewerIndexBox.isChecked() or self.LUTBox.isChecked()):
+                        if len(self.display_image.shape) > 2:
+                            self.frame = QtGui.QImage(self.display_image.data, w, h, w * 3, QtGui.QImage.Format_RGB888)
+                        else:
+                            self.frame = QtGui.QImage(self.display_image.data, w, h, w, QtGui.QImage.Format_RGB888)
+                else:
+                    if not (self.ViewerIndexBox.isChecked() or self.LUTBox.isChecked()):
+                        h, w = self.display_image_original.shape[:2]
+                        if len(self.display_image_original.shape) > 2:
+                            self.frame = QtGui.QImage(self.display_image_original.data, w, h, w * 3, QtGui.QImage.Format_RGB888)
+                        else:
+                            self.frame = QtGui.QImage(self.display_image_original.data, w, h, w, QtGui.QImage.Format_RGB888)
+                self.updateViewer(keepAspectRatio=False)
+        except Exception as e:
+            print(e)
+    def on_ViewerIndexBox_toggled(self):
+        self.applyRaster()
+    def applyRaster(self):
+        try:
+            h, w = self.display_image.shape[:2]
+            if self.LUTBox.isChecked():
+                pass
+            else:
+                if self.ViewerIndexBox.isChecked():
+                    self.frame = QtGui.QImage(self.calcwindow.ndvi.data, w, h, w, QtGui.QImage.Format_Grayscale8)
+                    legend = cv2.imread(os.path.dirname(__file__) + r'\lut_legend.jpg', 0).astype("uint8")
+                    # legend = cv2.cvtColor(legend, cv2.COLOR_GRAY2RGB)
+                    legh, legw = legend.shape[:2]
+                    self.legend_frame = QtGui.QImage(legend.data, legw, legh, legw, QtGui.QImage.Format_Grayscale8)
+                    self.LUTGraphic.setPixmap(QtGui.QPixmap.fromImage(
+                        QtGui.QImage(self.legend_frame)))
+                else:
+                    self.frame = QtGui.QImage(self.display_image.data, w, h, w * 3, QtGui.QImage.Format_RGB888)
+                self.updateViewer(keepAspectRatio=False)
+        except Exception as e:
+            print(e)
+    def updateViewer(self, keepAspectRatio = True):
+        self.mapscene = QtWidgets.QGraphicsScene()
+
+        self.mapscene.addPixmap(QtGui.QPixmap.fromImage(
+            QtGui.QImage(self.frame)))
+
+        self.KernelViewer.setScene(self.mapscene)
+        if keepAspectRatio:
+            self.KernelViewer.fitInView(self.mapscene.sceneRect(), QtCore.Qt.KeepAspectRatio)
+        self.KernelViewer.setFocus()
+        # self.KernelViewer.setWheelAction(2)
+        QtWidgets.QApplication.processEvents()
+
+    def on_LUTBox_toggled(self):
+        self.applyLUT()
+    def applyLUT(self):
+        try:
+            h, w = self.display_image.shape[:2]
+            if self.LUTBox.isChecked():
+                if self.LUTwindow.ClipOption.currentIndex() == 1:
+                    self.frame = QtGui.QImage(self.ndvipsuedo.data, w, h, w * 4, QtGui.QImage.Format_RGBA8888)
+                else:
+                    self.frame = QtGui.QImage(self.ndvipsuedo.data, w, h, w * 3, QtGui.QImage.Format_RGB888)
+
+                legend = cv2.imread(os.path.dirname(__file__) + r'\lut_legend_rgb.jpg', -1).astype("uint8")
+                legend = cv2.cvtColor(legend, cv2.COLOR_BGR2RGB)
+                legh, legw = legend.shape[:2]
+                self.legend_frame = QtGui.QImage(legend.data, legw, legh, legw * 3, QtGui.QImage.Format_RGB888)
+                self.LUTGraphic.setPixmap(QtGui.QPixmap.fromImage(
+                    QtGui.QImage(self.legend_frame)))
+                # if self.LUTwindow.ClipOption.currentIndex() == 2:
+                #     temp = copy.deepcopy(self.calcwindow.ndvi)
+                #     if self.ViewerIndexBox.isChecked():
+                #
+                #         self.ndvipsuedo[temp <= self.LUTwindow._min, 0] = temp[temp <= self.LUTwindow._min]
+                #         self.ndvipsuedo[temp <= self.LUTwindow._min, 1] = temp[temp <= self.LUTwindow._min]
+                #         self.ndvipsuedo[temp <= self.LUTwindow._min, 2] = temp[temp <= self.LUTwindow._min]
+                #         self.ndvipsuedo[temp >= self.LUTwindow._max, 0] = temp[temp >= self.LUTwindow._max]
+                #         self.ndvipsuedo[temp >= self.LUTwindow._max, 1] = temp[temp >= self.LUTwindow._max]
+                #         self.ndvipsuedo[temp >= self.LUTwindow._max, 2] = temp[temp >= self.LUTwindow._max]
+                #     else:
+                #         self.ndvipsuedo[temp <= self.LUTwindow._min] = self.display_image[temp <= self.LUTwindow._min]
+                #         # self.ndvipsuedo[temp <= workingmin, 1] = temp[temp <= workingmin]
+                #         # self.ndvipsuedo[temp <= workingmin, 2] = temp[temp <= workingmin]
+                #         self.ndvipsuedo[temp >= self.LUTwindow._max] = self.display_image[temp >= self.LUTwindow._max]
+                #         # self.ndvipsuedo[temp >= workingmax, 1] = temp[temp >= workingmax]
+                #         # self.ndvipsuedo[temp >= workingmax, 2] = temp[temp >= workingmax]
+            else:
+                legend = cv2.imread(os.path.dirname(__file__) + r'\lut_legend.jpg', 0).astype("uint8")
+                # legend = cv2.cvtColor(legend, cv2.COLOR_GRAY2RGB)
+                legh, legw = legend.shape[:2]
+                self.legend_frame = QtGui.QImage(legend.data, legw, legh, legw, QtGui.QImage.Format_Grayscale8)
+                self.LUTGraphic.setPixmap(QtGui.QPixmap.fromImage(
+                    QtGui.QImage(self.legend_frame)))
+                # if self.LUTwindow.ClipOption.currentIndex() == 2:
+                #     temp = copy.deepcopy(self.calcwindow.ndvi)
+                #     if self.ViewerIndexBox.isChecked():
+                #
+                #         self.ndvipsuedo[temp <= self.LUTwindow._min, 0] = temp[temp <= self.LUTwindow._min]
+                #         self.ndvipsuedo[temp <= self.LUTwindow._min, 1] = temp[temp <= self.LUTwindow._min]
+                #         self.ndvipsuedo[temp <= self.LUTwindow._min, 2] = temp[temp <= self.LUTwindow._min]
+                #         self.ndvipsuedo[temp >= self.LUTwindow._max, 0] = temp[temp >= self.LUTwindow._max]
+                #         self.ndvipsuedo[temp >= self.LUTwindow._max, 1] = temp[temp >= self.LUTwindow._max]
+                #         self.ndvipsuedo[temp >= self.LUTwindow._max, 2] = temp[temp >= self.LUTwindow._max]
+                #     else:
+                #         self.ndvipsuedo[temp <= self.LUTwindow._min] = self.display_image[temp <= self.LUTwindow._min]
+                #         # self.ndvipsuedo[temp <= workingmin, 1] = temp[temp <= workingmin]
+                #         # self.ndvipsuedo[temp <= workingmin, 2] = temp[temp <= workingmin]
+                #         self.ndvipsuedo[temp >= self.LUTwindow._max] = self.display_image[temp >= self.LUTwindow._max]
+                #         # self.ndvipsuedo[temp >= workingmax, 1] = temp[temp >= workingmax]
+                #         # self.ndvipsuedo[temp >= workingmax, 2] = temp[temp >= workingmax]
+                if self.ViewerIndexBox.isChecked():
+
+                    self.frame = QtGui.QImage(self.calcwindow.ndvi.data, w, h, w, QtGui.QImage.Format_Grayscale8)
+                else:
+                    self.frame = QtGui.QImage(self.display_image.data, w, h, w * 3, QtGui.QImage.Format_RGB888)
+            self.updateViewer(keepAspectRatio=False)
+
+            QtWidgets.QApplication.processEvents()
+        except Exception as e:
+            print(e)
+
+    def on_ViewerSaveButton_released(self):
+
+        if self.savewindow == None:
+            self.savewindow = SaveDialog(self)
+        self.savewindow.resize(385, 110)
+        self.savewindow.exec_()
+
+
+
+        QtWidgets.QApplication.processEvents()
+
+    def on_LUTButton_released(self):
+        if self.LUTwindow == None:
+            self.LUTwindow = Applicator(self)
+        self.LUTwindow.resize(385, 160)
+        self.LUTwindow.show()
+
+        QtWidgets.QApplication.processEvents()
+    def on_ViewerCalcButton_released(self):
+        if self.LUTwindow == None:
+            self.calcwindow = Calculator(self)
+        self.calcwindow.resize(385, 250)
+        self.calcwindow.show()
+        QtWidgets.QApplication.processEvents()
+    def on_ZoomIn_released(self):
         if self.image_loaded == True:
             try:
-                self.KernelBrowserViewer.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
+                # self.KernelViewer.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorViewCenter)
                 factor = 1.15
-                if int(event.angleDelta().y()) > 0:
-                    self.KernelBrowserViewer.scale(factor, factor)
-                else:
-                    self.KernelBrowserViewer.scale(1.0/factor, 1.0/factor)
+                self.KernelViewer.scale(factor, factor)
             except Exception as e:
-                print(str(e))
+                print(e)
+    def on_ZoomOut_released(self):
+        if self.image_loaded == True:
+            try:
+                # self.KernelViewer.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorViewCenter)
+                factor = 1.15
+                self.KernelViewer.scale(1/factor, 1/factor)
+            except Exception as e:
+                print(e)
+    def on_ZoomToFit_released(self):
+        self.mapscene = QtWidgets.QGraphicsScene()
+        self.mapscene.addPixmap(QtGui.QPixmap.fromImage(
+            QtGui.QImage(self.frame)))
+
+        self.KernelViewer.setScene(self.mapscene)
+        self.KernelViewer.fitInView(self.mapscene.sceneRect(), QtCore.Qt.KeepAspectRatio)
+        self.KernelViewer.setFocus()
+        QtWidgets.QApplication.processEvents()
+    # def wheelEvent(self, event):
+    #     if self.image_loaded == True:
+    #         try:
+    #
+    #         except Exception as e:
+    #             print(str(e))
+
+    # def eventFilter(self, obj, event):
+    #
+    #     if self.image_loaded == True:
+    #         try:
+    #             self.KernelViewer.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
+    #             factor = 1.15
+    #             if int(event.angleDelta().y()) > 0:
+    #                 self.KernelViewer.scale(factor, factor)
+    #             else:
+    # def wheelEvent(self, event):
+    #     if self.image_loaded == True:
+    #         try:
+    #             self.KernelBrowserViewer.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
+    #             factor = 1.15
+    #             if int(event.angleDelta().y()) > 0:
+    #                 self.KernelBrowserViewer.scale(factor, factor)
+    #             else:
+    #                 self.KernelBrowserViewer.scale(1.0/factor, 1.0/factor)
+    #         except Exception as e:
+    #             print(str(e))
     def resizeEvent(self, event):
         # redraw the image in the viewer every time the window is resized
         if self.image_loaded == True:
@@ -815,7 +1095,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.mapscene.addPixmap(QtGui.QPixmap.fromImage(
                 QtGui.QImage(self.frame)))
 
-            self.KernelBrowserViewer.setScene(self.mapscene)
+            self.KernelViewer.setScene(self.mapscene)
+
+            self.KernelViewer.setFocus()
             QtWidgets.QApplication.processEvents()
         print("resize")
     def KernelUpdate(self):
@@ -932,7 +1214,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.KernelTransferFolder.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
             instring.truncate(0)
             instring.seek(0)
-            instring.write(self.PreProcessInFolder.text())
+            instring.write(self.KernelTransferFolder.text())
 
     cancel_auto = False
     def on_KernelAutoCancel_released(self):
@@ -1051,118 +1333,137 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         except Exception as e:
             print(e)
     def on_KernelTransferButton_toggled(self):
-
-            try:
-                if self.camera is None:
-                    raise ValueError('Device not found')
-
-
-                if self.KernelTransferButton.isChecked():
+        self.KernelLog.append(' ')
+        try:
+            if self.camera is None:
+                raise ValueError('Device not found')
 
 
+            if self.KernelTransferButton.isChecked():
+                self.driveletters.clear()
 
 
-                    if self.KernelCameraSelect.currentIndex() == 0:
-                        try:
-                            for place, cam in enumerate(self.paths):
-                                self.camera = cam
-                                self.captureImage()
-                                buf = [0] * 512
-                                buf[0] = self.SET_COMMAND_REPORT
-                                buf[1] = eCommand.CM_TRANSFER_MODE.value
-                                time.sleep(2)
-                                self.writeToKernel(buf)
-                                self.KernelLog.append("Camera " + str(self.pathnames[place]) + " entering Transfer mode")
 
-                                self.KernelLog.append("Confirming camera entered transfer mode...")
-                                QtWidgets.QApplication.processEvents()
-                                found = False
-                                stop = time.time()
-                                while int(time.time() - stop) < 30:
-                                    QtWidgets.QApplication.processEvents()
-                                    try:
+                if self.KernelCameraSelect.currentIndex() == 0:
+                    try:
+                        for place, cam in enumerate(self.paths):
+                            self.camera = cam
+                            self.captureImage()
+                            buf = [0] * 512
+                            buf[0] = self.SET_COMMAND_REPORT
+                            buf[1] = eCommand.CM_TRANSFER_MODE.value
+                            time.sleep(5)
+                            self.writeToKernel(buf)
+                            self.KernelLog.append("Camera " + str(self.pathnames[place]) + " entering Transfer mode")
 
-                                        drv = 'C'
-                                        while drv is not '[':
-                                            if os.path.isdir(drv + r":/dcim/"):
-                                                files = []
-                                                files = glob.glob(drv + r":" + os.sep + r"dcim/*/*")
-                                                if files is not []:
-                                                    threechar = files[-1].split(os.sep)[-1][1:4]
-                                                    if threechar == self.pathnames[place]:
-                                                        self.KernelLog.append("Camera " + str(self.pathnames[place]) + " successfully connected to drive " + drv + ":" + os.sep)
-                                                        QtWidgets.QApplication.processEvents()
-                                                        found = True
-                                                        self.driveletters.append(drv)
-                                                        os.unlink(files[-1])
-                                                        break
-                                            drv = chr(ord(drv) + 1)
-                                        if found == True:
-                                            break
-                                    except:
-                                        self.KernelLog.append("Eror checking drive " + drv)
-                                if found == False:
-                                    raise ValueError("Camera " +  str(self.pathnames[place]) + " did not switch modes successfully.")
-
-                        except ValueError as value_error:
-                            self.KernelLog.append(str(value_error))
+                            # self.KernelLog.append("Confirming camera entered transfer mode...")
                             QtWidgets.QApplication.processEvents()
-
-
-
-
-
-
-
-                    else:
-                        self.captureImage()
-                        buf = [0] * 512
-                        buf[0] = self.SET_COMMAND_REPORT
-                        buf[1] = eCommand.CM_TRANSFER_MODE.value
-                        self.writeToKernel(buf)
-                        self.KernelLog.append("Selected camera entering Transfer mode")
-
-                    self.modalwindow = KernelTransfer(self)
-                    self.modalwindow.resize(400, 200)
-                    self.modalwindow.exec_()
-                    if self.yestransfer == True:
-                        for place, drv in enumerate(self.driveletters):
-                            self.KernelLog.append("Extracting images from Camera " + str(place + 1) + " of " + len(self.driveletters) + ", at drive " + drv + r':')
-                            QtWidgets.QApplication.processEvents()
-                            if os.path.isdir(drv + r":" + os.sep + r"dcim"):
-                                # try:
-                                folders = glob.glob(drv + r":" + os.sep + r"dcim/*/")
-                                files = glob.glob(drv + r":" + os.sep + r"dcim/*/*")
-                                for fold in folders:
-                                    threechar = files[0].split(os.sep)[-1][1:4]
-                                    os.mkdir(self.transferoutfolder + os.sep + threechar)
-                                    QtWidgets.QApplication.processEvents()
-                                    for file in files:
-                                        if file.split(os.sep)[-1][1:4] == threechar:
-                                            shutil.copy(file, self.transferoutfolder + os.sep + threechar)
-                                        else:
-                                            threechar = file.split(os.sep)[-1][1:4]
-                                            os.mkdir(self.transferoutfolder + os.sep + threechar)
-                                            shutil.copy(file, self.transferoutfolder + os.sep + threechar)
-                                        QtWidgets.QApplication.processEvents()
-                                self.KernelLog.append("Finished extracting images from Camera " + str(place + 1) + " of " + len(self.driveletters))
+                            found = False
+                            stop = time.time()
+                            while int(time.time() - stop) < 30:
                                 QtWidgets.QApplication.processEvents()
-                            else:
-                                self.KernelLog.append("No DCIM folder found in drive " + str(drv) + r":")
-                                QtWidgets.QApplication.processEvents()
+                                try:
 
-                        self.modalwindow = KernelDelete(self)
-                        self.modalwindow.resize(400, 200)
-                        self.modalwindow.exec_()
+                                    drv = 'C'
+                                    while drv is not '[':
+                                        # self.KernelLog.append("Drives " + str(self.driveletters))
+                                        if os.path.isdir(drv + r":/dcim/"):
+                                            files = glob.glob(drv + r":" + os.sep + r"dcim/*/*")
+                                            if files:
+                                                # self.KernelLog.append("Found Files")
+                                                threechar = files[-1].split(os.sep)[-1][1:4]
+                                                # self.KernelLog.append("Three Characters = " + str(threechar))
+                                                if threechar == self.pathnames[place]:
+                                                    self.KernelLog.append("Camera " + str(self.pathnames[place]) + " successfully connected to drive " + drv + ":" + os.sep)
+                                                    QtWidgets.QApplication.processEvents()
+                                                    found = True
+                                                    self.driveletters.append(drv)
+                                                    # self.KernelLog.append(str(self.driveletters))
+                                                    os.unlink(files[-1])
+                                                    break
+                                        drv = chr(ord(drv) + 1)
+                                    if found == True:
+                                        break
+                                except:
+                                    self.KernelLog.append("Eror checking drive " + drv)
+                            if found == False:
+                                raise ValueError("Camera " +  str(self.pathnames[place]) + " did not switch modes successfully.")
+
+                    except Exception as value_error:
+                        self.KernelLog.append(str(value_error))
+                        QtWidgets.QApplication.processEvents()
+
+
+
+
+
+
 
                 else:
-                    for place, cam in enumerate(self.paths):
-                        self.exitTransfer(self.driveletters[place])
-            except Exception as e:
-                self.exitTransfer()
-                self.KernelTransferButton.setChecked(False)
-                self.KernelLog.append("Error: " + str(e))
-                QtWidgets.QApplication.processEvents()
+                    self.captureImage()
+                    buf = [0] * 512
+                    buf[0] = self.SET_COMMAND_REPORT
+                    buf[1] = eCommand.CM_TRANSFER_MODE.value
+                    self.writeToKernel(buf)
+                    self.KernelLog.append("Selected camera entering Transfer mode")
+
+                self.modalwindow = KernelTransfer(self)
+                self.modalwindow.resize(400, 200)
+                self.modalwindow.exec_()
+                # self.KernelLog.append("We made it out of transfer window")
+                if self.yestransfer:
+                    # self.KernelLog.append("Transfer was enabled")
+                    for place, drv in enumerate(self.driveletters):
+                        ix = place + 1
+                        self.KernelLog.append("Extracting images from Camera " + str(ix) + " of " + str(len(self.driveletters)) + ", at drive " + drv + r':')
+                        QtWidgets.QApplication.processEvents()
+                        if os.path.isdir(drv + r":" + os.sep + r"dcim"):
+                            # try:
+                            folders = glob.glob(drv + r":" + os.sep + r"dcim/*/")
+                            files = glob.glob(drv + r":" + os.sep + r"dcim/*/*")
+                            for fold in folders:
+                                threechar = files[0].split(os.sep)[-1][1:4]
+
+                                if os.path.exists(self.transferoutfolder + os.sep + threechar):
+                                    foldercount = 1
+                                    endloop = False
+                                    while endloop is False:
+                                        outdir = self.transferoutfolder + os.sep + threechar + str(foldercount)
+                                        if os.path.exists(outdir):
+                                            foldercount += 1
+                                        else:
+                                            os.mkdir(outdir)
+                                            endloop = True
+                                else:
+                                    outdir = self.transferoutfolder + os.sep + threechar
+                                    os.mkdir(outdir)
+                                QtWidgets.QApplication.processEvents()
+                                for file in files:
+                                    if file.split(os.sep)[-1][1:4] == threechar:
+                                        shutil.copy(file, outdir)
+                                    else:
+                                        threechar = file.split(os.sep)[-1][1:4]
+                                        os.mkdir(self.transferoutfolder + os.sep + threechar)
+                                        shutil.copy(file, self.transferoutfolder + os.sep + threechar)
+                                    QtWidgets.QApplication.processEvents()
+                            self.KernelLog.append("Finished extracting images from Camera " + str(place + 1) + " of " + str(len(self.driveletters)))
+                            QtWidgets.QApplication.processEvents()
+                        else:
+                            self.KernelLog.append("No DCIM folder found in drive " + str(drv) + r":")
+                            QtWidgets.QApplication.processEvents()
+
+                    self.modalwindow = KernelDelete(self)
+                    self.modalwindow.resize(400, 200)
+                    self.modalwindow.exec_()
+
+            else:
+                for place, cam in enumerate(self.paths):
+                    self.exitTransfer(self.driveletters[place])
+        except Exception as e:
+            self.exitTransfer()
+            self.KernelTransferButton.setChecked(False)
+            self.KernelLog.append("Error: " + str(e))
+            QtWidgets.QApplication.processEvents()
 
 
     def on_KernelGain_currentIndexChanged(self):
@@ -2338,33 +2639,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                             blue = img[:, :, 0]
                             green = img[:, :, 1]
                             red = img[:, :, 2]
-                            if ind[0] == 5:  # Survey1_NDVI
-                                # img = img.astype('float')
 
-                                blue = img[:, :, 0] - ((img[:, :, 2] / 5) * 4)
-
-
-                            elif ((ind[0] == 4) and (ind[1] == 0)): # Survey2 NDVI
-                                # img = img.astype('float')
-
-                                red = img[:, :, 2] - ((img[:, :, 0] / 5) * 4)
-
-                            elif ((ind[0] == 3) and (ind[1] == 1)): #\
-                                   # or ind == 7:
-                                # blue = (img[:, :, 0] / 35) * 100
-                                # red = img[:, :, 2] - (blue * self.subtraction_values["rgn"][0])
-                                # green = img[:, :, 1] - (blue * self.subtraction_values["rgn"][1])
-                                red = (red * self.subtraction_values["rgn"][0])
-                                green = (green * self.subtraction_values["rgn"][1])
-                                # red[red < 0] = 0
-                                # green[green < 0] = 0
-
-                            elif ((ind[0] == 3) and (ind[1] == 2)):
-                                red = (img[:, :, 2] / 30) * 100
-                                blue = img[:, :, 0] - ((red * 35) / 100)
-                                green = img[:, :, 1] - ((red * 35) / 100)
-#                                 # blue[blue < 0] = 0
-#                                 # green[green < 0] = 0
 
                             if self.useqr == True:
                                 red = (coeffslist[j][0] * red)
@@ -2573,15 +2848,100 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                                         "No default calibration data for selected camera model. Please please supply a MAPIR Reflectance Target to proceed.\n")
                                     break
                     else:
-                        if os.path.exists(calfolder):
-                            # print("Cal1")
-                            files_to_calibrate = []
+                        files_to_calibrate = []
+                        os.chdir(calfolder)
+                        files_to_calibrate.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
+                        files_to_calibrate.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
+                        files_to_calibrate.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
+                        files_to_calibrate.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
+                        print(str(files_to_calibrate))
+                        files_to_calibrate2 = []
+                        os.chdir(calfolder2)
+                        files_to_calibrate2.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
+                        files_to_calibrate2.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
+                        files_to_calibrate2.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
+                        files_to_calibrate2.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
+                        print(str(files_to_calibrate2))
+                        files_to_calibrate3 = []
+                        os.chdir(calfolder3)
+                        files_to_calibrate3.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
+                        files_to_calibrate3.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
+                        files_to_calibrate3.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
+                        files_to_calibrate3.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
+                        print(str(files_to_calibrate3))
+                        files_to_calibrate4 = []
+                        os.chdir(calfolder4)
+                        files_to_calibrate4.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
+                        files_to_calibrate4.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
+                        files_to_calibrate4.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
+                        files_to_calibrate4.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
+                        print(str(files_to_calibrate4))
+                        files_to_calibrate5 = []
+                        os.chdir(calfolder5)
+                        files_to_calibrate5.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
+                        files_to_calibrate5.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
+                        files_to_calibrate5.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
+                        files_to_calibrate5.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
+                        print(str(files_to_calibrate5))
+                        files_to_calibrate6 = []
+                        os.chdir(calfolder6)
+                        files_to_calibrate6.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
+                        files_to_calibrate6.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
+                        files_to_calibrate6.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
+                        files_to_calibrate6.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
+                        print(str(files_to_calibrate6))
+
+                        for calpixel in files_to_calibrate:
+                            # print("MM1")
                             os.chdir(calfolder)
-                            files_to_calibrate.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
-                            files_to_calibrate.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
-                            files_to_calibrate.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
-                            files_to_calibrate.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
-                            print(str(files_to_calibrate))
+                            temp1 = cv2.imread(calpixel, -1)
+                            self.monominmax["min"] = min(temp1.min(), self.monominmax["min"])
+                            self.monominmax["max"] = max(temp1.max(), self.monominmax["max"])
+                        for calpixel2 in files_to_calibrate2:
+                            # print("MM2")
+                            os.chdir(calfolder2)
+                            temp2 = cv2.imread(calpixel2, -1)
+
+                            self.monominmax["min"] = min(temp2.min(), self.monominmax["min"])
+                            self.monominmax["max"] = max(temp2.max(), self.monominmax["max"])
+                        for calpixel3 in files_to_calibrate3:
+                            # print("MM3")
+                            os.chdir(calfolder3)
+                            temp3 = cv2.imread(calpixel3, -1)
+
+                            self.monominmax["min"] = min(temp3.min(), self.monominmax["min"])
+                            self.monominmax["max"] = max(temp3.max(), self.monominmax["max"])
+                        for calpixel4 in files_to_calibrate4:
+                            # print("MM4")
+                            os.chdir(calfolder4)
+                            temp4 = cv2.imread(calpixel4, -1)
+
+                            self.monominmax["min"] = min(temp4.min(), self.monominmax["min"])
+                            self.monominmax["max"] = max(temp4.max(), self.monominmax["max"])
+                        for calpixel5 in files_to_calibrate5:
+                            # print("MM5")
+                            os.chdir(calfolder5)
+                            temp5 = cv2.imread(calpixel5, -1)
+
+                            self.monominmax["min"] = min(temp5.min(), self.monominmax["min"])
+                            self.monominmax["max"] = max(temp5.max(), self.monominmax["max"])
+                        for calpixel6 in files_to_calibrate6:
+                            # print("MM6")
+                            os.chdir(calfolder6)
+                            temp6 = cv2.imread(calpixel6, -1)
+
+                            self.monominmax["min"] = min(temp6.min(), self.monominmax["min"])
+                            self.monominmax["max"] = max(temp6.max(), self.monominmax["max"])
+
+                        if os.path.exists(calfolder):
+                            # # print("Cal1")
+                            # files_to_calibrate = []
+                            # os.chdir(calfolder)
+                            # files_to_calibrate.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
+                            # files_to_calibrate.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
+                            # files_to_calibrate.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
+                            # files_to_calibrate.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
+                            # print(str(files_to_calibrate))
                             if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate[0]:
                                 # self.CalibrationLog.append("Found files to Calibrate.\n")
                                 foldercount = 1
@@ -2593,12 +2953,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                                     else:
                                         os.mkdir(outdir)
                                         endloop = True
-                                for calpixel in files_to_calibrate:
-                                    # print("MM1")
-                                    os.chdir(calfolder)
-                                    temp1 = cv2.imread(calpixel, -1)
-                                    self.monominmax["min"] = min(temp1.min(), self.monominmax["min"])
-                                    self.monominmax["max"] = max(temp1.max(), self.monominmax["max"])
+
                                 for i, calfile in enumerate(files_to_calibrate):
                                     # print("cb1")
                                     self.CalibrationLog.append("Calibrating image " + str(i + 1) + " from folder 1")
@@ -2615,14 +2970,14 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                                         elif self.CalibrationFilter.currentIndex() == 2:
                                             self.CalibrateMono(calfile, self.BASE_COEFF_KERNEL_F850, outdir, ind)
                         if os.path.exists(calfolder2):
-        #                     # print("Cal2")
-                            files_to_calibrate2 = []
-                            os.chdir(calfolder2)
-                            files_to_calibrate2.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
-                            files_to_calibrate2.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
-                            files_to_calibrate2.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
-                            files_to_calibrate2.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
-                            print(str(files_to_calibrate2))
+                            # print("Cal2")
+                            # files_to_calibrate2 = []
+                            # os.chdir(calfolder2)
+                            # files_to_calibrate2.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
+                            # files_to_calibrate2.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
+                            # files_to_calibrate2.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
+                            # files_to_calibrate2.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
+                            # print(str(files_to_calibrate2))
                             if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate2[0]:
                                 foldercount = 1
                                 endloop = False
@@ -2633,13 +2988,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                                     else:
                                         os.mkdir(outdir2)
                                         endloop = True
-                                for calpixel2 in files_to_calibrate2:
-                                    # print("MM2")
-                                    os.chdir(calfolder2)
-                                    temp2 = cv2.imread(calpixel2, -1)
 
-                                    self.monominmax["min"] = min(temp2.min(), self.monominmax["min"])
-                                    self.monominmax["max"] = max(temp2.max(), self.monominmax["max"])
                                 for i, calfile2 in enumerate(files_to_calibrate2):
                                     # print("cb2")
                                     self.CalibrationLog.append("Calibrating image " + str(i + 1) + " from folder 2")
@@ -2657,13 +3006,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                                             self.CalibrateMono(calfile2, self.BASE_COEFF_KERNEL_F850, outdir2)
                         if os.path.exists(calfolder3):
         #                     # print("Cal3")
-                            files_to_calibrate3 = []
-                            os.chdir(calfolder3)
-                            files_to_calibrate3.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
-                            files_to_calibrate3.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
-                            files_to_calibrate3.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
-                            files_to_calibrate3.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
-                            print(str(files_to_calibrate3))
+        #                     files_to_calibrate3 = []
+        #                     os.chdir(calfolder3)
+        #                     files_to_calibrate3.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
+        #                     files_to_calibrate3.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
+        #                     files_to_calibrate3.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
+        #                     files_to_calibrate3.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
+        #                     print(str(files_to_calibrate3))
                             if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate3[0]:
                                 foldercount = 1
                                 endloop = False
@@ -2674,13 +3023,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                                     else:
                                         os.mkdir(outdir3)
                                         endloop = True
-                                for calpixel3 in files_to_calibrate3:
-                                    # print("MM3")
-                                    os.chdir(calfolder3)
-                                    temp3 = cv2.imread(calpixel3, -1)
 
-                                    self.monominmax["min"] = min(temp3.min(), self.monominmax["min"])
-                                    self.monominmax["max"] = max(temp3.max(), self.monominmax["max"])
                                 for i, calfile3 in enumerate(files_to_calibrate3):
                                     # print("cb3")
                                     self.CalibrationLog.append("Calibrating image " + str(i + 1) + " from folder 3")
@@ -2698,13 +3041,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                                             self.CalibrateMono(calfile3, self.BASE_COEFF_KERNEL_F850, outdir3)
                         if os.path.exists(calfolder4):
                             # print("Cal4")
-                            files_to_calibrate4 = []
-                            os.chdir(calfolder4)
-                            files_to_calibrate4.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
-                            files_to_calibrate4.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
-                            files_to_calibrate4.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
-                            files_to_calibrate4.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
-                            print(str(files_to_calibrate4))
+                            # files_to_calibrate4 = []
+                            # os.chdir(calfolder4)
+                            # files_to_calibrate4.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
+                            # files_to_calibrate4.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
+                            # files_to_calibrate4.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
+                            # files_to_calibrate4.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
+                            # print(str(files_to_calibrate4))
                             if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate4[0]:
                                 foldercount = 1
                                 endloop = False
@@ -2715,13 +3058,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                                     else:
                                         os.mkdir(outdir4)
                                         endloop = True
-                                for calpixel4 in files_to_calibrate4:
-                                    # print("MM4")
-                                    os.chdir(calfolder4)
-                                    temp4 = cv2.imread(calpixel4, -1)
 
-                                    self.monominmax["min"] = min(temp4.min(), self.monominmax["min"])
-                                    self.monominmax["max"] = max(temp4.max(), self.monominmax["max"])
                                 for i, calfile4 in enumerate(files_to_calibrate4):
                                     # print("cb2")
                                     self.CalibrationLog.append("Calibrating image " + str(i + 1) + " from folder 4")
@@ -2739,13 +3076,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                                             self.CalibrateMono(calfile4, self.BASE_COEFF_KERNEL_F850, outdir4)
                         if os.path.exists(calfolder5):
                             # print("Cal5")
-                            files_to_calibrate5 = []
-                            os.chdir(calfolder5)
-                            files_to_calibrate5.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
-                            files_to_calibrate5.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
-                            files_to_calibrate5.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
-                            files_to_calibrate5.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
-                            print(str(files_to_calibrate5))
+                            # files_to_calibrate5 = []
+                            # os.chdir(calfolder5)
+                            # files_to_calibrate5.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
+                            # files_to_calibrate5.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
+                            # files_to_calibrate5.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
+                            # files_to_calibrate5.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
+                            # print(str(files_to_calibrate5))
                             if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate5[0]:
                                 foldercount = 1
                                 endloop = False
@@ -2756,13 +3093,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                                     else:
                                         os.mkdir(outdir5)
                                         endloop = True
-                                for calpixel5 in files_to_calibrate5:
-                                    # print("MM5")
-                                    os.chdir(calfolder5)
-                                    temp5 = cv2.imread(calpixel5, -1)
 
-                                    self.monominmax["min"] = min(temp5.min(), self.monominmax["min"])
-                                    self.monominmax["max"] = max(temp5.max(), self.monominmax["max"])
                                 for i, calfile5 in enumerate(files_to_calibrate5):
                                     # print("cb5")
                                     self.CalibrationLog.append("Calibrating image " + str(i + 1) + " from folder 5")
@@ -2780,13 +3111,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                                             self.CalibrateMono(calfile5, self.BASE_COEFF_KERNEL_F850, outdir5)
                         if os.path.exists(calfolder6):
                             # print("Cal6")
-                            files_to_calibrate6 = []
-                            os.chdir(calfolder6)
-                            files_to_calibrate6.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
-                            files_to_calibrate6.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
-                            files_to_calibrate6.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
-                            files_to_calibrate6.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
-                            print(str(files_to_calibrate6))
+                            # files_to_calibrate6 = []
+                            # os.chdir(calfolder6)
+                            # files_to_calibrate6.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
+                            # files_to_calibrate6.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
+                            # files_to_calibrate6.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
+                            # files_to_calibrate6.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
+                            # print(str(files_to_calibrate6))
                             if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate6[0]:
                                 foldercount = 1
                                 endloop = False
@@ -2798,13 +3129,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                                         os.mkdir(outdir6)
                                         endloop = True
 
-                                for calpixel6 in files_to_calibrate6:
-                                    # print("MM6")
-                                    os.chdir(calfolder6)
-                                    temp6 = cv2.imread(calpixel6, -1)
 
-                                    self.monominmax["min"] = min(temp6.min(), self.monominmax["min"])
-                                    self.monominmax["max"] = max(temp6.max(), self.monominmax["max"])
 
                                 for i, calfile6 in enumerate(files_to_calibrate6):
                                     # print("cb6")
@@ -2868,11 +3193,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         cv2.imencode(".tif", refimg)
         cv2.imwrite(newimg, refimg)
-        srin = gdal.Open(photo)
+        # srin = gdal.Open(photo)
         inproj = srin.GetProjection()
         transform = srin.GetGeoTransform()
         gcpcount = srin.GetGCPs()
-        srout = gdal.Open(newimg, gdal.GA_Update)
+        # srout = gdal.Open(newimg, gdal.GA_Update)
         srout.SetProjection(inproj)
         srout.SetGeoTransform(transform)
         srout.SetGCPs(gcpcount, srin.GetGCPProjection())
@@ -2917,7 +3242,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             red = refimg[:, :, 2]
             if refimg.shape[2] > 3:
                 alpha = refimg[:, :, 3]
-                refimg = refimg[:, :, :3]
+                refimg = copy.deepcopy(refimg[:, :, :3])
 
 
 
@@ -2925,7 +3250,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             if ind[0] == 5:  ###Survey1 NDVI
                 maxpixel = minmaxes["redmax"] if minmaxes["redmax"] > minmaxes["bluemax"] else minmaxes["bluemax"]
                 minpixel = minmaxes["redmin"] if minmaxes["redmin"] < minmaxes["bluemin"] else minmaxes["bluemin"]
-                blue = refimg[:, :, 0] - (refimg[:, :, 2] * 0.80)  # Subtract the NIR bleed over from the blue channel
+                # blue = refimg[:, :, 0] - (refimg[:, :, 2] * 0.80)  # Subtract the NIR bleed over from the blue channel
             elif ((ind[0] == 3) and (ind[1] == 3)) \
                     or ((ind[0] == 4) \
                     and (ind[1] == 1 or ind[1] == 2)):
@@ -2962,9 +3287,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 maxpixel = minmaxes["greenmax"] if minmaxes["greenmax"] > maxpixel else maxpixel
                 minpixel = minmaxes["redmin"] if minmaxes["redmin"] < minmaxes["bluemin"] else minmaxes["bluemin"]
                 minpixel = minmaxes["greenmin"] if minmaxes["greenmin"] < minpixel else minpixel
-                red = (refimg[:, :, 2] / 30) * 100
-                blue = refimg[:, :, 0] - ((red * 35) / 100)
-                green = refimg[:, :, 1] - ((red * 35) / 100)
+                # red = (refimg[:, :, 2] / 30) * 100
+                # blue = refimg[:, :, 0] - ((red * 35) / 100)
+                # green = refimg[:, :, 1] - ((red * 35) / 100)
 #                 # blue[blue < 0] = 0
 #                 # green[green < 0] = 0
                 # blue = blue.astype("uint16")
@@ -2978,8 +3303,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             else:  ###Survey2 NDVI
                 maxpixel = minmaxes["redmax"] if minmaxes["redmax"] > minmaxes["bluemax"] else minmaxes["bluemax"]
                 minpixel = minmaxes["redmin"] if minmaxes["redmin"] < minmaxes["bluemin"] else minmaxes["bluemin"]
-                if ind[0] == 4:
-                    red = refimg[:, :, 2] - (refimg[:, :, 0] * 0.80)  # Subtract the NIR bleed over from the red channel
+                # if ind[0] == 4:
+                #     red = refimg[:, :, 2] - (refimg[:, :, 0] * 0.80)  # Subtract the NIR bleed over from the red channel
 
 
 
@@ -3145,13 +3470,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         else:
             newimg = output_directory + photo.split('.')[1] + "_CALIBRATED." + photo.split('.')[2]
             if 'tif' in photo.split('.')[2].lower():
-                # cv2.imencode(".tif", refimg)
+                cv2.imencode(".tif", refimg)
                 cv2.imwrite(newimg, refimg)
-                srin = gdal.Open(photo)
+                # srin = gdal.Open(photo)
                 inproj = srin.GetProjection()
                 transform = srin.GetGeoTransform()
                 gcpcount = srin.GetGCPs()
-                srout = gdal.Open(newimg, gdal.GA_Update)
+                # srout = gdal.Open(newimg, gdal.GA_Update)
                 srout.SetProjection(inproj)
                 srout.SetGeoTransform(transform)
                 srout.SetGCPs(gcpcount, srin.GetGCPProjection())
@@ -3163,7 +3488,24 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
 
     def calculateIndex(self, visible, nir):
-        return ((nir - visible)/(nir + visible))
+        try:
+            nir[nir == 0] = 1
+            visible[visible == 0] = 1
+            if nir.dtype == "uint8":
+                nir = nir / 255.0
+                visible = visible / 255.0
+            elif nir.dtype == "uint16":
+                nir /= 65535.0
+                visible /= 65535.0
+
+            numer = nir - visible
+            denom = nir + visible
+
+            retval = numer/denom
+            return retval
+        except Exception as e:
+            print(e)
+            return False
 
 ####Function for finding he QR target and calculating the calibration coeficients\
     def findQR(self, image, ind):
@@ -3184,7 +3526,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 # self.CalibrationLog.append(list)
                 temp = np.fromstring(str(list), dtype=int, sep=',')
                 coords = [[temp[0],temp[1]],[temp[2],temp[3]],[temp[6],temp[7]],[temp[4],temp[5]]]
-                # self.CalibrationLog.append(str(coords))
+                # self.CalibrationLog.append()
             else:
                 self.ref = self.refindex[0]
                 if ind[0] > 2:
@@ -3533,11 +3875,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
 
                 ideal_ndvi = self.calculateIndex(yred, yblue)
-                self.CalibrationLog.append(str(ideal_ndvi))
+                # self.CalibrationLog.append(str(ideal_ndvi))
 
 
                 ideal_gndvi = self.calculateIndex(ygreen, yblue)
-                self.CalibrationLog.append(str(ideal_ndvi))
+                # self.CalibrationLog.append(str(ideal_ndvi))
 
 
                 ared = xred.dot(yred)/xred.dot(xred)
@@ -3567,20 +3909,20 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 x_ndvi = self.calculateIndex(xred, xblue)
 
 
-                self.CalibrationLog.append(str(x_ndvi))
+                # self.CalibrationLog.append(str(x_ndvi))
 
                 x_gndvi = self.calculateIndex(xgreen, xblue)
 
 
-                self.CalibrationLog.append(str(x_gndvi))
-                ndvi_coeff = ideal_ndvi[0] / x_ndvi[0]
-                gndvi_coeff = ideal_gndvi[0] / x_gndvi[0]
+                # self.CalibrationLog.append(str(x_gndvi))
+                ndvi_coeff = ideal_ndvi / x_ndvi
+                gndvi_coeff = ideal_gndvi / x_gndvi
 
 
-                self.CalibrationLog.append(str(ndvi_coeff))
+                # self.CalibrationLog.append(str(ndvi_coeff))
 
 
-                self.CalibrationLog.append(str(gndvi_coeff))
+                # self.CalibrationLog.append(str(gndvi_coeff))
                 self.subtraction_values["rgn"][0] = ndvi_coeff
                 self.subtraction_values["rgn"][1] = gndvi_coeff
                 # pred = np.poly1d(cred)
@@ -3601,9 +3943,14 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 #     pblue = np.polyfit(xblue, yblue, 3)
 
                 # print([xred, xgreen, xblue])
-                self.CalibrationLog.append("Found QR Target, please proceed with calibration.")
-                QtWidgets.QApplication.processEvents()
+
                 # print([pred, pgreen, pblue])
+
+
+                if list is not None and len(list) > 0:
+                    self.CalibrationLog.append("Found QR Target Model 2, please proceed with calibration.")
+                else:
+                    self.CalibrationLog.append("Found QR Target Model 1, please proceed with calibration.")
                 return [ared, agreen, ablue]
             else:
                 if list is not None and len(list) > 0:
@@ -3722,8 +4069,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
                 a = x.dot(y) / x.dot(x)
 
-
-                self.CalibrationLog.append("Found QR Target, please proceed with calibration.")
+                if list is not None and len(list) > 0:
+                    self.CalibrationLog.append("Found QR Target Model 2, please proceed with calibration.")
+                else:
+                    self.CalibrationLog.append("Found QR Target Model 1, please proceed with calibration.")
                 QtWidgets.QApplication.processEvents()
                 return a
         except Exception as e:
@@ -3796,11 +4145,25 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                                 img = np.fromfile(rawimage, np.dtype('u2'), self.imsize).reshape(
                                     (self.imrows, self.imcols))
                             color = cv2.cvtColor(img, cv2.COLOR_BAYER_RG2RGB)
-
+                            color2 = copy.deepcopy(color)
+                            color2 = color2 / 65535.0
+                            color2 = color2 * 255.0
+                            color2 = color2.astype("uint8")
+                            blue, green, red = cv2.split(color2)
+                            blue = cv2.equalizeHist(blue)
+                            green = cv2.equalizeHist(green)
+                            red = cv2.equalizeHist(red)
+                            color2 = cv2.merge((blue,green,red))
+                            color2 = color2 / 255.0
+                            color2 = color2 * 65535.0
+                            color2 = color2.astype("uint16")
                             filename = input.split('.')
                             outputfilename = filename[1] + '.tif'
                             cv2.imencode(".tif", color)
+                            cv2.imencode(".tif", color2)
                             cv2.imwrite(outfolder + outputfilename, color)
+                            outputfilename = filename[1] + '_EQ.tif'
+                            cv2.imwrite(outfolder + outputfilename, color2)
                             if customerdata == True:
                                 self.copyExif(infolder + infiles[counter + 1], outfolder + outputfilename)
                         counter += 2
@@ -3922,9 +4285,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 ypr = None
                 print(e)
                 if self.MapirTab.currentIndex() == 0:
-                    self.PreProcessLog.append("Warning: No userdefined tags detected")
+                    print("Warning: No userdefined tags detected")
                 elif self.MapirTab.currentIndex() == 1:
-                    self.CalibrationLog.append("Warning: No userdefined tags detected")
+                    print("Warning: No userdefined tags detected")
 
                 subprocess.call(
                     [modpath + os.sep + r'exiftool.exe', '-m', r'-overwrite_original', r'-tagsFromFile',
@@ -3955,7 +4318,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                         elif self.MapirTab.currentIndex() == 1:
                             self.CalibrationLog.append("Error: " + str(e))
                 else:
-                    self.PreProcessLog.append("No IMU data detected.")
+                    # self.PreProcessLog.append("No IMU data detected.")
                     subprocess.call(
                         [modpath + os.sep + r'exiftool.exe', '-m', r'-overwrite_original', r'-tagsFromFile',
                          os.path.abspath(inphoto),
