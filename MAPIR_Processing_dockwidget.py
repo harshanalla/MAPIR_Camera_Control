@@ -1014,7 +1014,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def on_ViewerSaveButton_released(self):
 
-<<<<<<< HEAD
         if self.savewindow == None:
             self.savewindow = SaveDialog(self)
         self.savewindow.resize(385, 110)
@@ -1078,8 +1077,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     #             if int(event.angleDelta().y()) > 0:
     #                 self.KernelViewer.scale(factor, factor)
     #             else:
-=======
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
     # def wheelEvent(self, event):
     #     if self.image_loaded == True:
     #         try:

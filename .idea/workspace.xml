@@ -17,23 +17,17 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
 <<<<<<< HEAD
-<<<<<<< HEAD
       <file leaf-file-name="MAPIR_Camera_Control.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/MAPIR_Camera_Control.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="238">
               <caret line="14" column="0" lean-forward="false" selection-start-line="14" selection-start-column="0" selection-end-line="14" selection-end-column="0" />
 =======
-=======
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
       <file leaf-file-name="MAPIR_Processing_dockwidget.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/MAPIR_Processing_dockwidget.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="163">
               <caret line="498" column="13" lean-forward="false" selection-start-line="498" selection-start-column="8" selection-end-line="498" selection-end-column="13" />
-<<<<<<< HEAD
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
-=======
 >>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
@@ -43,19 +37,11 @@
         </entry>
       </file>
 <<<<<<< HEAD
-<<<<<<< HEAD
       <file leaf-file-name="MAPIR_Processing_dockwidget.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/MAPIR_Processing_dockwidget.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="299">
               <caret line="3877" column="53" lean-forward="true" selection-start-line="3877" selection-start-column="53" selection-end-line="3877" selection-end-column="53" />
-=======
-      <file leaf-file-name="mass_converter.py" pinned="false" current-in-tab="true">
-        <entry file="file://$USER_HOME$/PycharmProjects/MAPIR_Converter/mass_converter.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="156">
-              <caret line="42" column="23" lean-forward="false" selection-start-line="42" selection-start-column="23" selection-end-line="42" selection-end-column="23" />
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
               <folding />
             </state>
           </provider>
@@ -71,7 +57,6 @@
       <file leaf-file-name="mass_converter.py" pinned="false" current-in-tab="true">
         <entry file="file://$USER_HOME$/PycharmProjects/MAPIR_Converter/mass_converter.py">
           <provider selected="true" editor-type-id="text-editor">
-<<<<<<< HEAD
             <state relative-caret-position="156">
               <caret line="42" column="23" lean-forward="false" selection-start-line="42" selection-start-column="23" selection-end-line="42" selection-end-column="23" />
               <folding />
@@ -82,16 +67,11 @@
       <file leaf-file-name="MAPIR_Enums.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/MAPIR_Enums.py">
           <provider selected="true" editor-type-id="text-editor">
-=======
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
             <state relative-caret-position="1632">
               <caret line="96" column="6" lean-forward="false" selection-start-line="96" selection-start-column="6" selection-end-line="96" selection-end-column="6" />
               <folding>
                 <marker date="1509061167708" expanded="true" signature="5841:5912" ph="..." />
               </folding>
-<<<<<<< HEAD
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
-=======
 >>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
             </state>
           </provider>
@@ -127,7 +107,6 @@
   <component name="FindInProjectRecents">
     <findStrings>
 <<<<<<< HEAD
-<<<<<<< HEAD
       <find>self._max</find>
       <find>h, w</find>
       <find>bgr2</find>
@@ -159,8 +138,6 @@
       <find>no imu</find>
       <find>subtra</find>
 =======
-=======
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
       <find>os.unlink</find>
       <find>- (blue)</find>
       <find>] - (</find>
@@ -191,9 +168,6 @@
       <find>fram</find>
       <find>viewer</find>
       <find>refva</find>
-<<<<<<< HEAD
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
-=======
 >>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
     </findStrings>
   </component>
@@ -228,14 +202,9 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
 <<<<<<< HEAD
-<<<<<<< HEAD
   <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="153" />
     <option name="y" value="-14" />
-=======
-  <component name="ProjectFrameBounds">
-    <option name="x" value="960" />
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
 =======
   <component name="ProjectFrameBounds">
     <option name="x" value="960" />
@@ -259,7 +228,6 @@
     </navigator>
     <panes>
 <<<<<<< HEAD
-<<<<<<< HEAD
       <pane id="Scope">
         <subPane subId="Project Files">
           <expand>
@@ -272,10 +240,6 @@
         </subPane>
       </pane>
       <pane id="Scratches" />
-=======
-      <pane id="Scratches" />
-      <pane id="Scope" />
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
 =======
       <pane id="Scratches" />
       <pane id="Scope" />
@@ -296,11 +260,7 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
 <<<<<<< HEAD
-<<<<<<< HEAD
     <property name="last_opened_file_path" value="$PROJECT_DIR$/MAPIR_Processing_dockwidget.py" />
-=======
-    <property name="last_opened_file_path" value="$USER_HOME$/PycharmProjects/MAPIR_Converter" />
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
 =======
     <property name="last_opened_file_path" value="$USER_HOME$/PycharmProjects/MAPIR_Converter" />
 >>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
@@ -523,7 +483,6 @@
       <option name="EMULATE_TERMINAL" value="false" />
     </configuration>
 <<<<<<< HEAD
-<<<<<<< HEAD
     <list size="3">
       <item index="0" class="java.lang.String" itemvalue="Python.MAPIR_Camera_Control" />
       <item index="1" class="java.lang.String" itemvalue="Python.mass_converter" />
@@ -534,16 +493,6 @@
         <item index="0" class="java.lang.String" itemvalue="Python.MAPIR_Camera_Control" />
         <item index="1" class="java.lang.String" itemvalue="Python.MAPIR_Processing_dockwidget" />
         <item index="2" class="java.lang.String" itemvalue="Python.mass_converter" />
-=======
-    <list size="2">
-      <item index="0" class="java.lang.String" itemvalue="Python.MAPIR_Camera_Control" />
-      <item index="1" class="java.lang.String" itemvalue="Python.mass_converter" />
-    </list>
-    <recent_temporary>
-      <list size="2">
-        <item index="0" class="java.lang.String" itemvalue="Python.mass_converter" />
-        <item index="1" class="java.lang.String" itemvalue="Python.MAPIR_Camera_Control" />
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
 =======
     <list size="2">
       <item index="0" class="java.lang.String" itemvalue="Python.MAPIR_Camera_Control" />
@@ -572,7 +521,6 @@
   </component>
   <component name="ToolWindowManager">
 <<<<<<< HEAD
-<<<<<<< HEAD
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.15104167" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -591,25 +539,12 @@
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32979852" sideWeight="0.49583334" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32998884" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
 >>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
-=======
-    <frame x="960" y="0" width="960" height="1040" extended-state="0" />
-    <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.38241526" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.37756202" sideWeight="0.44279662" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2969247" sideWeight="0.49583334" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32979852" sideWeight="0.49583334" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32998884" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.37756202" sideWeight="0.5572034" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
 <<<<<<< HEAD
-<<<<<<< HEAD
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.37009543" sideWeight="0.52552086" order="3" side_tool="false" content_ui="tabs" />
-=======
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
 =======
 >>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
       <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3296875" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -660,7 +595,6 @@
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/MAPIR_Processing_dockwidget.py</url>
 <<<<<<< HEAD
-<<<<<<< HEAD
           <line>3491</line>
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -688,8 +622,6 @@
           <line>3869</line>
           <option name="timeStamp" value="10" />
 =======
-=======
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
           <line>3577</line>
           <option name="timeStamp" value="285" />
         </line-breakpoint>
@@ -717,9 +649,6 @@
           <url>file://$USER_HOME$/PycharmProjects/MAPIR_Converter/mass_converter.py</url>
           <line>45</line>
           <option name="timeStamp" value="303" />
-<<<<<<< HEAD
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
-=======
 >>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
         </line-breakpoint>
       </breakpoints>
@@ -734,11 +663,7 @@
         </breakpoint>
       </default-breakpoints>
 <<<<<<< HEAD
-<<<<<<< HEAD
       <option name="time" value="11" />
-=======
-      <option name="time" value="304" />
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
 =======
       <option name="time" value="304" />
 >>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
@@ -752,11 +677,8 @@
   </component>
   <component name="editorHistoryManager">
 <<<<<<< HEAD
-<<<<<<< HEAD
     <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python35/Lib/site-packages/PyInstaller/hooks/hook-osgeo.py" />
 =======
-=======
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
     <entry file="file://$PROJECT_DIR$/MAPIR_Camera_Control.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="170">
@@ -824,10 +746,7 @@
         <state relative-caret-position="1241">
           <caret line="73" column="4" lean-forward="false" selection-start-line="73" selection-start-column="4" selection-end-line="73" selection-end-column="4" />
 <<<<<<< HEAD
-<<<<<<< HEAD
 =======
-=======
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
           <folding>
             <marker date="1509061167708" expanded="true" signature="5841:5912" ph="..." />
           </folding>
@@ -869,9 +788,6 @@
           <folding>
             <marker date="1509061167708" expanded="true" signature="5841:5912" ph="..." />
           </folding>
-<<<<<<< HEAD
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
-=======
 >>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
         </state>
       </provider>
@@ -900,12 +816,6 @@
         <state relative-caret-position="1241">
           <caret line="73" column="4" lean-forward="false" selection-start-line="73" selection-start-column="4" selection-end-line="73" selection-end-column="4" />
 <<<<<<< HEAD
-<<<<<<< HEAD
-=======
-          <folding>
-            <marker date="1509061167708" expanded="true" signature="5841:5912" ph="..." />
-          </folding>
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
 =======
           <folding>
             <marker date="1509061167708" expanded="true" signature="5841:5912" ph="..." />
@@ -938,12 +848,6 @@
         <state relative-caret-position="1241">
           <caret line="73" column="4" lean-forward="false" selection-start-line="73" selection-start-column="4" selection-end-line="73" selection-end-column="4" />
 <<<<<<< HEAD
-<<<<<<< HEAD
-=======
-          <folding>
-            <marker date="1509061167708" expanded="true" signature="5841:5912" ph="..." />
-          </folding>
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
 =======
           <folding>
             <marker date="1509061167708" expanded="true" signature="5841:5912" ph="..." />
@@ -972,12 +876,6 @@
         <state relative-caret-position="1241">
           <caret line="73" column="4" lean-forward="false" selection-start-line="73" selection-start-column="4" selection-end-line="73" selection-end-column="4" />
 <<<<<<< HEAD
-<<<<<<< HEAD
-=======
-          <folding>
-            <marker date="1509061167708" expanded="true" signature="5841:5912" ph="..." />
-          </folding>
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
 =======
           <folding>
             <marker date="1509061167708" expanded="true" signature="5841:5912" ph="..." />
@@ -1024,7 +922,6 @@
     <entry file="file://$USER_HOME$/AppData/Local/Temp/violethayes - Google Search.url" />
     <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python35/Lib/site-packages/numpy/lib/polynomial.py" />
 <<<<<<< HEAD
-<<<<<<< HEAD
     <entry file="file://E:/pwm_1hz.py" />
     <entry file="file://$USER_HOME$/AppData/Local/Temp/Temp1_MAPIR_Processing_12192016.zip/MAPIR_Processing/MAPIR_Processing_dockwidget.py" />
     <entry file="file://D:/PWMOnStart.py">
@@ -1067,8 +964,6 @@
     </entry>
     <entry file="file://D:/QGIS-master/python/plugins/processing/algs/qgis/Heatmap.py">
 =======
-=======
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
     <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/_pydev_imps/_pydev_execfile.py">
 >>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
       <provider selected="true" editor-type-id="text-editor">
@@ -1077,7 +972,6 @@
         </state>
       </provider>
     </entry>
-<<<<<<< HEAD
 <<<<<<< HEAD
     <entry file="file://$USER_HOME$/.PyCharmCE2017.2/system/python_stubs/1517396175/PyQt5/QtCore/QObject.py" />
     <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/_pydevd_bundle/pydevd_vars.py">
@@ -1089,8 +983,6 @@
     </entry>
     <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/_pydevd_bundle/pydevd_exec2.py">
 =======
-=======
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
     <entry file="file://E:/pwm_1hz.py" />
     <entry file="file://$USER_HOME$/AppData/Local/Temp/Temp1_MAPIR_Processing_12192016.zip/MAPIR_Processing/MAPIR_Processing_dockwidget.py" />
     <entry file="file://D:/PWMOnStart.py" />
@@ -1103,7 +995,6 @@
       </provider>
     </entry>
 <<<<<<< HEAD
-<<<<<<< HEAD
     <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/_pydevd_bundle/pydevd_comm.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="179">
@@ -1113,8 +1004,6 @@
     </entry>
     <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/pydevd.py">
 =======
-=======
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
     <entry file="file://$USER_HOME$/.PyCharmCE2017.2/system/python_stubs/1517396175/PyQt5/QtWidgets/QDockWidget.py" />
     <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/_pydevd_bundle/pydevd_signature.py">
 >>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
@@ -1128,7 +1017,6 @@
     <entry file="file://$PROJECT_DIR$/ViewerSave_Dialog.py">
       <provider selected="true" editor-type-id="text-editor">
 <<<<<<< HEAD
-<<<<<<< HEAD
         <state relative-caret-position="-5">
           <caret line="10" column="31" lean-forward="true" selection-start-line="10" selection-start-column="31" selection-end-line="10" selection-end-column="31" />
         </state>
@@ -1140,16 +1028,11 @@
           <caret line="71" column="27" lean-forward="true" selection-start-line="71" selection-start-column="27" selection-end-line="71" selection-end-column="27" />
           <folding />
 =======
-=======
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
         <state relative-caret-position="1632">
           <caret line="96" column="6" lean-forward="false" selection-start-line="96" selection-start-column="6" selection-end-line="96" selection-end-column="6" />
           <folding>
             <marker date="1509061167708" expanded="true" signature="5841:5912" ph="..." />
           </folding>
-<<<<<<< HEAD
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
-=======
 >>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
         </state>
       </provider>
@@ -1175,27 +1058,16 @@
     <entry file="file://$PROJECT_DIR$/MAPIR_Processing_dockwidget.py">
       <provider selected="true" editor-type-id="text-editor">
 <<<<<<< HEAD
-<<<<<<< HEAD
         <state relative-caret-position="299">
           <caret line="3877" column="53" lean-forward="true" selection-start-line="3877" selection-start-column="53" selection-end-line="3877" selection-end-column="53" />
           <folding />
 =======
-=======
->>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
         <state relative-caret-position="163">
           <caret line="498" column="13" lean-forward="false" selection-start-line="498" selection-start-column="8" selection-end-line="498" selection-end-column="13" />
           <folding>
             <element signature="e#1188#1197#0" expanded="true" />
           </folding>
 >>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/PycharmProjects/MAPIR_Converter/mass_converter.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="156">
-          <caret line="42" column="23" lean-forward="false" selection-start-line="42" selection-start-column="23" selection-end-line="42" selection-end-column="23" />
-          <folding />
         </state>
       </provider>
     </entry>
