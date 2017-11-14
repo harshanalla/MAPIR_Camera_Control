@@ -1,5 +1,9 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 D:/rgn
+=======
+D:/Orthomosaic_export (1).tif
+>>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
 =======
 D:/Orthomosaic_export (1).tif
 >>>>>>> 8859aa766b5fb386de30583996214176b2e51ea0
