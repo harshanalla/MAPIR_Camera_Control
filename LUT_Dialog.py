@@ -25,11 +25,7 @@ class Applicator(QtWidgets.QDialog, LUT_Class):
         """Constructor."""
         super(Applicator, self).__init__(parent=parent)
         self.parent = parent
-        # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
+
         self.setupUi(self)
         self.parent.LUTButton.setEnabled(False)
         self.RasterMin.setText(str(round(self.parent.LUT_Min, 2)))
@@ -43,8 +39,7 @@ class Applicator(QtWidgets.QDialog, LUT_Class):
         except Exception as e:
             print(e)
     def on_RasterApplyButton_released(self):
-        self._min = float(self.RasterMin.text())
-        self._max = float(self.RasterMax.text())
+
 
         self.processLUT()
         self.parent.LUTBox.setEnabled(True)
@@ -54,8 +49,6 @@ class Applicator(QtWidgets.QDialog, LUT_Class):
         else:
             self.parent.LUTBox.setChecked(True)
     def on_RasterOkButton_released(self):
-        self._min = float(self.RasterMin.text())
-        self._max = float(self.RasterMax.text())
         try:
             self.processLUT()
         except Exception as e:
@@ -197,10 +190,12 @@ class Applicator(QtWidgets.QDialog, LUT_Class):
             # self._lut[216:256, 0, 1] = [103, ] * 40
             # self._lut[216:256, 0, 2] = [56, ] * 40
         try:
+            self._min = float(self.RasterMin.text())
+            self._max = float(self.RasterMax.text())
             range_ = copy.deepcopy(self.parent.calcwindow.ndvi)
             temp = copy.deepcopy(self.parent.calcwindow.ndvi)
             workingmin = (((self._min / (abs(round(self.parent.LUT_Min, 2)) if self._min < 0 else round(self.parent.LUT_Min, 2))) + 1)/2) * 255
-            workingmax = (((self._max / (abs(round(self.parent.LUT_Max, 2)) if self._min > 0 else round(self.parent.LUT_Max, 2))) + 1)/2) * 255
+            workingmax = (((self._max / (abs(round(self.parent.LUT_Max, 2)) if self._max > 0 else round(self.parent.LUT_Max, 2))) + 1)/2) * 255
             range_[range_ < workingmin] = workingmin
             range_[range_ > workingmax] = workingmax
             range_ = (((range_ - range_.min())/(range_.max() - range_.min())) * 255).astype("uint8")

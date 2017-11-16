@@ -14,11 +14,7 @@ class Calculator(QtWidgets.QDialog, RASTER_CLASS):
         """Constructor."""
         super(Calculator, self).__init__(parent=parent)
         self.parent = parent
-        # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
+
         self.setupUi(self)
         img = cv2.imread(os.path.dirname(__file__) + "/ndvi_400px.jpg")
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)

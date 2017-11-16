@@ -46,6 +46,7 @@ from distutils import dir_util
 from MAPIR_Enums import *
 from Calculator import *
 from LUT_Dialog import *
+from Vignette import *
 from ViewerSave_Dialog import *
 import struct
 # import KernelBrowserViewer
@@ -125,11 +126,7 @@ class KernelTransfer(QtWidgets.QDialog, TRANSFER_CLASS):
         """Constructor."""
         super(KernelTransfer, self).__init__(parent=parent)
         self.parent = parent
-        # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
+
         self.setupUi(self)
     def on_ModalBrowseButton_released(self):
         with open(modpath + os.sep + "instring.txt", "r+") as instring:
@@ -159,11 +156,7 @@ class KernelDelete(QtWidgets.QDialog, DEL_CLASS):
         """Constructor."""
         super(KernelDelete, self).__init__(parent=parent)
         self.parent = parent
-        # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
+
         self.setupUi(self)
 
     def on_ModalSaveButton_released(self):
@@ -186,11 +179,7 @@ class KernelModal(QtWidgets.QDialog, MODAL_CLASS):
         """Constructor."""
         super(KernelModal, self).__init__(parent=parent)
         self.parent = parent
-        # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
+
         self.setupUi(self)
 
     def on_ModalSaveButton_released(self):
@@ -238,11 +227,7 @@ class KernelCAN(QtWidgets.QDialog, CAN_CLASS):
         """Constructor."""
         super(KernelCAN, self).__init__(parent=parent)
         self.parent = parent
-        # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
+
         self.setupUi(self)
 
     def on_ModalSaveButton_released(self):
@@ -294,16 +279,23 @@ class KernelTime(QtWidgets.QDialog, TIME_CLASS):
         """Constructor."""
         super(KernelTime, self).__init__(parent=parent)
         self.parent = parent
-        # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
+
         self.setupUi(self)
         self.timer.timeout.connect(self.tick)
         self.timer.start(1)
     def on_ModalSaveButton_released(self):
         self.timer.stop()
+
+        if self.parent.KernelCameraSelect.currentIndex() == 0:
+            for p in self.parent.paths:
+                self.parent.camera = p
+
+                self.adjustRTC()
+            self.parent.camera = self.parent.paths[0]
+        else:
+            self.adjustRTC()
+
+    def adjustRTC(self):
         buf = [0] * 512
 
         buf[0] = self.SET_REGISTER_BLOCK_WRITE_REPORT
@@ -330,7 +322,7 @@ class KernelTime(QtWidgets.QDialog, TIME_CLASS):
 
         offset = QtCore.QDateTime.currentMSecsSinceEpoch() - val
 
-        while offset > 1:
+        while offset > 0.01:
             if self.KernelTimeSelect.currentIndex() == 0:
                 buf[0] = self.SET_REGISTER_BLOCK_WRITE_REPORT
                 buf[1] = eRegister.RG_REALTIME_CLOCK.value
@@ -588,6 +580,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     modalwindow = None
     calcwindow = None
     LUTwindow = None
+    VigWindow = None
     ndvipsuedo = None
     savewindow = None
     index_to_save = None
@@ -637,22 +630,19 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def __init__(self, parent=None):
         """Constructor."""
         super(MAPIR_ProcessingDockWidget, self).__init__(parent)
-        # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
+
         self.setupUi(self)
         try:
 
-            img = cv2.imread(os.path.dirname(__file__) + "/lut_legend.jpg")
+            legend = cv2.imread(os.path.dirname(__file__) + "/lut_legend.jpg")
             # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             # legend = cv2.cvtColor(legend, cv2.COLOR_GRAY2RGB)
             legh, legw = legend.shape[:2]
             self.legend_frame = QtGui.QImage(legend.data, legw, legh, legw, QtGui.QImage.Format_Grayscale8)
-            self.LUTGraphic.setPixmap(QtGui.QPixmap.fromImage(img2))
+            # self.LUTGraphic.setPixmap(QtGui.QPixmap.fromImage(img2))
             self.LUTGraphic.setPixmap(QtGui.QPixmap.fromImage(
                 QtGui.QImage(self.legend_frame)))
+            self.LegendLayout_2.hide()
         except Exception as e:
             print(e)
         # try:
@@ -816,7 +806,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     #     else:
     #         self.array_indicator = True
     #         self.KernelCameraSelect.setEnabled(False)
-
+    def on_VignetteButton_released(self):
+        if self.VigWindow == None:
+            self.VigWindow = Vignette(self)
+        self.VigWindow.resize(385, 160)
+        self.VigWindow.show()
     def on_KernelBrowserButton_released(self):
         with open(modpath + os.sep + "instring.txt", "r+") as instring:
             self.KernelBrowserFile.setText(QtWidgets.QFileDialog.getOpenFileName(directory=instring.read())[0])
@@ -844,39 +838,45 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     self.display_image = cv2.cvtColor(self.display_image, cv2.COLOR_GRAY2RGB)
                 self.display_image_original = copy.deepcopy(self.display_image)
                 h, w = self.display_image.shape[:2]
-            self.display_image = cv2.imread(self.KernelBrowserFile.text(), 1)
-            self.display_image = cv2.cvtColor(self.display_image, cv2.COLOR_BGR2RGB)
-            h, w = self.display_image.shape[:2]
-            if len(self.display_image.shape) > 2:
-                self.frame = QtGui.QImage(self.display_image.data, w, h, w*3, QtGui.QImage.Format_RGB888)
-            else:
-                self.frame = QtGui.QImage(self.display_image.data, w, h, w, QtGui.QImage.Format_RGB888)
-            # w = self.KernelBrowserViewer.width()
-            # h = self.KernelBrowserViewer.height()
-            self.image_loaded = True
-            self.mapscene = QtWidgets.QGraphicsScene()
-            self.mapscene.addPixmap(QtGui.QPixmap.fromImage(
-                QtGui.QImage(self.frame)))
 
 
-            self.image_loaded = True
-            self.stretchView()
-            # self.display_image = ((self.display_image - self.display_image.min())/(self.display_image.max() - self.display_image.min())) * 255.0
 
-            self.display_image = self.display_image.astype("uint8")
+                # self.image_loaded = True
 
-            if len(self.display_image.shape) > 2:
-                self.frame = QtGui.QImage(self.display_image.data, w, h, w*3, QtGui.QImage.Format_RGB888)
-            else:
-                self.frame = QtGui.QImage(self.display_image.data, w, h, w, QtGui.QImage.Format_RGB888)
+                # self.display_image = ((self.display_image - self.display_image.min())/(self.display_image.max() - self.display_image.min())) * 255.0
 
-            # browser_w = self.KernelViewer.width()
-            # browser_h = self.KernelViewer.height()
 
-            self.image_loaded = True
-            self.ViewerCalcButton.setEnabled(True)
-            # self.LUTButton.setEnabled(True)
-            self.updateViewer(keepAspectRatio=True)
+                # browser_w = self.KernelViewer.width()
+                # browser_h = self.KernelViewer.height()
+
+                self.image_loaded = True
+                self.stretchView()
+                self.ViewerCalcButton.blockSignals(True)
+                self.LUTButton.blockSignals(True)
+                self.LUTBox.blockSignals(True)
+                self.ViewerIndexBox.blockSignals(True)
+                self.ViewerStretchBox.blockSignals(True)
+
+                self.ViewerCalcButton.setEnabled(True)
+                self.LUTButton.setEnabled(False)
+                self.LUTBox.setEnabled(False)
+                self.LUTBox.setChecked(False)
+                self.ViewerIndexBox.setEnabled(False)
+                self.ViewerIndexBox.setChecked(False)
+                self.ViewerStretchBox.setChecked(True)
+
+                self.ViewerCalcButton.blockSignals(False)
+                self.LUTButton.blockSignals(False)
+                self.LUTBox.blockSignals(False)
+                self.ViewerIndexBox.blockSignals(False)
+                self.ViewerStretchBox.blockSignals(False)
+
+                self.savewindow = None
+                self.LUTwindow = None
+                self.LUT_to_save = None
+                self.LUT_Max = 1.0
+                self.LUT_Min = -1.0
+                self.updateViewer(keepAspectRatio=True)
 
         except Exception as e:
             print(str(e))
@@ -895,12 +895,14 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     else:
                         self.display_image = cv2.equalizeHist(self.display_image)
                     if not (self.ViewerIndexBox.isChecked() or self.LUTBox.isChecked()):
+                        self.LegendLayout_2.hide()
                         if len(self.display_image.shape) > 2:
                             self.frame = QtGui.QImage(self.display_image.data, w, h, w * 3, QtGui.QImage.Format_RGB888)
                         else:
                             self.frame = QtGui.QImage(self.display_image.data, w, h, w, QtGui.QImage.Format_RGB888)
                 else:
                     if not (self.ViewerIndexBox.isChecked() or self.LUTBox.isChecked()):
+                        self.LegendLayout_2.hide()
                         h, w = self.display_image_original.shape[:2]
                         if len(self.display_image_original.shape) > 2:
                             self.frame = QtGui.QImage(self.display_image_original.data, w, h, w * 3, QtGui.QImage.Format_RGB888)
@@ -922,10 +924,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     legend = cv2.imread(os.path.dirname(__file__) + r'\lut_legend.jpg', 0).astype("uint8")
                     # legend = cv2.cvtColor(legend, cv2.COLOR_GRAY2RGB)
                     legh, legw = legend.shape[:2]
+
                     self.legend_frame = QtGui.QImage(legend.data, legw, legh, legw, QtGui.QImage.Format_Grayscale8)
                     self.LUTGraphic.setPixmap(QtGui.QPixmap.fromImage(
                         QtGui.QImage(self.legend_frame)))
+                    self.LegendLayout_2.show()
                 else:
+                    self.LegendLayout_2.hide()
                     self.frame = QtGui.QImage(self.display_image.data, w, h, w * 3, QtGui.QImage.Format_RGB888)
                 self.updateViewer(keepAspectRatio=False)
         except Exception as e:
@@ -960,6 +965,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 self.legend_frame = QtGui.QImage(legend.data, legw, legh, legw * 3, QtGui.QImage.Format_RGB888)
                 self.LUTGraphic.setPixmap(QtGui.QPixmap.fromImage(
                     QtGui.QImage(self.legend_frame)))
+                self.LegendLayout_2.show()
                 # if self.LUTwindow.ClipOption.currentIndex() == 2:
                 #     temp = copy.deepcopy(self.calcwindow.ndvi)
                 #     if self.ViewerIndexBox.isChecked():
@@ -984,6 +990,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 self.legend_frame = QtGui.QImage(legend.data, legw, legh, legw, QtGui.QImage.Format_Grayscale8)
                 self.LUTGraphic.setPixmap(QtGui.QPixmap.fromImage(
                     QtGui.QImage(self.legend_frame)))
+
                 # if self.LUTwindow.ClipOption.currentIndex() == 2:
                 #     temp = copy.deepcopy(self.calcwindow.ndvi)
                 #     if self.ViewerIndexBox.isChecked():
@@ -1002,9 +1009,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 #         # self.ndvipsuedo[temp >= workingmax, 1] = temp[temp >= workingmax]
                 #         # self.ndvipsuedo[temp >= workingmax, 2] = temp[temp >= workingmax]
                 if self.ViewerIndexBox.isChecked():
-
+                    self.LegendLayout_2.show()
                     self.frame = QtGui.QImage(self.calcwindow.ndvi.data, w, h, w, QtGui.QImage.Format_Grayscale8)
                 else:
+                    self.LegendLayout_2.hide()
                     self.frame = QtGui.QImage(self.display_image.data, w, h, w * 3, QtGui.QImage.Format_RGB888)
             self.updateViewer(keepAspectRatio=False)
 
@@ -1495,6 +1503,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             print(e)
 
     def on_KernelExposureMode_currentIndexChanged(self):
+        if self.KernelCameraSelect.currentIndex() == 0:
+            for path in self.paths:
+                self.camera = path
+                self.setExposure()
+        else:
+            self.setExposure()
+    def setExposure(self):
         if self.KernelExposureMode.currentIndex() == 1:
             self.KernelShutterSpeed.setEnabled(True)
             self.KernelISO.setEnabled(True)
@@ -4145,25 +4160,25 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                                 img = np.fromfile(rawimage, np.dtype('u2'), self.imsize).reshape(
                                     (self.imrows, self.imcols))
                             color = cv2.cvtColor(img, cv2.COLOR_BAYER_RG2RGB)
-                            color2 = copy.deepcopy(color)
-                            color2 = color2 / 65535.0
-                            color2 = color2 * 255.0
-                            color2 = color2.astype("uint8")
-                            blue, green, red = cv2.split(color2)
-                            blue = cv2.equalizeHist(blue)
-                            green = cv2.equalizeHist(green)
-                            red = cv2.equalizeHist(red)
-                            color2 = cv2.merge((blue,green,red))
-                            color2 = color2 / 255.0
-                            color2 = color2 * 65535.0
-                            color2 = color2.astype("uint16")
+                            # color2 = copy.deepcopy(color)
+                            # color2 = color2 / 65535.0
+                            # color2 = color2 * 255.0
+                            # color2 = color2.astype("uint8")
+                            # blue, green, red = cv2.split(color2)
+                            # blue = cv2.equalizeHist(blue)
+                            # green = cv2.equalizeHist(green)
+                            # red = cv2.equalizeHist(red)
+                            # color2 = cv2.merge((blue,green,red))
+                            # color2 = color2 / 255.0
+                            # color2 = color2 * 65535.0
+                            # color2 = color2.astype("uint16")
                             filename = input.split('.')
                             outputfilename = filename[1] + '.tif'
                             cv2.imencode(".tif", color)
-                            cv2.imencode(".tif", color2)
+                            # cv2.imencode(".tif", color2)
                             cv2.imwrite(outfolder + outputfilename, color)
-                            outputfilename = filename[1] + '_EQ.tif'
-                            cv2.imwrite(outfolder + outputfilename, color2)
+                            # outputfilename = filename[1] + '_EQ.tif'
+                            # cv2.imwrite(outfolder + outputfilename, color2)
                             if customerdata == True:
                                 self.copyExif(infolder + infiles[counter + 1], outfolder + outputfilename)
                         counter += 2
