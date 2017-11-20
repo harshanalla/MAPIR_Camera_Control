@@ -35,12 +35,12 @@ class Vignette(QtWidgets.QDialog, VIGNETTE_CLASS):
         try:
             for y in range(self.parent.display_image_original.shape[:2][0]):
                 for x in range(self.parent.display_image_original.shape[:2][1]):
-                    dx = (x - cx)/cx
-                    dy = (y - cy)/cy
+                    dx = (x - cx)/(w/2)
+                    dy = (y - cy)/(h/2)
 
                     r2 = (dx*dx) + (dy*dy)
 
-                    pict[y, x] = (pict[y,x] * (1 + (c1 * r2)))
+                    pict[y, x] = (pict[y, x] * (1 + (c1 * r2)))
             self.parent.display_image_original = pict
             self.parent.display_image = pict
 

@@ -2569,7 +2569,7 @@ p, li { white-space: pre-wrap; }
               <item row="7" column="0">
                <widget class="QLabel" name="label_11">
                 <property name="text">
-                 <string>3-letter identifier:</string>
+                 <string>Sensor:</string>
                 </property>
                </widget>
               </item>
@@ -2602,20 +2602,112 @@ p, li { white-space: pre-wrap; }
               <item row="7" column="1">
                <layout class="QHBoxLayout" name="horizontalLayout_27">
                 <item>
-                 <widget class="QLineEdit" name="Kernel3LetterID">
-                  <property name="text">
-                   <string/>
-                  </property>
-                  <property name="maxLength">
-                   <number>3</number>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="Kernel3LetterSave">
-                  <property name="text">
-                   <string>Save</string>
-                  </property>
+                 <widget class="QComboBox" name="KernelFilterSelect">
+                  <item>
+                   <property name="text">
+                    <string>RGB</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>405</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>450</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>490</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>518</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>550</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>590</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>615</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>632</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>650</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>685</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>725</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>780</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>808</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>850</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>880</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>940</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>945</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>UVR</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>NGB</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>RGN</string>
+                   </property>
+                  </item>
                  </widget>
                 </item>
                </layout>

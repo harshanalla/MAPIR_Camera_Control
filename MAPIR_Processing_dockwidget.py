@@ -94,7 +94,7 @@ if not os.path.exists(modpath + os.sep + "instring.txt"):
 #     sys.path.append(r'/usr/local/bin/exiftool')
 #     sys.path.append(r'/usr/local/bin/opencv2')
 
-# import gdal
+from osgeo import gdal
 
 import glob
 
@@ -570,7 +570,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     pixel_min_max = {"redmax": 0.0, "redmin": 65535.0,
                      "greenmax": 0.0, "greenmin": 65535.0,
                      "bluemax": 0.0, "bluemin": 65535.0}
-    subtraction_values = {"rgn": [0.92, 0.62]}
+    multiplication_values = {"Red": [0.00],
+                             "Green": [0.00],
+                             "Blue": [0.00]}
     monominmax = {"min": 65535.0,"max": 0.0}
     weeks = 0
     days = 0
@@ -742,6 +744,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     # print(chr(res[2]) + chr(res[3]) + chr(res[4]))
                     # self.KernelLog.append("Subscript2")
                     item = chr(res[2]) + chr(res[3]) + chr(res[4])
+                    if i == 0:
+                        self.KernelFilterSelect.blockSignals(True)
+                        self.KernelFilterSelect.setCurrentIndex(self.KernelFilterSelect.findText(item))
+                        self.KernelFilterSelect.blockSignals(False)
                     # self.KernelLog.append(str(line + 7))
                     self.KernelLog.append("Found Camera: " + str(item))
                     # self.KernelLog.append(str(line + 8))
@@ -773,27 +779,44 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     print(e)
             except Exception as e:
                 self.KernelLog.append("Error: (" + str(e) +  ") connecting to camera, please ensure all cameras are connected properly and not in transfer mode.")
-    def on_Kernel3LetterSave_released(self):
-        threeletter = self.Kernel3LetterID.text()
-        buf = [0] * 512
-        buf[0] = self.SET_REGISTER_BLOCK_WRITE_REPORT
-        buf[1] = eRegister.RG_MEDIA_FILE_NAME_A.value
-        buf[2] = 3
-        buf[3] = ord(threeletter[0])
-        buf[4] = ord(threeletter[1])
-        buf[5] = ord(threeletter[2])
-        res = self.writeToKernel(buf)
+    # def on_Kernel3LetterSave_released(self):
+    #     threeletter = self.Kernel3LetterID.text()
+    #     buf = [0] * 512
+    #     buf[0] = self.SET_REGISTER_BLOCK_WRITE_REPORT
+    #     buf[1] = eRegister.RG_MEDIA_FILE_NAME_A.value
+    #     buf[2] = 3
+    #     buf[3] = ord(threeletter[0])
+    #     buf[4] = ord(threeletter[1])
+    #     buf[5] = ord(threeletter[2])
+    #     res = self.writeToKernel(buf)
+    #     try:
+    #         self.KernelUpdate()
+    #     except Exception as e:
+    #         print(e)
+    def on_KernelFilterSelect_currentIndexChanged(self):
         try:
+            threeletter = self.KernelFilterSelect.currentText()
+            buf = [0] * 512
+            buf[0] = self.SET_REGISTER_BLOCK_WRITE_REPORT
+            buf[1] = eRegister.RG_MEDIA_FILE_NAME_A.value
+            buf[2] = 3
+            buf[3] = ord(threeletter[0])
+            buf[4] = ord(threeletter[1])
+            buf[5] = ord(threeletter[2])
+            res = self.writeToKernel(buf)
+
             self.KernelUpdate()
         except Exception as e:
-            print(e)
+            self.KernelLog.append("Error: " + e)
     def on_KernelCameraSelect_currentIndexChanged(self):
         if self.KernelCameraSelect.currentIndex() == 0:
             self.array_indicator = True
         else:
             self.array_indicator = False
         self.camera = self.paths[self.KernelCameraSelect.currentIndex() - 1]
-
+        self.KernelFilterSelect.blockSignals(True)
+        self.KernelFilterSelect.setCurrentIndex(self.KernelFilterSelect.findText(self.KernelCameraSelect.currentText()))
+        self.KernelFilterSelect.blockSignals(False)
         if not self.KernelTransferButton.isChecked():
             try:
                 self.KernelUpdate()
@@ -824,6 +847,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             # self.KernelViewer.installEventFilter(self.eFilter)
             if os.path.exists(self.KernelBrowserFile.text()):
                 self.display_image = cv2.imread(self.KernelBrowserFile.text(), -1)
+                # if self.display_image == None:
+                #     self.display_image = gdal.Open(self.KernelBrowserFile.text())
+                #     self.display_image = np.array(self.display_image.GetRasterBand(1).ReadAsArray())
                 if self.display_image.dtype == np.dtype("uint16"):
                     self.display_image = self.display_image / 65535.0
                     self.display_image = self.display_image * 255.0
@@ -1510,7 +1536,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         else:
             self.setExposure()
     def setExposure(self):
-        if self.KernelExposureMode.currentIndex() == 1:
+        if self.KernelExposureMode.currentIndex() == 0:
             self.KernelShutterSpeed.setEnabled(True)
             self.KernelISO.setEnabled(True)
             self.KernelGain.setEnabled(False)
@@ -1539,7 +1565,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             buf = [0] * 512
             buf[0] = self.SET_REGISTER_WRITE_REPORT
             buf[1] = eRegister.RG_SHUTTER.value
-            buf[2] = 0
+            buf[2] = 1
 
             res = self.writeToKernel(buf)
             buf = [0] * 512
@@ -2600,12 +2626,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                            [self.CalibrationCameraModel_6.currentIndex(), self.CalibrationFilter_6.currentIndex(),
                             self.CalibrationLens_6.currentIndex()],
                            ]
-                coeffslist = [self.qrcoeffs,
-                              self.qrcoeffs2,
-                              self.qrcoeffs3,
-                              self.qrcoeffs4,
-                              self.qrcoeffs5,
-                              self.qrcoeffs6]
+                # self.multiplication_values[self.qrcoeffs,
+                #               self.qrcoeffs2,
+                #               self.qrcoeffs3,
+                #               self.qrcoeffs4,
+                #               self.qrcoeffs5,
+                #               self.qrcoeffs6]
 
                 folderind = [calfolder,
                              calfolder2,
@@ -2657,9 +2683,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
 
                             if self.useqr == True:
-                                red = (coeffslist[j][0] * red)
-                                green = (coeffslist[j][1] * green)
-                                blue = (coeffslist[j][2] * blue)
+                                red = (self.multiplication_values["Red"] * red)
+                                green = (self.multiplication_values["Green"] * green)
+                                blue = (self.multiplication_values["Blue"] * blue)
                             # these are a little confusing, but the check to find the highest and lowest pixel value
                             # in each channel in each image and keep the highest/lowest value found.
                             if self.seed_pass == False:
@@ -2806,7 +2832,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                                     QtWidgets.QApplication.processEvents()
 
 
-                                    self.CalibratePhotos(calfile, coeffslist[j], pixel_min_max, outdir, ind)
+                                    self.CalibratePhotos(calfile, self.multiplication_values, pixel_min_max, outdir, ind)
                                 except Exception as e:
                                     self.CalibrationLog.append(str(e))
                             else:
@@ -3208,11 +3234,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         cv2.imencode(".tif", refimg)
         cv2.imwrite(newimg, refimg)
-        # srin = gdal.Open(photo)
+        srin = gdal.Open(photo)
         inproj = srin.GetProjection()
         transform = srin.GetGeoTransform()
         gcpcount = srin.GetGCPs()
-        # srout = gdal.Open(newimg, gdal.GA_Update)
+        srout = gdal.Open(newimg, gdal.GA_Update)
         srout.SetProjection(inproj)
         srout.SetGeoTransform(transform)
         srout.SetGCPs(gcpcount, srin.GetGCPProjection())
@@ -3255,6 +3281,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             blue = refimg[:, :, 0]
             green = refimg[:, :, 1]
             red = refimg[:, :, 2]
+            red = (red * self.multiplication_values["Red"])
+            green = (green * self.multiplication_values["Green"])
+            blue = (blue * self.multiplication_values["Blue"])
             if refimg.shape[2] > 3:
                 alpha = refimg[:, :, 3]
                 refimg = copy.deepcopy(refimg[:, :, :3])
@@ -3287,8 +3316,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 minpixel = minmaxes["redmin"] if minmaxes["redmin"] < minmaxes["bluemin"] else minmaxes["bluemin"]
                 minpixel = minmaxes["greenmin"] if minmaxes["greenmin"] < minpixel else minpixel
                 # blue = (refimg[:, :, 0] / 35) * 100
-                red = (red * self.subtraction_values["rgn"][0])
-                green = (green * self.subtraction_values["rgn"][1])
+
+
 #                 # red[red < 0] = 0
 #                 # green[green < 0] = 0
                 # tempimg = cv2.merge((blue, green, red)).astype("uint16")
@@ -3325,9 +3354,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
                 ### Calibrate pixels based on the default reflectance values (or the values gathered from the MAPIR reflectance target)
 
-            red = (coeffs[0] * red)
-            green = (coeffs[1] * green)
-            blue = (coeffs[2] * blue)
+            # red = (coeffs[0] * red)
+            # green = (coeffs[1] * green)
+            # blue = (coeffs[2] * blue)
 
 
 
@@ -3487,11 +3516,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             if 'tif' in photo.split('.')[2].lower():
                 cv2.imencode(".tif", refimg)
                 cv2.imwrite(newimg, refimg)
-                # srin = gdal.Open(photo)
+                srin = gdal.Open(photo)
                 inproj = srin.GetProjection()
                 transform = srin.GetGeoTransform()
                 gcpcount = srin.GetGCPs()
-                # srout = gdal.Open(newimg, gdal.GA_Update)
+                srout = gdal.Open(newimg, gdal.GA_Update)
                 srout.SetProjection(inproj)
                 srout.SetGeoTransform(transform)
                 srout.SetGCPs(gcpcount, srin.GetGCPProjection())
@@ -3589,55 +3618,64 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
             hypotenuse = line1 if line1 > line2 else line2
             hypotenuse = line3 if line3 > hypotenuse else hypotenuse
-
-            if hypotenuse == line1:
-
-                slope = (coords[1][1] - coords[0][1]) / (coords[1][0] - coords[0][0])
-                dist = coords[2][1] - (slope * coords[2][0]) + ((slope * coords[1][0]) - coords[1][1])
-                dist /= np.sqrt(np.power(slope, 2) + 1)
-                center = coords[2]
-                if (slope < 0 and dist < 0) or (slope >= 0 and dist >= 0):
-
-                    bottom = coords[0]
-                    right = coords[1]
-                else:
-
-                    bottom = coords[1]
-                    right = coords[0]
-            elif hypotenuse == line2:
-
+            if len(list) > 0:
                 slope = (coords[2][1] - coords[1][1]) / (coords[2][0] - coords[1][0])
                 dist = coords[0][1] - (slope * coords[0][0]) + ((slope * coords[2][0]) - coords[2][1])
                 dist /= np.sqrt(np.power(slope, 2) + 1)
                 center = coords[0]
-                if (slope < 0 and dist < 0) or (slope >= 0 and dist >= 0):
-
-                    bottom = coords[1]
-                    right = coords[2]
-                else:
-
-                    bottom = coords[2]
-                    right = coords[1]
+                bottom = coords[1]
+                right = coords[2]
             else:
+                if hypotenuse == line1:
 
-                slope = (coords[0][1] - coords[2][1]) / (coords[0][0] - coords[2][0])
-                dist = coords[1][1] - (slope * coords[1][0]) + ((slope * coords[0][0]) - coords[0][1])
-                dist /= np.sqrt(np.power(slope, 2) + 1)
-                center = coords[1]
-                if (slope < 0 and dist < 0) or (slope >= 0 and dist >= 0):
-                    # self.CalibrationLog.append("slope and dist share sign")
-                    bottom = coords[2]
-                    right = coords[0]
+                    slope = (coords[1][1] - coords[0][1]) / (coords[1][0] - coords[0][0])
+                    dist = coords[2][1] - (slope * coords[2][0]) + ((slope * coords[1][0]) - coords[1][1])
+                    dist /= np.sqrt(np.power(slope, 2) + 1)
+                    center = coords[2]
+
+                    if (slope < 0 and dist < 0) or (slope >= 0 and dist >= 0):
+
+                        bottom = coords[0]
+                        right = coords[1]
+                    else:
+
+                        bottom = coords[1]
+                        right = coords[0]
+                elif hypotenuse == line2:
+
+                    slope = (coords[2][1] - coords[1][1]) / (coords[2][0] - coords[1][0])
+                    dist = coords[0][1] - (slope * coords[0][0]) + ((slope * coords[2][0]) - coords[2][1])
+                    dist /= np.sqrt(np.power(slope, 2) + 1)
+                    center = coords[0]
+
+                    if (slope < 0 and dist < 0) or (slope >= 0 and dist >= 0):
+
+                        bottom = coords[1]
+                        right = coords[2]
+                    else:
+
+                        bottom = coords[2]
+                        right = coords[1]
                 else:
 
-                    bottom = coords[0]
-                    right = coords[2]
+                    slope = (coords[0][1] - coords[2][1]) / (coords[0][0] - coords[2][0])
+                    dist = coords[1][1] - (slope * coords[1][0]) + ((slope * coords[0][0]) - coords[0][1])
+                    dist /= np.sqrt(np.power(slope, 2) + 1)
+                    center = coords[1]
+                    if (slope < 0 and dist < 0) or (slope >= 0 and dist >= 0):
+                        # self.CalibrationLog.append("slope and dist share sign")
+                        bottom = coords[2]
+                        right = coords[0]
+                    else:
+
+                        bottom = coords[0]
+                        right = coords[2]
             if list is not None and len(list) > 0:
                 guidelength = np.sqrt(np.power((center[0] - right[0]), 2) + np.power((center[1] - right[1]), 2))
                 pixelinch = guidelength / self.CORNER_TO_CORNER
                 rad = (pixelinch * self.CORNER_TO_TARG)
-                vx = center[0] - right[0]
-                vy = center[1] - right[1]
+                vx = center[1] - right[1]
+                vy = center[0] - right[0]
             else:
                 guidelength = np.sqrt(np.power((center[0] - bottom[0]), 2) + np.power((center[1] - bottom[1]), 2))
                 pixelinch = guidelength / self.SQ_TO_SQ
@@ -3691,8 +3729,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 #                 elif ((ind[0] == 3) and (ind[1] == 1)): #\
 #                         # or ind[0 == 7:
 #                     # blue = (im2[:, :, 0] / 35) * 100
-#                     red = im2[:, :, 2] - (blue * self.subtraction_values["rgn"][0])
-#                     green = im2[:, :, 1] - (blue * self.subtraction_values["rgn"][1])
+#                     red = im2[:, :, 2] - (blue * self.multiplication_values["Red"])
+#                     green = im2[:, :, 1] - (blue * self.multiplication_values["Green"])
 #                     # blue[blue > 65535] = 65535
 #                     # red[red < 0] = 0
 #                     # green[green < 0] = 0
@@ -3738,18 +3776,18 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 except Exception as e:
                     print(e)
 
-                #                 (self.refvalues[self.ref]["RGN"][2][0] - self.refvalues[self.ref]["RGN"][0][0] ) / \
-                #                (self.refvalues[self.ref]["RGN"][2][0] + self.refvalues[self.ref]["RGN"][0][0] )
+                #                 (self.refvalues[self.ref]["RGN"][2][0] - self.refvalues[self.ref]["Red"][0] ) / \
+                #                (self.refvalues[self.ref]["RGN"][2][0] + self.refvalues[self.ref]["Red"][0] )
                 #
-                # ideal_ndvi_2 = (self.refvalues[self.ref]["RGN"][2][1] - self.refvalues[self.ref]["RGN"][0][1] ) / \
-                #                (self.refvalues[self.ref]["RGN"][2][1] + self.refvalues[self.ref]["RGN"][0][1] )
+                # ideal_ndvi_2 = (self.refvalues[self.ref]["RGN"][2][1] - self.refvalues[self.ref]["Red"][1] ) / \
+                #                (self.refvalues[self.ref]["RGN"][2][1] + self.refvalues[self.ref]["Red"][1] )
                 #
                 #
-                # ideal_ndvi_3 = (self.refvalues[self.ref]["RGN"][2][2] - self.refvalues[self.ref]["RGN"][0][2]) / \
-                #                (self.refvalues[self.ref]["RGN"][2][2] + self.refvalues[self.ref]["RGN"][0][2])
+                # ideal_ndvi_3 = (self.refvalues[self.ref]["RGN"][2][2] - self.refvalues[self.ref]["Red"][2]) / \
+                #                (self.refvalues[self.ref]["RGN"][2][2] + self.refvalues[self.ref]["Red"][2])
                 #
-                # ideal_ndvi_4 = (self.refvalues[self.ref]["RGN"][2][3] - self.refvalues[self.ref]["RGN"][0][3]) / \
-                #                (self.refvalues[self.ref]["RGN"][2][3] + self.refvalues[self.ref]["RGN"][0][3])
+                # ideal_ndvi_4 = (self.refvalues[self.ref]["RGN"][2][3] - self.refvalues[self.ref]["Red"][3]) / \
+                #                (self.refvalues[self.ref]["RGN"][2][3] + self.refvalues[self.ref]["Red"][3])
 
                 t1redmean = np.mean(targ1values[:, :, 2])
                 t1greenmean = np.mean(targ1values[:, :, 1])
@@ -3775,6 +3813,16 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     yred = [0.87, 0.51, 0.23, 0.0]
                     yblue = [0.87, 0.51, 0.23, 0.0]
                     ygreen = [0.87, 0.51, 0.23, 0.0]
+                    # im2[(target1[1] - int((pixelinch * 0.75) / 2)):(target1[1] + int((pixelinch * 0.75) / 2)),
+                    # (target1[0] - int((pixelinch * 0.75) / 2)):(target1[0] + int((pixelinch * 0.75) / 2))] = [0, 255,0]
+                    # im2[(target2[1] - int((pixelinch * 0.75) / 2)):(target2[1] + int((pixelinch * 0.75) / 2)),
+                    # (target2[0] - int((pixelinch * 0.75) / 2)):(target2[0] + int((pixelinch * 0.75) / 2))] = [255, 0,0]
+                    # im2[(target3[1] - int((pixelinch * 0.75) / 2)):(target3[1] + int((pixelinch * 0.75) / 2)),
+                    # (target3[0] - int((pixelinch * 0.75) / 2)):(target3[0] + int((pixelinch * 0.75) / 2))] = [0, 0, 255]
+                    # im2[(target4[1] - int((pixelinch * 0.75) / 2)):(target4[1] + int((pixelinch * 0.75) / 2)),
+                    # (target4[0] - int((pixelinch * 0.75) / 2)):(target4[0] + int((pixelinch * 0.75) / 2))] = [0, 255, 255]
+                    #
+                    # cv2.imwrite(r"C:\Users\peau\Desktop\NateTest.jpg", im2)
 
                     xred = [t1redmean, t2redmean, t3redmean, t4redmean]
                     xgreen = [t1greenmean, t2greenmean, t3greenmean, t4greenmean]
@@ -3863,13 +3911,25 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 xgreen = np.array(xgreen)
                 xblue = np.array(xblue)
 
-
-
+                xred /= 65535
+                xgreen /= 65535
+                xblue /= 65535
 
                 yred = np.array(yred)
                 ygreen = np.array(ygreen)
                 yblue = np.array(yblue)
 
+                cofr = yred[0]/xred[0]
+                cofg = ygreen[0]/xgreen[0]
+                cofb = yblue[0]/xblue[0]
+
+                # xred *= cofr
+                #
+                #
+                # xgreen *= cofg
+                #
+                #
+                # xblue *= cofb
                 # mred, bred, rr, pr, rerr = stats.linregress(xred,yred)
                 # mgreen, bgreen, rg, pg, gerr = stats.linregress(xgreen,ygreen)
                 # mblue, bblue, rb, pb, berr = stats.linregress(xblue,yblue)
@@ -3888,58 +3948,59 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 # ygreen = (ygreen - minqry)/(maxqry - minqry)
                 # yblue = (yblue - minqry)/(maxqry - minqry)
 
+                #
+                # ideal_ndvi = self.calculateIndex(yred, yblue)
+                # # self.CalibrationLog.append(str(ideal_ndvi))
+                #
+                #
+                # ideal_gndvi = self.calculateIndex(ygreen, yblue)
+                # # self.CalibrationLog.append(str(ideal_ndvi))
+                #
 
-                ideal_ndvi = self.calculateIndex(yred, yblue)
-                # self.CalibrationLog.append(str(ideal_ndvi))
+                # ared = xred.dot(yred)/xred.dot(xred)
+                # agreen = xgreen.dot(ygreen)/xgreen.dot(xgreen)
+                # ablue = xblue.dot(yblue)/xblue.dot(xblue)
+                #
+                #
+                #
+                # xred = xred * ared
+                # xgreen = xgreen * agreen
+                # xblue = xblue * ablue
+                #
+                # # xred = (xred * mred) + bred
+                # # xgreen = (xgreen * mgreen) + bgreen
+                # # xblue = (xblue * mblue) + bblue
+                #
+                # maxqr = max(xred.max(), xgreen.max())
+                # maxqr = max(maxqr, xblue.max())
+                #
+                # minqr = min(xred.min(), xgreen.min())
+                # minqr = min(minqr, xblue.min())
+                #
+                # xred = (xred - minqr)/(maxqr - minqr)
+                # xgreen = (xgreen - minqr)/(maxqr - minqr)
+                # xblue = (xblue - minqr)/(maxqr - minqr)
 
-
-                ideal_gndvi = self.calculateIndex(ygreen, yblue)
-                # self.CalibrationLog.append(str(ideal_ndvi))
-
-
-                ared = xred.dot(yred)/xred.dot(xred)
-                agreen = xgreen.dot(ygreen)/xgreen.dot(xgreen)
-                ablue = xblue.dot(yblue)/xblue.dot(xblue)
-
-
-
-                xred = xred * ared
-                xgreen = xgreen * agreen
-                xblue = xblue * ablue
-
-                # xred = (xred * mred) + bred
-                # xgreen = (xgreen * mgreen) + bgreen
-                # xblue = (xblue * mblue) + bblue
-
-                maxqr = max(xred.max(), xgreen.max())
-                maxqr = max(maxqr, xblue.max())
-
-                minqr = min(xred.min(), xgreen.min())
-                minqr = min(minqr, xblue.min())
-
-                xred = (xred - minqr)/(maxqr - minqr)
-                xgreen = (xgreen - minqr)/(maxqr - minqr)
-                xblue = (xblue - minqr)/(maxqr - minqr)
-
-                x_ndvi = self.calculateIndex(xred, xblue)
-
-
-                # self.CalibrationLog.append(str(x_ndvi))
-
-                x_gndvi = self.calculateIndex(xgreen, xblue)
-
-
-                # self.CalibrationLog.append(str(x_gndvi))
-                ndvi_coeff = ideal_ndvi / x_ndvi
-                gndvi_coeff = ideal_gndvi / x_gndvi
+                # x_ndvi = self.calculateIndex(xred, xblue)
+                #
+                #
+                # # self.CalibrationLog.append(str(x_ndvi))
+                #
+                # x_gndvi = self.calculateIndex(xgreen, xblue)
+                #
+                #
+                # # self.CalibrationLog.append(str(x_gndvi))
+                # ndvi_coeff = ideal_ndvi / x_ndvi
+                # gndvi_coeff = ideal_gndvi / x_gndvi
 
 
                 # self.CalibrationLog.append(str(ndvi_coeff))
 
 
                 # self.CalibrationLog.append(str(gndvi_coeff))
-                self.subtraction_values["rgn"][0] = ndvi_coeff
-                self.subtraction_values["rgn"][1] = gndvi_coeff
+                self.multiplication_values["Red"] = cofr
+                self.multiplication_values["Green"] = cofg
+                self.multiplication_values["Blue"] = cofb
                 # pred = np.poly1d(cred)
                 #
                 #
@@ -3966,7 +4027,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     self.CalibrationLog.append("Found QR Target Model 2, please proceed with calibration.")
                 else:
                     self.CalibrationLog.append("Found QR Target Model 1, please proceed with calibration.")
-                return [ared, agreen, ablue]
+                # return [ared, agreen, ablue]
             else:
                 if list is not None and len(list) > 0:
                     targ1values = im2[(target1[1] - int((pixelinch * 0.75) / 2)):(target1[1] + int((pixelinch * 0.75) / 2)),
@@ -4259,8 +4320,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                         self.PreProcessLog.append("Done Debayering")
                     else:
                         if "mapir" not in inphoto.split('.')[1]:
+                            shutil.copyfile(inphoto, outphoto)
                             self.copyExif(inphoto, outphoto)
                         else:
+
                             self.copyExif(outphoto, outphoto)
                         self.PreProcessLog.append("Skipped Debayering")
                 except Exception as e:
