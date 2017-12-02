@@ -42,7 +42,7 @@ shutterlist = ["1/32000",
 path = Connect.connect_Kernel()
 if sys.argv[1] == '-l':
     for count, shut in enumerate(shutterlist):
-        print(count + ". " + shut)
+        print(str(count) + ". " + str(shut))
 else:
     SHUTTER = int(sys.argv[1])
     buf = [0] * 512
