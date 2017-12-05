@@ -1,7 +1,7 @@
 import sys
 import hid
 import Connect
-import MAPIR_Enums
+
 path = Connect.connect_Kernel()
 ISO = int(sys.argv[1]) / 100
 
