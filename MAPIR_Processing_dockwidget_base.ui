@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MAPIR_ProcessingDockWidgetBase</class>
- <widget class="QDockWidget" name="MAPIR_ProcessingDockWidgetBase">
+ <widget class="QMainWindow" name="MAPIR_ProcessingDockWidgetBase">
   <property name="enabled">
    <bool>true</bool>
   </property>
@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>1152</width>
-    <height>584</height>
+    <height>817</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -25,12 +25,12 @@
   <property name="tabletTracking">
    <bool>true</bool>
   </property>
+  <property name="windowTitle">
+   <string>MAPIR Camera Control</string>
+  </property>
   <property name="windowIcon">
    <iconset>
     <normaloff>corn_logo_color_ico.ico</normaloff>corn_logo_color_ico.ico</iconset>
-  </property>
-  <property name="windowTitle">
-   <string>MAPIR Camera Control</string>
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <property name="sizePolicy">
@@ -69,6 +69,9 @@
       <property name="currentIndex">
        <number>0</number>
       </property>
+      <property name="movable">
+       <bool>false</bool>
+      </property>
       <widget class="QWidget" name="PreProcessTab">
        <attribute name="title">
         <string>Process</string>
@@ -78,35 +81,6 @@
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
            <layout class="QGridLayout" name="gridLayout_3">
-            <item row="2" column="3">
-             <widget class="QComboBox" name="PreProcessFilter">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>151</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="duplicatesEnabled">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QLabel" name="PreProcessCameraModelLabel">
-              <property name="text">
-               <string>Camera</string>
-              </property>
-             </widget>
-            </item>
             <item row="0" column="6">
              <widget class="QPushButton" name="PreProcessInButton">
               <property name="sizePolicy">
@@ -148,7 +122,68 @@
               </property>
              </widget>
             </item>
-            <item row="2" column="5">
+            <item row="0" column="1">
+             <widget class="QLabel" name="PreProcessCameraModelLabel">
+              <property name="text">
+               <string>Camera</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="3">
+             <widget class="QComboBox" name="PreProcessFilter">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>151</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="duplicatesEnabled">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="4">
+             <spacer name="horizontalSpacer_7">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="3" column="4">
+             <spacer name="horizontalSpacer_8">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="3" column="5">
              <widget class="QPushButton" name="PreProcessButton">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -183,48 +218,6 @@
               </property>
              </spacer>
             </item>
-            <item row="1" column="4">
-             <spacer name="horizontalSpacer_7">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item row="0" column="5">
-             <widget class="QLineEdit" name="PreProcessInFolder">
-              <property name="text">
-               <string/>
-              </property>
-              <property name="placeholderText">
-               <string>Select Input Folder...</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="4">
-             <spacer name="horizontalSpacer_8">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
             <item row="0" column="4">
              <spacer name="horizontalSpacer_6">
               <property name="orientation">
@@ -241,7 +234,7 @@
               </property>
              </spacer>
             </item>
-            <item row="2" column="0">
+            <item row="3" column="0">
              <spacer name="horizontalSpacer_4">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
@@ -257,16 +250,13 @@
               </property>
              </spacer>
             </item>
-            <item row="1" column="6">
-             <widget class="QPushButton" name="PreProcessOutButton">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
+            <item row="0" column="5">
+             <widget class="QLineEdit" name="PreProcessInFolder">
               <property name="text">
-               <string>Browse...</string>
+               <string/>
+              </property>
+              <property name="placeholderText">
+               <string>Select Input Folder...</string>
               </property>
              </widget>
             </item>
@@ -293,7 +283,27 @@
               </property>
              </widget>
             </item>
-            <item row="2" column="1" alignment="Qt::AlignRight">
+            <item row="1" column="1" alignment="Qt::AlignRight">
+             <widget class="QLabel" name="label_13">
+              <property name="text">
+               <string>Lens</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="6">
+             <widget class="QPushButton" name="PreProcessOutButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Browse...</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1" alignment="Qt::AlignRight">
              <widget class="QLabel" name="label_14">
               <property name="text">
                <string>Filter</string>
@@ -374,17 +384,27 @@
               </item>
              </widget>
             </item>
-            <item row="1" column="1" alignment="Qt::AlignRight">
-             <widget class="QLabel" name="label_13">
+            <item row="3" column="6">
+             <widget class="QCheckBox" name="PreProcessDarkBox">
               <property name="text">
-               <string>Lens</string>
+               <string>Enable 12 bit (Dark) tiffs</string>
               </property>
              </widget>
             </item>
             <item row="2" column="6">
-             <widget class="QCheckBox" name="PreProcessDarkBox">
+             <widget class="QCheckBox" name="PreProcessColorBox">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="text">
-               <string>Enable 12 bit (Dark) tiffs</string>
+               <string>Apply Kernel RGB Color Corection</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="5">
+             <widget class="QCheckBox" name="PreProcessVignette">
+              <property name="text">
+               <string>Apply Vignette</string>
               </property>
              </widget>
             </item>
@@ -2035,6 +2055,13 @@ p, li { white-space: pre-wrap; }
             <string>Configure</string>
            </attribute>
            <layout class="QGridLayout" name="gridLayout_6">
+            <item row="1" column="1">
+             <widget class="QPushButton" name="KernelAdvancedSettingsButton">
+              <property name="text">
+               <string>Advanced Options</string>
+              </property>
+             </widget>
+            </item>
             <item row="0" column="0">
              <layout class="QVBoxLayout" name="verticalLayout">
               <item>
@@ -2063,343 +2090,194 @@ p, li { white-space: pre-wrap; }
                </layout>
               </item>
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_10">
-                <item>
-                 <widget class="QLabel" name="label">
-                  <property name="text">
-                   <string>Shutter Speed:</string>
-                  </property>
-                  <property name="buddy">
-                   <cstring>KernelShutterSpeed</cstring>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QComboBox" name="KernelShutterSpeed">
-                  <property name="enabled">
-                   <bool>false</bool>
-                  </property>
-                  <item>
-                   <property name="text">
-                    <string>1/32000</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/16000</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/8000</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/6000</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/4000</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/2000</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/1600</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/1250</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/1000</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/800</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/640</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/500</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/400</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/320</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/250</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/200</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/160</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/125</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/100</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/80</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/60</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/50</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/40</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/30</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/25</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/20</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/15</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/12</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/10</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/8</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/6.4</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/5</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/4</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/3.2</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/2.5</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1/2</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1</string>
-                   </property>
-                  </item>
-                 </widget>
-                </item>
-               </layout>
+               <widget class="QPushButton" name="KernelAESettingsButton">
+                <property name="text">
+                 <string>Auto Exposure Settings</string>
+                </property>
+               </widget>
               </item>
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_9">
-                <item>
-                 <widget class="QLabel" name="label_3">
-                  <property name="text">
-                   <string>ISO:</string>
-                  </property>
-                  <property name="buddy">
-                   <cstring>KernelISO</cstring>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QComboBox" name="KernelISO">
-                  <property name="enabled">
-                   <bool>false</bool>
-                  </property>
-                  <item>
-                   <property name="text">
-                    <string>100</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>200</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>400</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>800</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1600</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>3200</string>
-                   </property>
-                  </item>
-                 </widget>
-                </item>
-               </layout>
+               <widget class="QPushButton" name="KernelMESettingsButton">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Manual Exposure Settings</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="1" column="0">
+             <layout class="QVBoxLayout" name="verticalLayout_3">
+              <item>
+               <widget class="QPushButton" name="KernelTimeButton">
+                <property name="text">
+                 <string>Set Camera Time</string>
+                </property>
+               </widget>
               </item>
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_6">
-                <item>
-                 <widget class="QLabel" name="label_12">
-                  <property name="text">
-                   <string>Gain:</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QComboBox" name="KernelGain">
-                  <item>
-                   <property name="text">
-                    <string>100</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1000</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>5000</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>10000</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>30000</string>
-                   </property>
-                  </item>
-                 </widget>
-                </item>
-               </layout>
+               <widget class="QPushButton" name="KernelCANButton">
+                <property name="text">
+                 <string>Adjust CAN Settings</string>
+                </property>
+               </widget>
               </item>
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_5">
-                <item>
-                 <widget class="QLabel" name="label_35">
-                  <property name="text">
-                   <string>Set Point:</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QComboBox" name="KernelSetPoint">
-                  <item>
-                   <property name="text">
-                    <string>256</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>512</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1024</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>1536</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>2048</string>
-                   </property>
-                  </item>
-                 </widget>
-                </item>
-               </layout>
+             </layout>
+            </item>
+            <item row="0" column="1">
+             <layout class="QGridLayout" name="gridLayout">
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_19">
+                <property name="text">
+                 <string>External Trigger Mode:</string>
+                </property>
+               </widget>
               </item>
-              <item>
+              <item row="2" column="1">
+               <spacer name="horizontalSpacer_2">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="2" column="0">
+               <widget class="QCheckBox" name="KernelBeep">
+                <property name="text">
+                 <string>Enable Beeps</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QCheckBox" name="KernelPWMSignal">
+                <property name="text">
+                 <string>External trigger is PWM</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <spacer name="horizontalSpacer_9">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="7" column="1">
+               <widget class="QLineEdit" name="KernelIntervalLine">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QComboBox" name="KernelPWMMode">
+                <item>
+                 <property name="text">
+                  <string>Photo Capture</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Continuous</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Interval</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Video Recording</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Video Looping</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="8" column="0">
+               <widget class="QLabel" name="label_11">
+                <property name="text">
+                 <string>Filter:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <spacer name="horizontalSpacer_13">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="label_9">
+                <property name="text">
+                 <string>Media per folder:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="0">
+               <widget class="QLabel" name="label_8">
+                <property name="text">
+                 <string>Capture Mode:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QComboBox" name="KernelFolderCount">
+                <item>
+                 <property name="text">
+                  <string>100</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>1000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>10000</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="7" column="0">
+               <widget class="QPushButton" name="KernelIntervalButton">
+                <property name="text">
+                 <string>Set Interval</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
                <layout class="QHBoxLayout" name="horizontalLayout_8">
                 <item>
                  <widget class="QLabel" name="label_7">
@@ -2434,172 +2312,62 @@ p, li { white-space: pre-wrap; }
                 </item>
                </layout>
               </item>
-             </layout>
-            </item>
-            <item row="1" column="0">
-             <layout class="QVBoxLayout" name="verticalLayout_3">
-              <item>
-               <widget class="QPushButton" name="KernelTimeButton">
-                <property name="text">
-                 <string>Set Camera Time</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="KernelCANButton">
-                <property name="text">
-                 <string>Adjust CAN Settings</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item row="0" column="1">
-             <layout class="QGridLayout" name="gridLayout">
-              <item row="2" column="1">
-               <widget class="QComboBox" name="KernelPWMMode">
+              <item row="9" column="1">
+               <widget class="QComboBox" name="KernelLensSelect">
                 <item>
                  <property name="text">
-                  <string>Photo Capture</string>
+                  <string>9.6mm</string>
                  </property>
                 </item>
                 <item>
                  <property name="text">
-                  <string>Continuous</string>
+                  <string>8.25mm</string>
                  </property>
                 </item>
                 <item>
                  <property name="text">
-                  <string>Interval</string>
+                  <string>3.37mm</string>
                  </property>
                 </item>
-                <item>
-                 <property name="text">
-                  <string>Video Recording</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Video Looping</string>
-                 </property>
-                </item>
-               </widget>
-              </item>
-              <item row="0" column="0">
-               <widget class="QCheckBox" name="KernelBeep">
-                <property name="text">
-                 <string>Enable Beeps</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <spacer name="horizontalSpacer_2">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="1" column="1">
-               <spacer name="horizontalSpacer_9">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="1" column="0">
-               <widget class="QCheckBox" name="KernelPWMSignal">
-                <property name="text">
-                 <string>External trigger is PWM</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_19">
-                <property name="text">
-                 <string>External Trigger Mode:</string>
-                </property>
                </widget>
               </item>
               <item row="6" column="1">
-               <widget class="QLineEdit" name="KernelIntervalLine">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="readOnly">
-                 <bool>true</bool>
-                </property>
+               <widget class="QComboBox" name="KernelCaptureMode">
+                <item>
+                 <property name="text">
+                  <string>Photo: Single</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Photo: Continuous</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Photo: Interval</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Video: Normal</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Video: Looping</string>
+                 </property>
+                </item>
                </widget>
               </item>
-              <item row="4" column="0">
-               <widget class="QLabel" name="label_10">
+              <item row="9" column="0">
+               <widget class="QLabel" name="label">
                 <property name="text">
-                 <string>Photo Format:</string>
+                 <string>Lens:</string>
                 </property>
                </widget>
               </item>
-              <item row="4" column="1">
-               <widget class="QComboBox" name="KernelPhotoFormat">
-                <item>
-                 <property name="text">
-                  <string>Tiff</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Raw</string>
-                 </property>
-                </item>
-               </widget>
-              </item>
-              <item row="7" column="0">
-               <widget class="QLabel" name="label_11">
-                <property name="text">
-                 <string>Sensor:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_9">
-                <property name="text">
-                 <string>Media per folder:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="1">
-               <widget class="QComboBox" name="KernelFolderCount">
-                <item>
-                 <property name="text">
-                  <string>100</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>1000</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>10000</string>
-                 </property>
-                </item>
-               </widget>
-              </item>
-              <item row="7" column="1">
+              <item row="8" column="1">
                <layout class="QHBoxLayout" name="horizontalLayout_27">
                 <item>
                  <widget class="QComboBox" name="KernelFilterSelect">
@@ -2712,48 +2480,28 @@ p, li { white-space: pre-wrap; }
                 </item>
                </layout>
               </item>
-              <item row="5" column="0">
-               <widget class="QLabel" name="label_8">
+              <item row="1" column="0">
+               <widget class="QCheckBox" name="KernelMatrixButton">
                 <property name="text">
-                 <string>Capture Mode:</string>
+                 <string>Apply RGB WB</string>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
-              <item row="6" column="0">
-               <widget class="QPushButton" name="KernelIntervalButton">
-                <property name="text">
-                 <string>Set Interval</string>
+              <item row="1" column="1">
+               <spacer name="horizontalSpacer_14">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
                 </property>
-               </widget>
-              </item>
-              <item row="5" column="1">
-               <widget class="QComboBox" name="KernelCaptureMode">
-                <item>
-                 <property name="text">
-                  <string>Photo: Single</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Photo: Continuous</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Photo: Interval</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Video: Normal</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Video: Looping</string>
-                 </property>
-                </item>
-               </widget>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
               </item>
              </layout>
             </item>
@@ -2782,13 +2530,6 @@ p, li { white-space: pre-wrap; }
                 </item>
                </layout>
               </widget>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QPushButton" name="KernelResetButton">
-              <property name="text">
-               <string>Restore To Factory Settings</string>
-              </property>
              </widget>
             </item>
            </layout>
@@ -3869,6 +3610,458 @@ p, li { white-space: pre-wrap; }
              </item>
             </layout>
            </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_10">
+       <attribute name="title">
+        <string>Analyze</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_14">
+        <item row="0" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_54">
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_31">
+            <item>
+             <spacer name="verticalSpacer_16">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_9">
+              <item>
+               <widget class="QCheckBox" name="PrefixBox">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Custom Prefix</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="Prefix">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="placeholderText">
+                 <string>Prefix...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_7">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_10">
+              <item>
+               <widget class="QCheckBox" name="SuffixBox">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Custom Suffix</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="Suffix">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="placeholderText">
+                 <string>Suffix...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_8">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="NoVignettingBox">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>No Vignetting</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_9">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="NoExposureBalanceBox">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>No Exposure Balance</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_10">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="ForceAlignmentBox">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Force Alignment Recalculation</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_11">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="SeperateFilesBox">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Seperate Files</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_12">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="SeperateFoldersBox">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Seperate Folders</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_13">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="SeperatePagesBox">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Seperate Pages</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_14">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_5">
+              <item>
+               <widget class="QCheckBox" name="LightRefBox">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Use Variable Light Reference</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="LightRef">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="placeholderText">
+                 <string>Light adjustment number</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_15">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_6">
+              <item>
+               <widget class="QCheckBox" name="AlignmentPercentageBox">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Alignment Frame Percentage</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="AlignmentPercentage">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="placeholderText">
+                 <string>Seperate multiple percentages by commas</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_17">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_32">
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_51">
+              <item>
+               <widget class="QLineEdit" name="AnalyzeInput">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="placeholderText">
+                 <string>Input Folder...</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="AnalyzeInButton">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Browse...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_52">
+              <item>
+               <widget class="QLineEdit" name="AnalyzeOutput">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="placeholderText">
+                 <string>Output Folder...</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="AnalyzeOutButton">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Browse...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_53">
+              <item>
+               <spacer name="horizontalSpacer_12">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="AnalyzeButton">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Analyze</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="BandOrderButton">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Band Order</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="AlignButton">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Align</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>

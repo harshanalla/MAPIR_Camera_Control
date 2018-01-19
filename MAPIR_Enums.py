@@ -147,15 +147,21 @@ class eRegister(IntEnum):
     RG_FILE_CNT_2 = 89
     RG_FILE_CNT_3 = 90
     RG_FILE_CNT_4 = 91
+    RG_VIDEO_ON_DELAY = 92
     # ACTIVE
     RG_VIDEO_FRAME_RATE     = 101
+    RG_UNMOUNT_SD_CARD_S = 102
     RG_SHUTTER              = 111
     RG_DAC                  = 121
     RG_HDMI = 122
     RG_DAC_LINK = 123
     RG_TRIGGER_MODE         = 130
     RG_PWM_TRIGGER = 131
-    RG_WHITE_BALANCE        = 141
+    RG_AE_MIN_SHUTTER = 132
+    RG_AE_MAX_SHUTTER = 133
+    RG_AE_MAX_GAIN = 134
+    RG_AE_F_STOP = 135
+    RG_AE_SELECTION = 141
     RG_COLOR = 142
     RG_ISO = 143
     RG_AE_SETPOINT = 144
@@ -171,8 +177,12 @@ class eRegister(IntEnum):
     RG_ACTIVE_CAMERA_SOURCE = 191
     # LED (PASSIVE)
     RG_PROCES_1_LED_COLOR   = 201
+    RG_COLOR_GAMMA_SELECTION  = 202
+    RG_COLOR_GAMMA_START = 203
+    RG_SIZE = 216
+    RG_COLOR_GAMMA_END = 453
     # SIZE
-    RG_SIZE     = 214
+
 class e_MANUAL_FOCUS(IntEnum):
     MF_MACRO = 0
     MF_TO_MACRO = 1

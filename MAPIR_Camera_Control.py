@@ -1,4 +1,5 @@
-import sys
+import os
+from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from MAPIR_Processing_dockwidget import *
@@ -6,10 +7,28 @@ from MAPIR_Processing_dockwidget import *
 
 if __name__ == "__main__":
         try:
+
                 app = QApplication(sys.argv)
+                splash_pix = QPixmap(os.path.dirname(os.path.realpath(__file__)) + 'lut_legend_rgb.jpg')
+
+                splash = QSplashScreen(splash_pix, Qt.WindowStaysOnTopHint)
+                splash.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
+                splash.setEnabled(True)
+                progressBar = QProgressBar(splash)
+                progressBar.setMaximum(30)
+                progressBar.setGeometry(0, splash_pix.height() - 50, splash_pix.width(), 20)
+                splash.show()
+                for i in range(1, 31):
+                        progressBar.setValue(i)
+                        t = time.time()
+                        while time.time() < t + 0.1:
+                                app.processEvents()
+
+
                 myapp = MAPIR_ProcessingDockWidget()
                 myapp.show()
+                splash.finish(myapp)
 
-        except:
-                pass
+        except Exception as e:
+                print(e)
         sys.exit(app.exec_())
