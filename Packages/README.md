@@ -1,4 +1,4 @@
-# Windows
+# Windows (Updated 1-23-2018)
 [Download](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control.exe)
 
 ## Mac and Linux versions are not up to date and will not be supported for some time.
