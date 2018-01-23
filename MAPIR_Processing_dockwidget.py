@@ -2336,7 +2336,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         if self.PreProcessCameraModel.currentIndex() == 2 and self.PreProcessFilter.currentIndex() == 2:
             self.PreProcessColorBox.setEnabled(True)
         elif self.PreProcessCameraModel.currentIndex() == 1:
-            if self.PreProcessFilter.currentIndex() in [4, 6, 10, 12]:
+            if self.PreProcessFilter.currentIndex() in [2, 4, 6, 9, 10, 12]:
                 self.PreProcessVignette.setEnabled(True)
             else:
                 self.PreProcessVignette.setChecked(False)
@@ -2876,6 +2876,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             instring.seek(0)
             instring.write(self.PreProcessOutFolder.text())
 
+    def on_VignetteFileSelectButton_released(self):
+        with open(modpath + os.sep + "instring.txt", "r+") as instring:
+            self.VignetteFileSelect.setText(QtWidgets.QFileDialog.getOpenFileName(directory=instring.read())[0])
+            instring.truncate(0)
+            instring.seek(0)
+            instring.write(self.VignetteFileSelect.text())
 
     def on_PreProcessButton_released(self):
         if self.PreProcessCameraModel.currentIndex() == -1:
@@ -4697,6 +4703,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
 
     # Helper functions
+    def debayer(self, m):
+        r = m[0:: 2, 1:: 2]
+        g = np.clip(m[0::2, 0::2] // 2 + m[1::2, 1::2] // 2, 0, 2**14 - 1)
+        b = m[1:: 2, 0:: 2]
+        return np.dstack([b, g, r])
+
     def preProcessHelper(self, infolder, outfolder, customerdata=True):
 
         if 5 < self.PreProcessCameraModel.currentIndex() <= 10:
@@ -4755,7 +4767,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             else:
                                 img = np.fromfile(rawimage, np.dtype('u2'), self.imsize).reshape(
                                     (self.imrows, self.imcols))
-                            color = cv2.cvtColor(img, cv2.COLOR_BAYER_GR2RGB)
+
+                            # color = cv2.cvtColor(img, cv2.COLOR_BAYER_GR2BSGR)
+
+                            color = self.debayer(img)
                             # color2 = copy.deepcopy(color)
                             # color2 = color2 / 65535.0
                             # color2 = color2 * 255.0
@@ -4830,10 +4845,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 img = cv2.imread(outphoto, -1)
                 try:
 
+
                     if self.PreProcessFilter.currentIndex() >= 13 or self.PreProcessCameraModel.currentIndex() == 2:
                         cv2.imwrite(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], img)
                         self.copyMAPIR(outphoto, outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
-                        color = cv2.cvtColor(img, cv2.COLOR_BAYER_GR2BGR).astype("uint16")
+                        # color = cv2.cvtColor(img, cv2.COLOR_BAYER_GR2BGR).astype("uint16")
+                        color = self.debayer(img)
                         roff = 0
                         goff = 0
                         boff = 0
@@ -4848,24 +4865,30 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                         self.PreProcessLog.append("Debayering")
                         cv2.imencode(".tif", color)
-                        h, w = color.shape[:2]
-                        try:
-                            if self.PreProcessVignette.isChecked():
-                                with open(modpath + os.sep + r"Vignettes" + os.sep + r"vig_" + str(
-                                        self.PreProcessFilterSelect.currentText()) + r"image.txt", "rb") as vigfile:
-                                    v_array = np.ndarray((h, w), np.dtype("float32"), np.fromfile(vigfile, np.dtype("float32")))
-                                    color = color / v_array
-                                    color = color.astype("uint16")
-                        except Exception as e:
-                            print(e)
-                            self.PreProcessLog.append("No vignette correction data found")
-                            QtWidgets.QApplication.processEvents()
+
                         cv2.imwrite(outphoto, color)
                         self.copyMAPIR(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], outphoto)
                         os.unlink(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
 
                         self.PreProcessLog.append("Done Debayering")
                     else:
+                        h, w = img.shape[:2]
+                        try:
+                            if self.PreProcessVignette.isChecked():
+                                with open(modpath + os.sep + r"vig_" + str(
+                                        self.PreProcessFilter.currentText()) + r".txt", "rb") as vigfile:
+                                    # with open(self.VignetteFileSelect.text(), "rb") as vigfile:
+                                    v_array = np.ndarray((h, w), np.dtype("float32"),
+                                                         np.fromfile(vigfile, np.dtype("float32")))
+                                    img = img / v_array
+                                    img[img > 65535.0] = 65535.0
+                                    img[img < 0.0] = 0.0
+                                    img = img.astype("uint16")
+                                cv2.imwrite(outphoto, img)
+                        except Exception as e:
+                            print(e)
+                            self.PreProcessLog.append("No vignette correction data found")
+                            QtWidgets.QApplication.processEvents()
                         self.copyMAPIR(outphoto, outphoto)
                         # self.PreProcessLog.append("Skipped Debayering")
                 except Exception as e:
@@ -4879,7 +4902,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                         #TODO Take the Matrix from Opencv and try to dot product
                         
-                        color = cv2.cvtColor(img, cv2.COLOR_BAYER_GR2RGB).astype("uint16")
+                        # color = cv2.cvtColor(img, cv2.COLOR_BAYER_GR2BGR).astype("uint16")
+                        color = self.debayer(img)
+
                         self.PreProcessLog.append("Debayering")
                         cv2.imencode(".tif", color)
                         cv2.imwrite(outphoto, color)
@@ -4887,8 +4912,30 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         self.PreProcessLog.append("Done Debayering")
 
                     else:
+
                         if "mapir" not in inphoto.split('.')[1]:
-                            shutil.copyfile(inphoto, outphoto)
+                            img = cv2.imread(inphoto, -1)
+                            h, w = img.shape[:2]
+                            try:
+                                if self.PreProcessVignette.isChecked():
+                                    with open(modpath + os.sep + r"vig_" + str(
+                                            self.PreProcessFilter.currentText()) + r".txt", "rb") as vigfile:
+                                        # with open(self.VignetteFileSelect.text(), "rb") as vigfile:
+                                        v_array = np.ndarray((h, w), np.dtype("float32"),
+                                                             np.fromfile(vigfile, np.dtype("float32")))
+                                        img = img / v_array
+                                        img[img > 65535.0] = 65535.0
+                                        img[img < 0.0] = 0.0
+                                        img = img.astype("uint16")
+                                    cv2.imwrite(outphoto, img)
+                                else:
+                                    shutil.copyfile(inphoto, outphoto)
+
+                            except Exception as e:
+                                print(e)
+                                self.PreProcessLog.append("No vignette correction data found")
+                                QtWidgets.QApplication.processEvents()
+
                             self.copyExif(inphoto, outphoto)
                         else:
 

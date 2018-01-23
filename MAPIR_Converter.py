@@ -26,45 +26,19 @@ LENS_LOOKUP = {
 1: {"ID": "8.25mm", "FNumber": "2.8"},
 2: {"ID": "3.37mm", "FNumber": "2.8"},
 }
-EXP_LOOKPUP = {
-                                0: "0",
-                                31: "1/32000",
-                                62: "1/16000",
-                                125: "1/8000",
-                                166: "1/6000",
-                                250: "1/4000",
-                                500: "1/2000",
-                                625: "1/1600",
-                                800: "1/1250",
-                                1000: "1/1000",
-                                1250: "1/800",
-                                1563: "1/640",
-                                2000: "1/500",
-                                2500: "1/400",
-                                3125: "1/320",
-                                4000: "1/250",
-                                5000: "1/200",
-                                6250: "1/160",
-                                8000: "1/125",
-                                10000: "1/100",
-                                12500: "1/80",
-                                16666: "1/60",
-                                20000: "1/50",
-                                25000: "1/40",
-                                33333: "1/30",
-                                40000: "1/25",
-                                50000: "1/20",
-                                66666: "1/15",
-                                83333: "1/12",
-                                100000: "1/10",
-                                125000: "1/8",
-                                156250: "1/6.4",
-                                200000: "1/5",
-                                250000: "1/4",
-                                312500: "1/3.2",
-                                400000: "1/2.5",
-                                500000: "1/2",
-                                1000000: "1/1"}
+
+
+
+
+EXP_LOOKPUP = ["0", "1/32000", "1/16000", "1/8000",
+                                 "1/6000", "1/4000",
+                                 "1/2000", "1/1600",  "1/1250", "1/1000",
+            					 "1/800", "1/640", "1/500", "1/400", "1/320",
+            					 "1/250", "1/200", "1/160", "1/125", "1/100",
+            					 "1/80", "1/60", "1/50", "1/40", "1/30",
+            					 "1/25", "1/20", "1/15", "1/12", "1/10",
+            					 "1/8", "1/6.4", "1/5", "1/4", "1/3.2",
+            					 "1/2.5", "1/2", "1/1" ]
 class Converter:
     rawimage = None
     STD_PAYLOAD = {  # Dictionary for storing the Standard information of a .mapir format image.
@@ -382,9 +356,13 @@ class Converter:
         self.META_PAYLOAD["GNSS_LAT_HI"][1] = self._formatLATLON(self.META_PAYLOAD["GNSS_LAT_HI"][1])
         self.META_PAYLOAD["GNSS_LON_HI"][1] = self._formatLATLON(self.META_PAYLOAD["GNSS_LON_HI"][1])
         self.META_PAYLOAD["LENS"] = LENS_LOOKUP[self.META_PAYLOAD["LENS"][1]]
-
-        self.META_PAYLOAD["EXP_TIME"][1] = str(Fraction(self.META_PAYLOAD["EXP_TIME"][1]/1000000).limit_denominator())
-
+        try:
+            if self.META_PAYLOAD["EXP_TIME"][1] in range(len(EXP_LOOKPUP)):
+                self.META_PAYLOAD["EXP_TIME"][1] = EXP_LOOKPUP[self.META_PAYLOAD["EXP_TIME"][1]]
+            else:
+                self.META_PAYLOAD["EXP_TIME"][1] = str(min(EXP_LOOKPUP[1:30], key=lambda x:abs(int(x.split('/')[1])-int(1000000.0 / self.META_PAYLOAD["EXP_TIME"][1]))))
+        except Exception as e:
+            print(e)
     def _formatLATLON(self, data):
         abso = abs(data)
 
@@ -394,12 +372,3 @@ class Converter:
         seconds = (minutes - int_minutes)*60
         retval = str(degr) + " " + str(int_minutes) + " " + str((seconds))
         return retval
-
-            # if __name__ == "__main__":
-            #     try:
-            #         conv = Converter()
-            #         conv.openRaw(mapirin=r"D:\ConverterTest11182017\P61500003.mapir")
-            #     except Exception as e:
-#             #         print(e)
-            #     finally:
-            #         sys.exit()
