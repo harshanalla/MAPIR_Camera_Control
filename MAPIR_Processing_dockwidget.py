@@ -33,7 +33,6 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 import PyQt5.uic as uic
 
-from scipy import stats
 import numpy as np
 import subprocess
 import cv2
@@ -4703,11 +4702,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
 
     # Helper functions
-    def debayer(self, m):
-        r = m[0:: 2, 1:: 2]
-        g = np.clip(m[0::2, 0::2] // 2 + m[1::2, 1::2] // 2, 0, 2**14 - 1)
-        b = m[1:: 2, 0:: 2]
-        return np.dstack([b, g, r])
+    # def debayer(self, m):
+    #     r = m[0:: 2, 1:: 2]
+    #     g = np.clip(m[0::2, 0::2] // 2 + m[1::2, 1::2] // 2, 0, 2**14 - 1)
+    #     b = m[1:: 2, 0:: 2]
+    #     return np.dstack([b, g, r])
 
     def preProcessHelper(self, infolder, outfolder, customerdata=True):
 
@@ -4768,9 +4767,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 img = np.fromfile(rawimage, np.dtype('u2'), self.imsize).reshape(
                                     (self.imrows, self.imcols))
 
-                            # color = cv2.cvtColor(img, cv2.COLOR_BAYER_GR2BSGR)
+                            color = cv2.cvtColor(img, cv2.COLOR_BAYER_GR2RGB)
 
-                            color = self.debayer(img)
+                            # color = self.debayer(img)
                             # color2 = copy.deepcopy(color)
                             # color2 = color2 / 65535.0
                             # color2 = color2 * 255.0
@@ -4842,15 +4841,15 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     #     [modpath + os.sep + r'Mapir_Converter.exe', os.path.abspath(inphoto),
                     #      os.path.abspath(outphoto)], startupinfo=si)
                     self.conv.openRaw(inphoto, outphoto, darkscale=False)
-                img = cv2.imread(outphoto, -1)
+                img = cv2.imread(outphoto, 0)
                 try:
 
 
                     if self.PreProcessFilter.currentIndex() >= 13 or self.PreProcessCameraModel.currentIndex() == 2:
                         cv2.imwrite(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], img)
                         self.copyMAPIR(outphoto, outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
-                        # color = cv2.cvtColor(img, cv2.COLOR_BAYER_GR2BGR).astype("uint16")
-                        color = self.debayer(img)
+                        color = cv2.cvtColor(img, cv2.COLOR_BAYER_GR2RGB)
+                        # color = self.debayer(img)
                         roff = 0
                         goff = 0
                         boff = 0
@@ -4898,12 +4897,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 try:
 
                     if self.PreProcessFilter.currentIndex() >= 13 or self.PreProcessCameraModel.currentIndex() == 2:
-                        img = cv2.imread(inphoto, -1)
+                        img = cv2.imread(inphoto, 0)
 
                         #TODO Take the Matrix from Opencv and try to dot product
                         
-                        # color = cv2.cvtColor(img, cv2.COLOR_BAYER_GR2BGR).astype("uint16")
-                        color = self.debayer(img)
+                        color = cv2.cvtColor(img, cv2.COLOR_BAYER_GR2RGB)
+                        # color = self.debayer(img)
 
                         self.PreProcessLog.append("Debayering")
                         cv2.imencode(".tif", color)

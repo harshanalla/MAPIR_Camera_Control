@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['MAPIR_Camera_Control.py'],
-             pathex=['C:\\Users\\peau\\Desktop\\Kernel_Interface'],
+             pathex=['C:\\Users\\ethan\\Desktop\\MAPIR_Camera_Control-master'],
              binaries=[('FreeImage.dll', '.'), ('FreeImagePlus.dll', '.'), ('opencv_aruco320.dll', '.'), ('opencv_aruco320d.dll', '.'), ('opencv_calib3d320.dll', '.'), 
              ('opencv_calib3d320.dll', '.'),
              ('opencv_core320.dll', '.'),
@@ -38,6 +38,7 @@ a = Analysis(['MAPIR_Camera_Control.py'],
              ('vig_808.txt', '.'),
              ('msvcp100.dll', '.'),
              ('msvcr100.dll', '.'),
+             ('corn_logo_color_ico.ico', '.'),
              ('msvcr100_clr0400.dll', '.'),
              ('lut_legend.jpg', '.'),
              ('lut_legend_rgb.jpg', '.'),
@@ -66,4 +67,4 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=True,
-          console=False , icon='C:\\Users\\peau\\Desktop\\corn_logo_color_square_256x256.ico')
+          console=False, icon='corn_logo_color_ico.ico')
