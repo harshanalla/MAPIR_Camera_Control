@@ -1,6 +1,6 @@
 
 # Windows OS
-Note: We are working on a more robust post processing for Kernel cameras, so post processing using Kernel cameras will be temporarily unavailable)
+Please Note: We are working on a more robust post processing for Kernel cameras, so post processing using Kernel cameras will be temporarily unavailable.
 
 ## Current Version
 
