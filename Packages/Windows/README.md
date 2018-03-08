@@ -20,3 +20,4 @@ Please Note: We are working on a more robust post processing for Kernel cameras,
 [December 7th, 2017](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_12072017.exe)  
 [November 22nd, 2017](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_11222017.exe)  
 [November 20nd, 2017](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_11202017.exe)  
+[November 16nd, 2017](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_11162017.exe)  
