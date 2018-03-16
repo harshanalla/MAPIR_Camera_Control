@@ -16,16 +16,11 @@ import os
 
 import numpy as np
 import cv2
-
+from LensLookups import *
 import struct
 from fractions import Fraction
 
 os.umask(0)
-LENS_LOOKUP = {
-0: {"ID": "9.6mm", "FNumber": "3.0"},
-1: {"ID": "8.25mm", "FNumber": "2.8"},
-2: {"ID": "3.37mm", "FNumber": "2.8"},
-}
 
 
 
@@ -269,8 +264,11 @@ class Converter:
                 h = int(np.sqrt(k.shape[0] / (4)))
                 w = int(h * (4 / 3))
                 k = np.reshape(k, (h, w), 3).astype("uint16")
-            cv2.imwrite(mapirout, k)
-
+            if len(k.shape) > 2:
+                rk = k[:, [2,1,0]]
+                cv2.imwrite(mapirout, rk)
+            else:
+                cv2.imwrite(mapirout, k)
             # print(data[int(data[1] / 4)])
             # print(data[int(data[1] / 4) + 1])
             std_vals = []
@@ -294,9 +292,9 @@ class Converter:
             # self.META_PAYLOAD = sorted(self.META_PAYLOAD.iteritems())
 
             # self.META_PAYLOAD = collections.OrderedDict(self.META_PAYLOAD)
-            self._storeMETA_Payload(meta_vals)
+            lensval = self._storeMETA_Payload(meta_vals)
 #             # print(data[2])
-            return self.STD_PAYLOAD, self.SENS_PAYLOAD, self.META_PAYLOAD
+            return self.STD_PAYLOAD, self.SENS_PAYLOAD, self.META_PAYLOAD, lensval
 
     ######################## unpackSTD_Payload ############################
     # Entrance: STD_PAYLOAD will be read by openMapir function            #
@@ -347,6 +345,7 @@ class Converter:
                         item[1] = struct.unpack("=f", struct.pack("=I", item[1]))[0]
                     self.META_PAYLOAD[key] = item
                     break
+        lensval = LENS_LOOKUP[self.META_PAYLOAD["LENS"][1]]
         self.META_PAYLOAD["GNSS_LAT_HI"][1] = (self.META_PAYLOAD["GNSS_LAT_HI"][1] << 32) | self.META_PAYLOAD["GNSS_LAT_LO"][1]
         self.META_PAYLOAD["GNSS_LON_HI"][1] = (self.META_PAYLOAD["GNSS_LON_HI"][1] << 32) | self.META_PAYLOAD["GNSS_LON_LO"][1]
         self.META_PAYLOAD["GNSS_LAT_HI"][1] = struct.unpack("=d", struct.pack("=Q", self.META_PAYLOAD["GNSS_LAT_HI"][1]))[0]
@@ -355,7 +354,7 @@ class Converter:
         self.META_PAYLOAD["GNSS_VELOCITY_E"][1] = "E" if self.META_PAYLOAD["GNSS_LON_HI"][1] > 0 else "W"
         self.META_PAYLOAD["GNSS_LAT_HI"][1] = self._formatLATLON(self.META_PAYLOAD["GNSS_LAT_HI"][1])
         self.META_PAYLOAD["GNSS_LON_HI"][1] = self._formatLATLON(self.META_PAYLOAD["GNSS_LON_HI"][1])
-        self.META_PAYLOAD["LENS"] = LENS_LOOKUP[self.META_PAYLOAD["LENS"][1]]
+        self.META_PAYLOAD["LENS"][1] = LENS_LOOKUP[self.META_PAYLOAD["LENS"][1]][0][0]
         try:
             if self.META_PAYLOAD["EXP_TIME"][1] in range(len(EXP_LOOKPUP)):
                 self.META_PAYLOAD["EXP_TIME"][1] = EXP_LOOKPUP[self.META_PAYLOAD["EXP_TIME"][1]]
@@ -363,6 +362,7 @@ class Converter:
                 self.META_PAYLOAD["EXP_TIME"][1] = str(min(EXP_LOOKPUP[1:30], key=lambda x:abs(int(x.split('/')[1])-int(1000000.0 / self.META_PAYLOAD["EXP_TIME"][1]))))
         except Exception as e:
             print(e)
+        return lensval
     def _formatLATLON(self, data):
         abso = abs(data)
 

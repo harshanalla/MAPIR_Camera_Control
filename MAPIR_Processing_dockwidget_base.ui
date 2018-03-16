@@ -334,12 +334,12 @@
               </item>
               <item>
                <property name="text">
-                <string>Kernel 3.0</string>
+                <string>Kernel 3.2</string>
                </property>
               </item>
               <item>
                <property name="text">
-                <string>Kernel 14.0</string>
+                <string>Kernel 14.4</string>
                </property>
               </item>
               <item>
@@ -405,6 +405,13 @@
               </property>
               <property name="text">
                <string>Apply Kernel RGB Color Corection</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="3">
+             <widget class="QCheckBox" name="PreProcessJPGBox">
+              <property name="text">
+               <string>Output JPG</string>
               </property>
              </widget>
             </item>
@@ -2373,11 +2380,6 @@ p, li { white-space: pre-wrap; }
                  <widget class="QComboBox" name="KernelFilterSelect">
                   <item>
                    <property name="text">
-                    <string>RGB</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
                     <string>405</string>
                    </property>
                   </item>
@@ -2459,6 +2461,11 @@ p, li { white-space: pre-wrap; }
                   <item>
                    <property name="text">
                     <string>945</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>RGB</string>
                    </property>
                   </item>
                   <item>
@@ -3627,7 +3634,7 @@ p, li { white-space: pre-wrap; }
             <item>
              <spacer name="verticalSpacer_16">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -3645,7 +3652,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QCheckBox" name="PrefixBox">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="text">
                  <string>Custom Prefix</string>
@@ -3655,7 +3662,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QLineEdit" name="Prefix">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="placeholderText">
                  <string>Prefix...</string>
@@ -3667,7 +3674,7 @@ p, li { white-space: pre-wrap; }
             <item>
              <spacer name="verticalSpacer_7">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -3685,7 +3692,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QCheckBox" name="SuffixBox">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="text">
                  <string>Custom Suffix</string>
@@ -3695,7 +3702,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QLineEdit" name="Suffix">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="placeholderText">
                  <string>Suffix...</string>
@@ -3707,7 +3714,7 @@ p, li { white-space: pre-wrap; }
             <item>
              <spacer name="verticalSpacer_8">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -3723,7 +3730,7 @@ p, li { white-space: pre-wrap; }
             <item>
              <widget class="QCheckBox" name="NoVignettingBox">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="text">
                <string>No Vignetting</string>
@@ -3733,7 +3740,7 @@ p, li { white-space: pre-wrap; }
             <item>
              <spacer name="verticalSpacer_9">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -3749,7 +3756,7 @@ p, li { white-space: pre-wrap; }
             <item>
              <widget class="QCheckBox" name="NoExposureBalanceBox">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="text">
                <string>No Exposure Balance</string>
@@ -3759,7 +3766,7 @@ p, li { white-space: pre-wrap; }
             <item>
              <spacer name="verticalSpacer_10">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -3775,7 +3782,7 @@ p, li { white-space: pre-wrap; }
             <item>
              <widget class="QCheckBox" name="ForceAlignmentBox">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="text">
                <string>Force Alignment Recalculation</string>
@@ -3788,7 +3795,7 @@ p, li { white-space: pre-wrap; }
             <item>
              <spacer name="verticalSpacer_11">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -3804,7 +3811,7 @@ p, li { white-space: pre-wrap; }
             <item>
              <widget class="QCheckBox" name="SeperateFilesBox">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="text">
                <string>Seperate Files</string>
@@ -3814,7 +3821,7 @@ p, li { white-space: pre-wrap; }
             <item>
              <spacer name="verticalSpacer_12">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -3830,7 +3837,7 @@ p, li { white-space: pre-wrap; }
             <item>
              <widget class="QCheckBox" name="SeperateFoldersBox">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="text">
                <string>Seperate Folders</string>
@@ -3840,7 +3847,7 @@ p, li { white-space: pre-wrap; }
             <item>
              <spacer name="verticalSpacer_13">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -3856,7 +3863,7 @@ p, li { white-space: pre-wrap; }
             <item>
              <widget class="QCheckBox" name="SeperatePagesBox">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="text">
                <string>Seperate Pages</string>
@@ -3866,7 +3873,7 @@ p, li { white-space: pre-wrap; }
             <item>
              <spacer name="verticalSpacer_14">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -3884,7 +3891,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QCheckBox" name="LightRefBox">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="text">
                  <string>Use Variable Light Reference</string>
@@ -3894,7 +3901,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QLineEdit" name="LightRef">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="placeholderText">
                  <string>Light adjustment number</string>
@@ -3906,7 +3913,7 @@ p, li { white-space: pre-wrap; }
             <item>
              <spacer name="verticalSpacer_15">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -3924,7 +3931,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QCheckBox" name="AlignmentPercentageBox">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="text">
                  <string>Alignment Frame Percentage</string>
@@ -3934,7 +3941,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QLineEdit" name="AlignmentPercentage">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="placeholderText">
                  <string>Seperate multiple percentages by commas</string>
@@ -3946,7 +3953,7 @@ p, li { white-space: pre-wrap; }
             <item>
              <spacer name="verticalSpacer_17">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -3968,7 +3975,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QLineEdit" name="AnalyzeInput">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="placeholderText">
                  <string>Input Folder...</string>
@@ -3978,7 +3985,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QPushButton" name="AnalyzeInButton">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="text">
                  <string>Browse...</string>
@@ -3992,7 +3999,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QLineEdit" name="AnalyzeOutput">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="placeholderText">
                  <string>Output Folder...</string>
@@ -4002,7 +4009,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QPushButton" name="AnalyzeOutButton">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="text">
                  <string>Browse...</string>
@@ -4016,7 +4023,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <spacer name="horizontalSpacer_12">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -4032,7 +4039,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QPushButton" name="AnalyzeButton">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="text">
                  <string>Analyze</string>
@@ -4042,7 +4049,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QPushButton" name="BandOrderButton">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="text">
                  <string>Band Order</string>
@@ -4052,7 +4059,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QPushButton" name="AlignButton">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="text">
                  <string>Align</string>
