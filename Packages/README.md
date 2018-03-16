@@ -1,4 +1,4 @@
-# Windows (Updated 3-16-2018)(Kernel Cameras are supported again.)
+# Windows
 [Download](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_03162018.exe)
 
 ## Mac and Linux versions are not up to date and will not be supported for some time.
