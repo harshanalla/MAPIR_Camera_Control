@@ -1,4 +1,4 @@
 
-## Linux versions are not up to date and will not be supported for some time.
+## Linux versions are not available at this time
 
-[Download]()
+
