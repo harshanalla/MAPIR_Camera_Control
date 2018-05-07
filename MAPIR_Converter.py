@@ -18,6 +18,7 @@ import numpy as np
 import cv2
 from LensLookups import *
 import struct
+
 from fractions import Fraction
 
 os.umask(0)
@@ -264,11 +265,11 @@ class Converter:
                 h = int(np.sqrt(k.shape[0] / (4)))
                 w = int(h * (4 / 3))
                 k = np.reshape(k, (h, w), 3).astype("uint16")
-            if len(k.shape) > 2:
-                rk = k[:, [2,1,0]]
-                cv2.imwrite(mapirout, rk)
-            else:
-                cv2.imwrite(mapirout, k)
+            # if len(k.shape) > 2:
+            #     rk = k[:, [2,1,0]]
+            #     cv2.imwrite(mapirout, rk)
+            # else:
+            cv2.imwrite(mapirout, k)
             # print(data[int(data[1] / 4)])
             # print(data[int(data[1] / 4) + 1])
             std_vals = []
