@@ -4782,9 +4782,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
     # Helper functions
     def debayer(self, m):
-        b = m[0:: 2, 1:: 2]
-        g = np.clip(m[0::2, 0::2] // 2 + m[1::2, 1::2] // 2, 0, 2**14 - 1)
-        r = m[1:: 2, 0:: 2]
+        r = m[0:: 2, 0:: 2]
+        g = np.clip(m[1::2, 0::2] // 2 + m[0::2, 1::2] // 2, 0, 2**14 - 1)
+        b = m[1:: 2, 1:: 2]
         # b = (((b - b.min()) / (b.max() - b.min())) * 65536.0).astype("uint16")
         # r = (((r - r.min()) / (r.max() - r.min())) * 65536.0).astype("uint16")
         # g = (((g - g.min()) / (g.max() - g.min())) * 65536.0).astype("uint16")
@@ -4846,22 +4846,35 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         if self.PreProcessCameraModel.currentIndex() == 3:
                             try:
                                 data = np.fromfile(input, dtype=np.uint8)
-                                # temp1 = data[::2]
-                                # temp2 = data[1::2]
-                                # # temp3 = data[2::4]
-                                # # temp4 = data[3::4]
-                                # data2 = np.zeros(len(data), dtype=np.uint8)
-                                # data2[::2] = temp2
-                                # data2[1::2] = temp1
-                                # # data2[2::4] = temp2
-                                # # data2[3::4] = temp1
-                                # data[:len(data) - 1:2], data[1::2] = data[1::2], data[:len(data) - 1:2]
+                                # data2 = np.fromfile("F:\\DCIM\Photo\\2018_0507_142527_011.RAW", dtype=np.uint8)
                                 data = np.unpackbits(data)
-                                data = data.reshape((int(data.shape[0] / 12), 12))
+                                # data2 = np.unpackbits(data2)
+                                datsize = data.shape[0]
+                                # dat2size = data2.shape[0]
+                                data = data.reshape((int(datsize / 4), 4))
 
-                                images = np.zeros((4000 * 3000),dtype=np.uint16)
-                                for i in range(0, 12):
-                                    images += 2 ** (11 - i) * data[:,  i]
+
+                                temp = copy.deepcopy(data[0::2])
+                                temp2 = copy.deepcopy(data[1::2])
+                                data[0::2] = temp2
+                                data[1::2] = temp
+                                zs = np.array([0, 0, 0, 0] * 12000000, dtype=np.uint8).reshape(12000000,4)
+                                udata = np.packbits(np.concatenate([data[0::3], zs,   data[2::3], data[1::3]], axis=1).reshape(192000000, 1))
+                                udata.tofile(input)
+                                # data2 = data2.reshape((int(dat2size / 12), 12))
+                                # (data[0::2], data[1::2]) = (data[1::2], data[0::2])
+                                # data[0::2] = np.bitwise_xor(data[0::2], data[1::2])
+                                # data[1::2] = np.bitwise_xor(data[0::2], data[1::2])
+                                # data[0::2] = np.bitwise_xor(data[0::2], data[1::2])
+                                # data = data.reshape((int(datsize / 12), 12))
+                                # r = data[:, 0:3]
+                                # gr = data[:, 3:6]
+                                # b = data[:, 6:9]
+                                # gb = data[:, 9:12]
+                                # data = np.reshape([r,gr,b,gb], (12000000, 12))
+                                # images = np.zeros((4000 * 3000), dtype=np.uint16)
+                                # for i in range(0, 16):
+                                #     images += 2 ** (i) * udata[:,15 - i]
                                 # red = (65535.0/31.0 * np.bitwise_and(np.right_shift(data, 11), 0x1f)).astype("uint16")
                                 # green = (65535.0/63.0 * np.bitwise_and(np.right_shift(data, 5), 0x3f)).astype("uint16")
                                 # blue = (65535.0/31.0 * np.bitwise_and(data, 0x1f)).astype("uint16")
@@ -4870,9 +4883,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 #
                                 #
                                 #
-                                img = np.reshape(images, (3000, 4000))
-                                tim = self.debayer(img)
-                                color = copy.deepcopy(tim)
+                                # img = np.reshape(images, (3000, 4000))
+                                # tim = self.debayer(img)
+                                # color = copy.deepcopy(tim)
                                 # color[tim[:, :, 0] >= 65535] = 65535
                                 # color[tim[:, :, 1] >= 65535] = 65535
                                 # color[tim[:, :, 2] >= 65535] = 65535
@@ -4881,14 +4894,17 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             except Exception as e:
                                 print(e)
                                 oldfirmware = True
-                        else:
-                            img = np.fromfile(rawimage, np.dtype('u2'), self.imsize).reshape(
-                                (self.imrows, self.imcols))
-                            color = cv2.cvtColor(img, cv2.COLOR_BAYER_RG2RGB).astype("uint16")
+                        oldfirmware = True
+                        # else:
+                        #     img = np.fromfile(rawimage, np.dtype('u2'), self.imsize).reshape(
+                        #         (self.imrows, self.imcols))
+                        #     color = cv2.cvtColor(img, cv2.COLOR_BAYER_RG2RGB).astype("uint16")
+
                         if oldfirmware == True:
                             with open(input, "rb") as rawimage:
 
                                     img = np.fromfile(rawimage, np.dtype('u2'), (4000 * 3000)).reshape((3000, 4000))
+                                    color = cv2.cvtColor(img, cv2.COLOR_BAYER_RG2RGB).astype("uint16")
                                     # rawimage.seek(0)
                                     #
                                     # data = struct.unpack("=18000000B", rawimage.read())
