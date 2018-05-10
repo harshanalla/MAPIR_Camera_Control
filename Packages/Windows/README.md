@@ -8,7 +8,6 @@ Please Note: We are working on a more robust post processing for Kernel cameras,
 
 ## Old Versions
 [March 28th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_03282018.exe) 
-
 [March 21st, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_03212018.exe)   
 [March 16th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_03162018.exe)  
 [March 7th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_03082018.exe)  
