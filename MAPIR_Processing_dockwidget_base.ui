@@ -2161,6 +2161,11 @@ p, li { white-space: pre-wrap; }
               <string>100</string>
              </property>
             </item>
+            <item>
+             <property name="text">
+              <string>101</string>
+             </property>
+            </item>
            </widget>
           </item>
           <item>
