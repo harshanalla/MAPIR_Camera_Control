@@ -58,6 +58,7 @@ import xml.etree.ElementTree as ET
 import KernelConfig
 from MAPIR_Converter import *
 from Exposure import *
+from ArrayTypes import AdjustYPR, CurveAdjustment
 # import KernelBrowserViewer
 
 modpath = os.path.dirname(os.path.realpath(__file__))
@@ -194,39 +195,7 @@ class AdvancedOptions(QtWidgets.QDialog, ADVANCED_CLASS):
         # self.parent.yesdelete = self.DeleteBox.isChecked()
         # self.parent.selection_made = True
         try:
-            # if self.parent.KernelCameraSelect.currentIndex() == 0:
-            #     for cam in self.parent.paths:
-            #         self.parent.camera = cam
-            #         buf = [0] * 512
-            #         buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-            #         buf[1] = eRegister.RG_UNMOUNT_SD_CARD_S.value
-            #         buf[2] = int(self.SDCTUM.text()) if 0 < int(self.SDCTUM.text()) < 255 else 255
-            #
-            #         self.parent.writeToKernel(buf)
-            #
-            #         buf = [0] * 512
-            #         buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-            #         buf[1] = eRegister.RG_VIDEO_ON_DELAY.value
-            #         buf[2] = int(self.VCRD.text()) if 0 < int(self.VCRD.text()) < 255 else 255
-            #
-            #         self.parent.writeToKernel(buf)
-            #
-            #         buf = [0] * 512
-            #         buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-            #         buf[1] = eRegister.RG_PHOTO_FORMAT.value
-            #         buf[2] = int(self.KernelPhotoFormat.currentIndex())
-            #
-            #         self.parent.writeToKernel(buf)
-            #         buf = [0] * 512
-            #         buf[0] = self.SET_REGISTER_BLOCK_WRITE_REPORT
-            #         buf[1] = eRegister.RG_MEDIA_FILE_NAME_A.value
-            #         buf[2] = 3
-            #         buf[3] = ord(self.CustomFilter.text()[0])
-            #         buf[4] = ord(self.CustomFilter.text()[1])
-            #         buf[5] = ord(self.CustomFilter.text()[2])
-            #         res = self.parent.writeToKernel(buf)
-            #     self.parent.camera = self.parent.paths[0]
-            # else:
+
             buf = [0] * 512
             buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
             buf[1] = eRegister.RG_UNMOUNT_SD_CARD_S.value
@@ -684,7 +653,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     closingPlugin = QtCore.pyqtSignal()
     firstpass = True
     useqr = False
-    qrcoeffs = []  # Red Intercept, Red Slope,  Green Intercept, Green Slope, Blue Intercept, Blue Slope
+    qrcoeffs = []
 
     qrcoeffs2 = []
     qrcoeffs3 = []
@@ -700,7 +669,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         "660/850": [[0.87032549, 0.52135779, 0.23664799], [0, 0, 0], [0.8463514, 0.51950608, 0.22795518]],
         "446/800": [[0.8419608509, 0.520440145, 0.230113958], [0, 0, 0], [0.8645652801, 0.5037779363, 0.2359041624]],
         "850": [[0.8463514, 0.51950608, 0.22795518], [0, 0, 0], [0, 0, 0]],
-        # "808": [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+
         "650": [[0.87032549, 0.52135779, 0.23664799], [0, 0, 0], [0, 0, 0]],
         "550": [[0, 0, 0], [0.87415089, 0.51734381, 0.24032515], [0, 0, 0]],
         "450": [[0, 0, 0], [0, 0, 0], [0.86469794, 0.50392915, 0.23565447]],
@@ -713,7 +682,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         "Mono405": [0.8556905469, 0.4921243183, 0.2309899254],
         "Mono518": [0.8729814889, 0.5151370187, 0.2404729692],
         "Mono632": [0.8724034645, 0.5209649915, 0.2374529161],
-        # "Mono660": [0.8704202831, 0.5212214688, 0.2365919358],
+
         "Mono590": [0.8747043911, 0.5195596573, 0.2392049856],
         "550/660/850": [[0.8474610999, 0.5196055607, 0.2279922965],[0.8699940018, 0.5212235151, 0.2364397706],[0.8740311726, 0.5172611881, 0.2402870156]]
 
@@ -722,7 +691,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         "660/850": [[0.87032549, 0.52135779, 0.23664799], [0, 0, 0], [0.8653063177, 0.2798126291, 0.2337498097, 0.0193295348]],
         "446/800": [[0.7882333002, 0.2501235178, 0.1848459584, 0.020036883], [0, 0, 0], [0.8645652801, 0.5037779363, 0.2359041624]],
         "850": [[0.8649280907, 0.2800907016, 0.2340131491, 0.0195446727], [0, 0, 0], [0, 0, 0]],
-        # "808": [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+
         "650": [[0.8773469949, 0.2663571183, 0.199919444, 0.0192325637], [0, 0, 0], [0, 0, 0]],
         "550": [[0, 0, 0], [0.8686559344, 0.2655697585, 0.1960837144, 0.0195629009], [0, 0, 0]],
         "450": [[0, 0, 0], [0, 0, 0], [0.7882333002, 0.2501235178, 0.1848459584, 0.020036883]],
@@ -748,26 +717,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         [0.868782908, 0.27845399, 0.2298671821, 0.0211305297]],
         "475/550/850": [[0.8348841674, 0.2580074987, 0.1890252099, 0.01975703], [0.8689592421, 0.2656248359, 0.1961875592, 0.0195576511],
                         [0.8653063177, 0.2798126291, 0.2337498097, 0.0193295348]]
-        # "Mono450": [10.137101, 24.131129, 2.500000],
-        # "Mono550": [13.050459, 25.918403, 2.444385],
-        # "Mono650": [42.873777, 25.681838, 2.400000],
-        # "Mono725": [57.362319, 26.209292, 2.444148],
-        # "Mono808": [80.761967, 27.552786, 2.522048],
-        # "Mono850": [85.470884, 27.989664, 2.476279],
-        # "Mono405": [10.419592, 23.297778, 2.579408],
-        # "Mono518": [10.192879, 25.668374, 2.500000],
-        # "Mono632": [40.314177, 25.624361, 2.400000],
-        # "Mono615": [36.590561, 25.575475, 2.400000],
-        #
-        # "Mono590": [28.088219, 25.614054, 2.400000],
-        # "Mono780": [72.470173, 27.114517, 2.500000],
-        # "Mono880": [86.40861, 28.33615, 2.387391],
-        # # "550/660/850": [[0.12730952, .2591748, 0.02444606], [0.42100882, 0.2567382, 0.0240000],
-        # #                 [0.85491034, 0.27943831, 0.0247464]],
-        # "550/660/850": [[12.730952, 25.91748, 2.444606], [42.100882, 25.67382, 2.40000],
-        #                 [85.491034, 27.943831, 2.47464]],
-        # "475/550/850": [[9.893005, 24.868873, 2.5], [14.1338, 25.919591, 2.440347],
-        #                 [85.217001, 27.952459, 2.516666]]
 
     }}
     pixel_min_max = {"redmax": 0.0, "redmin": 65535.0,
@@ -836,7 +785,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     yesdelete = False
     selection_made = False
     POLL_TIME = 3000
-    # SLOW_POLL = 10000
+
     slow = 0
     regs = [0] * eRegister.RG_SIZE.value
     paths = []
@@ -864,11 +813,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     legend_frame = None
     legend_scene = None
     image_loaded = False
-    # mMutex = QMutex()
+
     regs = []
-    paths_1_2 = []
-    paths_3_0 = []
-    paths_14_0 = []
+
     ISO_VALS = (1,2,4,8,16,32)
     lensvals = None
     def __init__(self, parent=None):
@@ -879,11 +826,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         try:
 
             legend = cv2.imread(os.path.dirname(__file__) + "/lut_legend.jpg")
-            # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            # legend = cv2.cvtColor(legend, cv2.COLOR_GRAY2RGB)
+
             legh, legw = legend.shape[:2]
             self.legend_frame = QtGui.QImage(legend.data, legw, legh, legw, QtGui.QImage.Format_Grayscale8)
-            # self.LUTGraphic.setPixmap(QtGui.QPixmap.fromImage(img2))
+
             self.LUTGraphic.setPixmap(QtGui.QPixmap.fromImage(
                 QtGui.QImage(self.legend_frame)))
             self.LegendLayout_2.hide()
@@ -891,19 +837,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             exc_type, exc_obj,exc_tb = sys.exc_info()
             print(e)
             print("Line: " + str(exc_tb.tb_lineno))
-        # try:
-        #     self.KernelViewer = KernelBrowserViewer.KernelBrowserViewer(self)
-        # except Exception as e:
-        #     exc_type, exc_obj,exc_tb = sys.exc_info()
-        #     print(e + ' ) + exc_tb.tb_lineno
-        # self.timer.timeout.connect(self.tick)
 
-    # def tick(self):
-    # try:
-    #   self.KernelUpdate()
-# except Exception as e:
-#             exc_type, exc_obj,exc_tb = sys.exc_info()
-# print(e
+
+
     def exitTransfer(self, drv='C'):
         tmtf = r":/dcim/tmtf.txt"
 
@@ -944,110 +880,66 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         else:
             self.paths.clear()
             self.pathnames.clear()
-            # self.paths_1_2.clear()
-            # self.paths_3_0.clear()
-            # self.paths_14_0.clear()
-            for cam in all_cameras:
 
-                # self.KernelLog.append("Subscript1")
+            for cam in all_cameras:
                 if cam['product_string'] == 'HID Gadget':
-                    self.paths.append(cam['path'])
+                    self.camera = cam['path']
+                    buf = [0] * 512
+                    buf[0] = self.SET_REGISTER_READ_REPORT
+                    buf[1] = eRegister.RG_CAMERA_LINK_ID.value
+                    arid = self.writeToKernel(buf)[2]
+                    self.paths.insert(arid, cam['path'])
+
                     QtWidgets.QApplication.processEvents()
-                    # self.KernelLog.append("Camera: " + str(cam) + r" added to 'paths'")
-                    # time.sleep(2)
-            # try:
-            #     temp = [''] * len(self.paths)
-            #
-            #     for i, path in enumerate(self.paths):
-            #
-            #         self.camera = path
-            #         buf = [0] * 512
-            #         # self.KernelLog.append(str(line + 2))
-            #         buf[0] = self.SET_REGISTER_READ_REPORT
-            #         buf[1] = eRegister.RG_CAMERA_LINK_ID.value
-            #
-            #         res = self.writeToKernel(buf)[2]
-            #         temp[res] = path
-            #         QtWidgets.QApplication.processEvents()
-            #     self.paths = copy.deepcopy(temp)
-            #     QtWidgets.QApplication.processEvents()
-            # except Exception as e:
-            #     exc_type, exc_obj,exc_tb = sys.exc_info()
-            #     print(e)
-            #     print("Line: " + str(exc_tb.tb_lineno))
-            # if len(self.paths) > 1:
-            #     temppaths = self.paths
-            #     arids = []
-            #     for path in self.paths:@
-            #         self.camera = path
-            #         buf = [0] * 512
-            #         buf[0] = self.SET_REGISTER_READ_REPORT
-            #         buf[1] = eRegister.RG_CAMERA_LINK_ID.value
-            #         arid = self.writeToKernel(buf)[2]
-            #         arids.append(arid)
-                # [self.paths for (y, self.paths) in sorted(zip(arids, temppaths), key=lambda pair: pair[0])]
-                # for count, id in enumerate(arids):
-                #     self.paths[id] = temppaths[count]
+
+
 
             self.KernelCameraSelect.blockSignals(True)
             self.KernelCameraSelect.clear()
-            # self.KernelCameraSelect.addItem("All")
+
             self.KernelCameraSelect.blockSignals(False)
             try:
                 for i, path in enumerate(self.paths):
                     QtWidgets.QApplication.processEvents()
-                    # line = 0
+
                     self.camera = path
-                    # self.KernelLog.append(str(line + 1))
+
                     buf = [0] * 512
-                    # self.KernelLog.append(str(line + 2))
+
                     buf[0] = self.SET_REGISTER_BLOCK_READ_REPORT
-                    # self.KernelLog.append(str(line + 3))
+
                     buf[1] = eRegister.RG_MEDIA_FILE_NAME_A.value
-                    # self.KernelLog.append(str(line + 4))
+
                     buf[2] = 3
 
                     res = self.writeToKernel(buf)
 
-                    # self.KernelLog.append(str(line + 5))
-                    # self.KernelLog.append(str(line + 6))
-                    # print(chr(res[2]) + chr(res[3]) + chr(res[4]))
-                    # self.KernelLog.append("Subscript2")
+
+
+
                     item = chr(res[2]) + chr(res[3]) + chr(res[4])
-                    # if i == 0:
-                    #     self.KernelFilterSelect.blockSignals(True)
-                    #     self.KernelFilterSelect.setCurrentIndex(self.KernelFilterSelect.findText(item))
-                    #     self.KernelFilterSelect.blockSignals(False)
-                    # self.KernelLog.append(str(line + 7))
+
+                    if i == 0:
+                        item += " (Master)"
+                    else:
+                        item += " (Slave)"
+
                     self.KernelLog.append("Found Camera: " + str(item))
                     QtWidgets.QApplication.processEvents()
-                    # time.sleep(2)
-                    # self.KernelLog.append(str(line + 8))
-                    # buf = [0] * 512
-                    # buf[0] = self.SET_REGISTER_READ_REPORT
-                    # buf[1] = eRegister.RG_SENSOR_ID.value
-                    # res = self.writeToKernel(buf, True)[0][i]
-                    # if res[2] == 2:
-                    #     self.paths_1_2.append(path)
-                    # elif res[2] == 1:
-                    #     self.paths_3_0.append(path)
-                    # elif res[2] == 0:
-                    #     self.paths_14_0.append(path)
-                    # self.KernelLog.append("Adding Pathname " + str(item))
+
                     self.pathnames.append(item)
-                    # self.KernelLog.append(str(line + 9))
+
                     self.KernelCameraSelect.blockSignals(True)
-                    # self.KernelLog.append(str(line + 10))
+
 
                     self.KernelCameraSelect.addItem(item)
-                    # self.KernelLog.append(str(line + 11))
+
                     self.KernelCameraSelect.blockSignals(False)
-                    # self.KernelLog.append(str(line + 12))
-                # self.KernelLog.append("Subscript3")
+
                 self.camera = self.paths[0]
 
                 try:
-                    # self.KernelLog.append("Updating UI")
+
                     self.KernelUpdate()
                     QtWidgets.QApplication.processEvents()
                 except Exception as e:
@@ -1059,21 +951,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 exc_type, exc_obj,exc_tb = sys.exc_info()
                 self.KernelLog.append("Error: (" + str(e) + ' Line: ' + str(exc_tb.tb_lineno) +  ") connecting to camera, please ensure all cameras are connected properly and not in transfer mode.")
                 QtWidgets.QApplication.processEvents()
-    # def on_Kernel3LetterSave_released(self):
-    #     threeletter = self.Kernel3LetterID.text()
-    #     buf = [0] * 512
-    #     buf[0] = self.SET_REGISTER_BLOCK_WRITE_REPORT
-    #     buf[1] = eRegister.RG_MEDIA_FILE_NAME_A.value
-    #     buf[2] = 3
-    #     buf[3] = ord(threeletter[0])
-    #     buf[4] = ord(threeletter[1])
-    #     buf[5] = ord(threeletter[2])
-    #     res = self.writeToKernel(buf)
-    #     try:
-    #         self.KernelUpdate()
-    #     except Exception as e:
-    # exc_type, exc_obj,exc_tb = sys.exc_info()
-    #         print(e + ' ) + exc_tb.tb_lineno
+
     def UpdateLensID(self):
         buf = [0] * 512
         buf[0] = self.SET_REGISTER_WRITE_REPORT
@@ -1081,13 +959,14 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         buf[2] = DROPDOW_2_LENS.get((self.KernelFilterSelect.currentText(), self.KernelLensSelect.currentText()), 255)
 
         self.writeToKernel(buf)
-    def on_KernelLensSelect_currentIndexChanged(self, int = 0):
+    def on_KernelLensSelect_currentIndexChanged(self):
         try:
             self.UpdateLensID()
+            self.KernelUpdate()
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             self.KernelLog.append("Error: " + e)
-    def on_KernelFilterSelect_currentIndexChanged(self, int = 0):
+    def on_KernelFilterSelect_currentIndexChanged(self):
         try:
             # threeletter = self.KernelFilterSelect.currentText()
             # buf = [0] * 512
@@ -1103,29 +982,46 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         except Exception as e:
             exc_type, exc_obj,exc_tb = sys.exc_info()
             self.KernelLog.append("Error: " + e)
-    def on_KernelCameraSelect_currentIndexChanged(self, int = 0):
+
+    def on_KernelArraySelect_currentIndexChanged(self):
+
+
+
+        if not self.KernelTransferButton.isChecked():
+
+            try:
+                dval = int(self.KernelArraySelect.currentText())
+                tempcam = copy.deepcopy(self.camera)
+                for cam in self.paths:
+                    self.camera = cam
+                    buf = [0] * 512
+                    buf[0] = self.SET_REGISTER_WRITE_REPORT
+                    buf[1] = eRegister.RG_CAMERA_ARRAY_TYPE.value
+                    buf[2] = dval
+                    self.writeToKernel(buf)
+                self.camera = tempcam
+                self.KernelUpdate()
+            except Exception as e:
+                exc_type, exc_obj,exc_tb = sys.exc_info()
+                self.KernelLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
+        QtWidgets.QApplication.processEvents()
+    def on_KernelCameraSelect_currentIndexChanged(self):
         # if self.KernelCameraSelect.currentIndex() == 0:
         #     self.array_indicator = True
         # else:
         #     self.array_indicator = False
         self.camera = self.paths[self.KernelCameraSelect.currentIndex()]
 
-        self.KernelFilterSelect.blockSignals(True)
-        self.KernelFilterSelect.setCurrentIndex(self.KernelFilterSelect.findText(self.KernelCameraSelect.currentText()))
-        self.KernelFilterSelect.blockSignals(False)
+        # self.KernelFilterSelect.blockSignals(True)
+        # self.KernelFilterSelect.setCurrentIndex(self.KernelFilterSelect.findText(self.KernelCameraSelect.currentText()))
+        # self.KernelFilterSelect.blockSignals(False)
         if not self.KernelTransferButton.isChecked():
             try:
                 self.KernelUpdate()
             except Exception as e:
                 exc_type, exc_obj,exc_tb = sys.exc_info()
                 self.KernelLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
-    # def on_KernelArraySelect_currentIndexChanged(self, int = 0):
-    #     if self.KernelArraySelect.currentIndex() == 0:
-    #         self.array_indicator = False
-    #         self.KernelCameraSelect.setEnabled(True)
-    #     else:
-    #         self.array_indicator = True
-    #         self.KernelCameraSelect.setEnabled(False)
+        QtWidgets.QApplication.processEvents()
     def on_VignetteButton_released(self):
         if self.VigWindow == None:
             self.VigWindow = Vignette(self)
@@ -1406,6 +1302,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         self.KernelViewer.fitInView(self.mapscene.sceneRect(), QtCore.Qt.KeepAspectRatio)
         self.KernelViewer.setFocus()
         QtWidgets.QApplication.processEvents()
+    # TODO Block
     # def wheelEvent(self, event):
     #     if self.image_loaded == True:
     #         try:
@@ -1435,6 +1332,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     #         except Exception as e:
     # exc_type, exc_obj,exc_tb = sys.exc_info()
     #             print(str(e) + ' ) + str(selfexc_tb.tb_lineno):
+    # TODO end block
     def resizeEvent(self, event):
         # redraw the image in the viewer every time the window is resized
         if self.image_loaded == True:
@@ -1450,24 +1348,14 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def KernelUpdate(self):
         try:
             self.KernelExposureMode.blockSignals(True)
-            # self.KernelShutterSpeed.blockSignals(True)
-            # self.KernelISO.blockSignals(True)
+
             self.KernelVideoOut.blockSignals(True)
             self.KernelFolderCount.blockSignals(True)
             self.KernelBeep.blockSignals(True)
             self.KernelPWMSignal.blockSignals(True)
             self.KernelLensSelect.blockSignals(True)
-            # self.KernelGain.blockSignals(True)
-            # self.KernelSetPoint.blockSignals(True)
-
-            # buf = [0] * 512
-            # buf[0] = self.SET_REGISTER_READ_REPORT
-            # buf[1] = eRegister.RG_LENS_ID.value
-            # # buf[2] =
-            #
-            # res = self.writeToKernel(buf)[2]
-            #
-            # self.KernelLensSelect.setCurrentIndex(res)
+            self.KernelFilterSelect.blockSignals(True)
+            self.KernelArraySelect.blockSignals(True)
 
             buf = [0] * 512
             buf[0] = self.SET_REGISTER_BLOCK_READ_REPORT
@@ -1490,18 +1378,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.KernelMESettingsButton.setEnabled(True)
                 self.KernelAESettingsButton.setEnabled(False)
 
-            # self.KernelShutterSpeed.setCurrentIndex(shutter - 1)
 
-            # iso = self.getRegister(eRegister.RG_ISO.value)
-            # if iso == self.ISO_VALS[0]:
-            #
-            #     self.KernelISO.setCurrentIndex(0)
-            # elif iso == self.ISO_VALS[1]:
-            #     self.KernelISO.setCurrentIndex(1)
-            # elif iso == self.ISO_VALS[2]:
-            #     self.KernelISO.setCurrentIndex(2)
-            # else:
-            #     self.KernelISO.setCurrentIndex(3)
 
             dac = self.getRegister(eRegister.RG_DAC.value)
 
@@ -1522,6 +1399,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
 
 
+            fil = str(LENS_LOOKUP.get(self.getRegister(eRegister.RG_LENS_ID.value), 255)[2])
+            self.KernelFilterSelect.setCurrentIndex(self.KernelFilterSelect.findText(fil))
+
+            lens = str(LENS_LOOKUP.get(self.getRegister(eRegister.RG_LENS_ID.value), 255)[0][0]) + "mm"
+            self.KernelLensSelect.setCurrentIndex(self.KernelLensSelect.findText(lens))
+
             beep = self.getRegister(eRegister.RG_BEEPER_ENABLE.value)
             if beep != 0:
                 self.KernelBeep.setChecked(True)
@@ -1535,16 +1418,17 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.KernelPWMSignal.setChecked(False)
 
             self.KernelPanel.clear()
-            self.KernelPanel.append("Hardware ID: " + str(self.getRegister(eRegister.RG_HARDWARE_ID.value)))
-            self.KernelPanel.append("Firmware version: " + str(self.getRegister(eRegister.RG_FIRMWARE_ID.value)))
+            # self.KernelPanel.append("Hardware ID: " + str(self.getRegister(eRegister.RG_HARDWARE_ID.value)))
+            # self.KernelPanel.append("Firmware version: " + str(self.getRegister(eRegister.RG_FIRMWARE_ID.value)))
             self.KernelPanel.append("Sensor: " + str(self.getRegister(eRegister.RG_SENSOR_ID.value)))
-            self.KernelPanel.append("Lens: " + str(LENS_LOOKUP.get(self.getRegister(eRegister.RG_LENS_ID.value), 255)[0][0]))
-
-            # if shutter == 0:
-            #     self.KernelPanel.append("Shutter: Auto")
-            # else:
-            #     self.KernelPanel.append("Shutter: " + self.KernelShutterSpeed.itemText(self.getRegister(eRegister.RG_SHUTTER.value) -1) + " sec")
-            # self.KernelPanel.append("ISO: " + str(self.getRegister(eRegister.RG_ISO.value)) + "00")
+            self.KernelPanel.append("Lens: " + str(LENS_LOOKUP.get(self.getRegister(eRegister.RG_LENS_ID.value), 255)[0][0]) + "mm")
+            self.KernelPanel.append(
+                "Filter: " + str(LENS_LOOKUP.get(self.getRegister(eRegister.RG_LENS_ID.value), "")[2]))
+            if shutter == 0:
+                self.KernelPanel.append("Shutter: Auto")
+            else:
+                self.KernelPanel.append("Shutter: " + self.KernelShutterSpeed.itemText(self.getRegister(eRegister.RG_SHUTTER.value) -1) + " sec")
+            self.KernelPanel.append("ISO: " + str(self.getRegister(eRegister.RG_ISO.value)) + "00")
             # # self.KernelPanel.append("WB: " + str(self.getRegister(eRegister.RG_WHITE_BALANCE.value)))
             # self.KernelPanel.append("AE Setpoint: " + str(self.getRegister(eRegister.RG_AE_SETPOINT.value)))
             buf = [0] * 512
@@ -1558,25 +1442,26 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             buf = [0] * 512
             buf[0] = self.SET_REGISTER_READ_REPORT
             buf[1] = eRegister.RG_CAMERA_ARRAY_TYPE.value
-            artype = self.writeToKernel(buf)[2]
+            artype = str(self.writeToKernel(buf)[2])
+            self.KernelArraySelect.setCurrentIndex(int(self.KernelArraySelect.findText(artype)))
             self.KernelPanel.append("Array Type: " + str(artype))
             buf = [0] * 512
             buf[0] = self.SET_REGISTER_READ_REPORT
             buf[1] = eRegister.RG_CAMERA_LINK_ID.value
             arid = self.writeToKernel(buf)[2]
             self.KernelPanel.append("Array ID: " + str(arid))
-            if arid == 0:
-                self.MasterCameraLabel.setText("Master")
-            else:
-                self.MasterCameraLabel.setText("Slave")
+
             self.KernelExposureMode.blockSignals(False)
             # self.KernelShutterSpeed.blockSignals(False)
             # self.KernelISO.blockSignals(False)
+
             self.KernelVideoOut.blockSignals(False)
             self.KernelFolderCount.blockSignals(False)
             self.KernelBeep.blockSignals(False)
             self.KernelPWMSignal.blockSignals(False)
             self.KernelLensSelect.blockSignals(False)
+            self.KernelFilterSelect.blockSignals(False)
+            self.KernelArraySelect.blockSignals(False)
             QtWidgets.QApplication.processEvents()
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -1594,9 +1479,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     cancel_auto = False
     def on_KernelAutoCancel_released(self):
         self.cancel_auto = True
-    # def on_KernelAutoTransfer_released(self):
-    #
-    #      Add the auto transfer check.
+
 
 
 
@@ -1782,10 +1665,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                 # if self.KernelCameraSelect.currentIndex() == 0:
                 try:
-                    # for place, cam in enumerate(self.paths):
-                    #     self.camera = cam
-                    #     self.captureImage()
-                    #
+
                     for place, cam in enumerate(self.paths):
                         self.camera = cam
                         QtWidgets.QApplication.processEvents()
@@ -1831,49 +1711,14 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                             os.mkdir(drv + r":" + os.sep + r"dcim" + os.sep + str(self.pathnames[self.paths.index(cam)]))
                                         treeroot.write(
                                             drv + r":" + os.sep + r"dcim" + os.sep + str(self.pathnames[self.paths.index(cam)]) + ".kernelconfig")
-                                    # os.unlink(files[-1])
+
                                     keep_looping = False
-                                # time.sleep(15)
 
-
-
-                            # self.KernelLog.append("Confirming camera entered transfer mode...")
 
                                 else:
                                     numds = win32api.GetLogicalDriveStrings().split(':\\\x00')[:-1]
                                 QtWidgets.QApplication.processEvents()
-                            # found = False
-                            # stop = time.time()
-                            # while int(time.time() - stop) < 30:
-                            #     QtWidgets.QApplication.processEvents()
-                            #     try:
-                            #
-                            #         drv = 'C'
-                            #         while drv is not '[':
-                            #             # self.KernelLog.append("Drives " + str(self.driveletters))
-                            #             if os.path.isdir(drv + r":/dcim/"):
-                            #                 files = glob.glob(drv + r":" + os.sep + r"dcim/*/*.[tm]*", recursive=True)
-                            #                 folders = glob.glob(drv + r":" + os.sep + r"dcim/*/")
-                            #                 if files:
-                            #                     # self.KernelLog.append("Found Files")
-                            #                     threechar = files[-1].split(os.sep)[-1][1:4]
-                            #                     # self.KernelLog.append("Three Characters = " + str(threechar))
-                            #                     if threechar == self.pathnames[place]:
-                            #                         self.KernelLog.append("Camera " + str(self.pathnames[place]) + " successfully connected to drive " + drv + ":" + os.sep)
-                            #                         QtWidgets.QApplication.processEvents()
-                            #                         # for fold in folders:
-                            #                         for fold in folders:
-                            #                             if os.path.exists(fold + str(self.pathnames[place]) + ".kernelconfig"):
-                            #                                 os.unlink(fold + str(self.pathnames[place]) + ".kernelconfig")
-                            #                             treeroot.write(fold + str(self.pathnames[place]) + ".kernelconfig")
-                            #                         found = True
-                            #                         self.driveletters.append(drv)
-                            #                         # self.KernelLog.append(str(self.driveletters))
-                            #                         os.unlink(files[-1])
-                            #                         break
-                            #             drv = chr(ord(drv) + 1)
-                            #         if found == True:
-                            #             break
+
 
 
                 except Exception as e:
@@ -1889,55 +1734,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
 
 
-                # else:
-                #     self.captureImage()
-                #     time.sleep(5)
-                #     xmlret = self.getXML()
-                #     buf = [0] * 512
-                #     buf[0] = self.SET_COMMAND_REPORT
-                #     buf[1] = eCommand.CM_TRANSFER_MODE.value
-                #     self.writeToKernel(buf)
-                #     time.sleep(5)
-                #     self.KernelLog.append("Camera " + str(xmlret[0]) + " entering Transfer mode")
-                #     QtWidgets.QApplication.processEvents()
-                #     treeroot = ET.parse(modpath + os.sep + "template.kernelconfig")
-                #     treeroot.find("Filter").text = xmlret[0]
-                #     treeroot.find("Sensor").text = xmlret[1]
-                #     treeroot.find("Lens").text = xmlret[2]
-                #     treeroot.find("ArrayID").text = xmlret[3]
-                #     treeroot.find("ArrayType").text = xmlret[4]
-                #     found = False
-                #     stop = time.time()
-                #     while int(time.time() - stop) < 30:
-                #         QtWidgets.QApplication.processEvents()
-                #         drv = 'C'
-                #         while drv is not '[':
-                #             # self.KernelLog.append("Drives " + str(self.driveletters))
-                #             if os.path.isdir(drv + r":/dcim/"):
-                #                 files = glob.glob(drv + r":" + os.sep + r"dcim/*/*.[tm]*", recursive=True)
-                #                 folders = glob.glob(drv + r":" + os.sep + r"dcim/*/")
-                #                 if files:
-                #                     # self.KernelLog.append("Found Files")
-                #                     threechar = files[-1].split(os.sep)[-1][1:4]
-                #                     # self.KernelLog.append("Three Characters = " + str(threechar))
-                #                     if threechar == self.pathnames[self.KernelCameraSelect.currentIndex() - 1]:
-                #                         self.KernelLog.append("Camera " + str(self.pathnames[self.KernelCameraSelect.currentIndex() - 1]) + " successfully connected to drive " + drv + ":" + os.sep)
-                #                         QtWidgets.QApplication.processEvents()
-                #                         # for fold in folders:
-                #                         for fold in folders:
-                #                             if os.path.exists(fold + str(self.pathnames[self.KernelCameraSelect.currentIndex() - 1]) + ".kernelconfig"):
-                #                                 os.unlink(fold + str(self.pathnames[self.KernelCameraSelect.currentIndex() - 1]) + ".kernelconfig")
-                #                             treeroot.write(fold + str(self.pathnames[self.KernelCameraSelect.currentIndex() - 1]) + ".kernelconfig")
-                #                         found = True
-                #                         self.driveletters.append(drv)
-                #                         # self.KernelLog.append(str(self.driveletters))
-                #                         os.unlink(files[-1])
-                #                         break
-                #             drv = chr(ord(drv) + 1)
-                #             if found:
-                #                 break
-                #         if found:
-                #             break
 
                 self.modalwindow = KernelTransfer(self)
                 self.modalwindow.resize(400, 200)
@@ -2025,7 +1821,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
 
 
-    def on_KernelExposureMode_currentIndexChanged(self, int = 0):
+    def on_KernelExposureMode_currentIndexChanged(self):
         # self.KernelExposureMode.blockSignals(True)
         if self.KernelExposureMode.currentIndex() == 1: #Manual
 
@@ -2172,34 +1968,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             exc_type, exc_obj,exc_tb = sys.exc_info()
             print(e)
             print("Line: " + str(exc_tb.tb_lineno))
-    # def on_KernelShutterSpeed_currentIndexChanged(self, int = 0):
-    #     buf = [0] * 512
-    #     buf[0] = self.SET_REGISTER_WRITE_REPORT
-    #     buf[1] = eRegister.RG_SHUTTER.value
-    #     if self.KernelExposureMode.currentIndex() == 1:
-    #         buf[2] = self.KernelShutterSpeed.currentIndex() + 1
-    #
-    #     res = self.writeToKernel(buf)
-    #     try:
-    #         self.KernelUpdate()
-    #     except Exception as e:
-    # exc_type, exc_obj,exc_tb = sys.exc_info()
-    #         print(e + ' ) + exc_tb.tb_lineno
-    # def on_KernelISO_currentIndexChanged(self, int = 0):
-    #     buf = [0] * 512
-    #     buf[0] = self.SET_REGISTER_WRITE_REPORT
-    #     buf[1] = eRegister.RG_ISO.value
-    #     if self.KernelExposureMode.currentIndex() == 1:
-    #         buf[2] = self.ISO_VALS[self.KernelISO.currentIndex()]
-    #     else:
-    #         buf[2] = self.ISO_VALS[3]
-    #
-    #     res = self.writeToKernel(buf)
-    #     try:
-    #         self.KernelUpdate()
-    #     except Exception as e:
-    # exc_type, exc_obj,exc_tb = sys.exc_info()
-    #         print(e + ' ) + exc_tb.tb_lineno
+
 
     def getRegister(self, code):
         if code < eRegister.RG_SIZE.value:
@@ -2214,41 +1983,25 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         else:
             self.regs[code] = value
             return True
-    def on_TestButton_released(self):
-        buf = [0] * 512
-        buf[0] = self.SET_COMMAND_REPORT
-        buf[1] = eRegister.RG_CAMERA_ARRAY_TYPE.value
-        artype = self.writeToKernel(buf)[2]
-        print(artype)
-        try:
-            self.KernelUpdate()
-        except Exception as e:
-            exc_type, exc_obj,exc_tb = sys.exc_info()
-            print(e)
-            print("Line: " + str(exc_tb.tb_lineno))
+    # def on_TestButton_released(self):
+    #     buf = [0] * 512
+    #     buf[0] = self.SET_COMMAND_REPORT
+    #     buf[1] = eRegister.RG_CAMERA_ARRAY_TYPE.value
+    #     artype = self.writeToKernel(buf)[2]
+    #     print(artype)
+    #     try:
+    #         self.KernelUpdate()
+    #     except Exception as e:
+    #         exc_type, exc_obj,exc_tb = sys.exc_info()
+    #         print(e)
+    #         print("Line: " + str(exc_tb.tb_lineno))
     def writeToKernel(self, buffer):
         try:
-            # if self.KernelCameraSelect.currentIndex() == 0 and rlist == False:
-            #     r = []
-            #     q = []
-            #     rr = []
-            #     for i, path in enumerate(self.paths):
-            #         dev = hid.device()
-            #         dev.open_path(path)
-            #         q.append(dev.write(buffer))
-            #         if buffer[0] == 3 and buffer[1] == 1:
-            #             dev.close()
-            #             return q
-            #         else:
-            #             r.append(dev.read(self.BUFF_LEN))
-            #             dev.close()
-            #
-            #     return r
-            # else:
+
             dev = hid.device()
             dev.open_path(self.camera)
             q = dev.write(buffer)
-            if buffer[0] == 3 and buffer[1] == 1:
+            if buffer[0] == self.SET_COMMAND_REPORT and buffer[1] == eCommand.CM_TRANSFER_MODE.value:
                 dev.close()
                 return q
             else:
@@ -2294,17 +2047,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             exc_type, exc_obj,exc_tb = sys.exc_info()
             print(e)
             print("Line: " + str(exc_tb.tb_lineno))
-    # def on_KernelResetButton_released(self):
-    #     buf = [0] * 512
-    #     buf[0] = self.SET_COMMAND_REPORT
-    #     buf[1] = eRegister.CM_RESET_CAMERA.value
-    #
-    #     self.writeToKernel(buf)
-    #     try:
-    #         self.KernelUpdate()
-    #     except Exception as e:
-    # exc_type, exc_obj,exc_tb = sys.exc_info()
-    #         print(e + ' ) + exc_tb.tb_lineno
+
     def on_KernelAdvancedSettingsButton_released(self):
         self.Advancedwindow = AdvancedOptions(self)
         # self.modalwindow = KernelCAN(self)
@@ -2448,6 +2191,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         else:
             self.PreProcessColorBox.setChecked(False)
             self.PreProcessColorBox.setEnabled(False)
+        QtWidgets.QApplication.processEvents()
     def on_PreProcessCameraModel_currentIndexChanged(self):
         self.PreProcessVignette.setChecked(False)
         self.PreProcessVignette.setEnabled(False)
@@ -2473,6 +2217,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.PreProcessLens.clear()
             self.PreProcessLens.addItems(["3.37mm (Survey3W)", "8.25mm (Survey3N)"])
             self.PreProcessLens.setEnabled(True)
+            self.PreProcessColorBox.setEnabled(True)
+
         elif self.PreProcessCameraModel.currentIndex() == 4:
             self.PreProcessFilter.clear()
             self.PreProcessFilter.addItems(["Red + NIR (NDVI)", "NIR", "Red", "Green", "Blue", "RGB"])
@@ -2513,7 +2259,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.PreProcessFilter.setEnabled(False)
             self.PreProcessLens.clear()
             self.PreProcessLens.setEnabled(False)
-
+        QtWidgets.QApplication.processEvents()
     def on_CalibrationCameraModel_currentIndexChanged(self):
         if self.CalibrationCameraModel.currentIndex() == 0 or self.CalibrationCameraModel.currentIndex() == 1:
             self.CalibrationFilter.clear()
@@ -3236,12 +2982,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                            [self.CalibrationCameraModel_6.currentIndex(), self.CalibrationFilter_6.currentIndex(),
                             self.CalibrationLens_6.currentIndex()],
                            ]
-                # self.multiplication_values[self.qrcoeffs,
-                #               self.qrcoeffs2,
-                #               self.qrcoeffs3,
-                #               self.qrcoeffs4,
-                #               self.qrcoeffs5,
-                #               self.qrcoeffs6]
+
 
                 folderind = [calfolder,
                              calfolder2,
@@ -3276,14 +3017,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                     else:
                                         os.mkdir(outdir)
                                         endloop = True
-                                # for calpixel in files_to_calibrate:
-                                #     # print("MM1")
-                                #     os.chdir(folderind[j])
-                                #     temp1 = cv2.imread(calpixel, -1)
-                                #     # self.imkeys = np.array(list(range(0, 65536)))
-                                #     self.monominmax["min"] = min(temp1.min(), self.monominmax["min"])
-                                #     self.monominmax["max"] = max(int(np.setdiff1d(self.imkeys[self.imkeys > int(np.median(temp1))],
-                                #                                               temp1)[0], self.monominmax["max"])
 
 
 
@@ -3978,33 +3711,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         refimg = cv2.imread(photo, -1)
 
         if True:
-        #     clist = np.array([self.qrcoeffs,
-        #              self.qrcoeffs2,
-        #              self.qrcoeffs3,
-        #              self.qrcoeffs4,
-        #              self.qrcoeffs5,
-        #              self.qrcoeffs6])
-        #     refimg *= clist
-        #
-        #     refimg -= self.monominmax["min"]
-        #     refimg /= (self.monominmax["max"] + self.monominmax["min"])
-        #     refimg *= 65535
-        #
-        #     refimg = refimg.astype("uint16")
-        # else:
-            # kernel = np.ones((2, 2), np.uint16)
-            # refimg = cv2.erode(refimg, kernel, iterations=1)
-            # refimg = cv2.dilate(refimg, kernel, iterations=1)
-            # imsize = np.shape(refimg)
-            # if imsize[0] > self.imcols or imsize[1] > self.imrows:
-            #     if "tif" or "TIF" in photo:
-            #             tempimg = np.memmap(photo, dtype=np.uint16, shape=(imsize))
-            #             refimg = None
-            #             refimg = tempimg
-            #     else:
-            #             tempimg = np.memmap(photo, dtype=np.uint8, shape=(imsize))
-            #             refimg = None
-            #             refimg = tempimg
 
             ### split channels (using cv2.split caused too much overhead and made the host program crash)
             alpha = []
@@ -4330,12 +4036,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 with open(r'.' + os.sep + r'calib.txt', 'r+') as f:
                     f.truncate()
 
-            if list is not None and len(list) > 0:
-                self.ref = self.refindex[1]
-                # self.CalibrationLog.append(list)
-                temp = np.fromstring(str(list), dtype=int, sep=',')
-                self.coords = [[temp[0],temp[1]],[temp[2],temp[3]],[temp[6],temp[7]],[temp[4],temp[5]]]
-                # self.CalibrationLog.append()
+            if self.CalibrationTargetSelect.currentIndex() == 0:
+                if len(list) > 0:
+                    self.ref = self.refindex[1]
+                    # self.CalibrationLog.append(list)
+                    temp = np.fromstring(str(list), dtype=int, sep=',')
+                    self.coords = [[temp[0],temp[1]],[temp[2],temp[3]],[temp[6],temp[7]],[temp[4],temp[5]]]
+                    # self.CalibrationLog.append()
             else:
                 self.ref = self.refindex[0]
                 if ind[0] > 2:
@@ -4383,7 +4090,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
             hypotenuse = line1 if line1 > line2 else line2
             hypotenuse = line3 if line3 > hypotenuse else hypotenuse
-            if list:
+            if self.CalibrationTargetSelect.currentIndex() == 0:
                 slope = (self.coords[2][1] - self.coords[1][1]) / (self.coords[2][0] - self.coords[1][0])
                 dist = self.coords[0][1] - (slope * self.coords[0][0]) + ((slope * self.coords[2][0]) - self.coords[2][1])
                 dist /= np.sqrt(np.power(slope, 2) + 1)
@@ -4435,12 +4142,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                         bottom = self.coords[0]
                         right = self.coords[2]
-            if list is not None and len(list) > 0:
-                guidelength = np.sqrt(np.power((center[0] - right[0]), 2) + np.power((center[1] - right[1]), 2))
-                pixelinch = guidelength / self.CORNER_TO_CORNER
-                rad = (pixelinch * self.CORNER_TO_TARG)
-                vx = center[1] - right[1]
-                vy = center[0] - right[0]
+            if self.CalibrationTargetSelect.currentIndex() == 0:
+                if len(list) > 0:
+                    guidelength = np.sqrt(np.power((center[0] - right[0]), 2) + np.power((center[1] - right[1]), 2))
+                    pixelinch = guidelength / self.CORNER_TO_CORNER
+                    rad = (pixelinch * self.CORNER_TO_TARG)
+                    vx = center[1] - right[1]
+                    vy = center[0] - right[0]
             else:
                 guidelength = np.sqrt(np.power((center[0] - bottom[0]), 2) + np.power((center[1] - bottom[1]), 2))
                 pixelinch = guidelength / self.SQ_TO_SQ
@@ -4450,20 +4158,21 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
             newlen = np.sqrt(vx * vx + vy * vy)
 
-            if list is not None and len(list) > 0:
-                targ1x = (rad * (vx / newlen)) + self.coords[0][0]
-                targ1y = (rad * (vy / newlen)) + self.coords[0][1]
-                targ2x = (rad * (vx / newlen)) + self.coords[1][0]
-                targ2y = (rad * (vy / newlen)) + self.coords[1][1]
-                targ3x = (rad * (vx / newlen)) + self.coords[2][0]
-                targ3y = (rad * (vy / newlen)) + self.coords[2][1]
-                targ4x = (rad * (vx / newlen)) + self.coords[3][0]
-                targ4y = (rad * (vy / newlen)) + self.coords[3][1]
+            if self.CalibrationTargetSelect.currentIndex() == 0:
+                if len(list) > 0:
+                    targ1x = (rad * (vx / newlen)) + self.coords[0][0]
+                    targ1y = (rad * (vy / newlen)) + self.coords[0][1]
+                    targ2x = (rad * (vx / newlen)) + self.coords[1][0]
+                    targ2y = (rad * (vy / newlen)) + self.coords[1][1]
+                    targ3x = (rad * (vx / newlen)) + self.coords[2][0]
+                    targ3y = (rad * (vy / newlen)) + self.coords[2][1]
+                    targ4x = (rad * (vx / newlen)) + self.coords[3][0]
+                    targ4y = (rad * (vy / newlen)) + self.coords[3][1]
 
-                target1 = (int(targ1x), int(targ1y))
-                target2 = (int(targ2x), int(targ2y))
-                target3 = (int(targ3x), int(targ3y))
-                target4 = (int(targ4x), int(targ4y))
+                    target1 = (int(targ1x), int(targ1y))
+                    target2 = (int(targ2x), int(targ2y))
+                    target3 = (int(targ3x), int(targ3y))
+                    target4 = (int(targ4x), int(targ4y))
             else:
                 targ1x = (rad * (vx / newlen)) + center[0]
                 targ1y = (rad * (vy / newlen)) + center[1]
@@ -4523,29 +4232,30 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 yred = []
                 yblue = []
                 ygreen = []
-                if list is not None and len(list) > 0:
-                    targ4values = im2[(target4[1] - int((pixelinch * 0.75) / 2)):(target4[1] + int((pixelinch * 0.75) / 2)),
-                                  (target4[0] - int((pixelinch * 0.75) / 2)):(target4[0] + int((pixelinch * 0.75) / 2))]
-                    t4redmean = np.mean(targ4values[:, :, 2])
-                    t4greenmean = np.mean(targ4values[:, :, 1])
-                    t4bluemean = np.mean(targ4values[:, :, 0])
-                    yred = [0.87, 0.51, 0.23, 0.0]
-                    yblue = [0.87, 0.51, 0.23, 0.0]
-                    ygreen = [0.87, 0.51, 0.23, 0.0]
-                    # im2[(target1[1] - int((pixelinch * 0.75) / 2)):(target1[1] + int((pixelinch * 0.75) / 2)),
-                    # (target1[0] - int((pixelinch * 0.75) / 2)):(target1[0] + int((pixelinch * 0.75) / 2))] = [0, 255,0]
-                    # im2[(target2[1] - int((pixelinch * 0.75) / 2)):(target2[1] + int((pixelinch * 0.75) / 2)),
-                    # (target2[0] - int((pixelinch * 0.75) / 2)):(target2[0] + int((pixelinch * 0.75) / 2))] = [255, 0,0]
-                    # im2[(target3[1] - int((pixelinch * 0.75) / 2)):(target3[1] + int((pixelinch * 0.75) / 2)),
-                    # (target3[0] - int((pixelinch * 0.75) / 2)):(target3[0] + int((pixelinch * 0.75) / 2))] = [0, 0, 255]
-                    # im2[(target4[1] - int((pixelinch * 0.75) / 2)):(target4[1] + int((pixelinch * 0.75) / 2)),
-                    # (target4[0] - int((pixelinch * 0.75) / 2)):(target4[0] + int((pixelinch * 0.75) / 2))] = [0, 255, 255]
-                    #
-                    # cv2.imwrite(r"C:\Users\peau\Desktop\NateTest.jpg", im2)
+                if self.CalibrationTargetSelect.currentIndex() == 0:
+                    if len(list) > 0:
+                        targ4values = im2[(target4[1] - int((pixelinch * 0.75) / 2)):(target4[1] + int((pixelinch * 0.75) / 2)),
+                                      (target4[0] - int((pixelinch * 0.75) / 2)):(target4[0] + int((pixelinch * 0.75) / 2))]
+                        t4redmean = np.mean(targ4values[:, :, 2])
+                        t4greenmean = np.mean(targ4values[:, :, 1])
+                        t4bluemean = np.mean(targ4values[:, :, 0])
+                        yred = [0.87, 0.51, 0.23, 0.0]
+                        yblue = [0.87, 0.51, 0.23, 0.0]
+                        ygreen = [0.87, 0.51, 0.23, 0.0]
+                        # im2[(target1[1] - int((pixelinch * 0.75) / 2)):(target1[1] + int((pixelinch * 0.75) / 2)),
+                        # (target1[0] - int((pixelinch * 0.75) / 2)):(target1[0] + int((pixelinch * 0.75) / 2))] = [0, 255,0]
+                        # im2[(target2[1] - int((pixelinch * 0.75) / 2)):(target2[1] + int((pixelinch * 0.75) / 2)),
+                        # (target2[0] - int((pixelinch * 0.75) / 2)):(target2[0] + int((pixelinch * 0.75) / 2))] = [255, 0,0]
+                        # im2[(target3[1] - int((pixelinch * 0.75) / 2)):(target3[1] + int((pixelinch * 0.75) / 2)),
+                        # (target3[0] - int((pixelinch * 0.75) / 2)):(target3[0] + int((pixelinch * 0.75) / 2))] = [0, 0, 255]
+                        # im2[(target4[1] - int((pixelinch * 0.75) / 2)):(target4[1] + int((pixelinch * 0.75) / 2)),
+                        # (target4[0] - int((pixelinch * 0.75) / 2)):(target4[0] + int((pixelinch * 0.75) / 2))] = [0, 255, 255]
+                        #
+                        # cv2.imwrite(r"C:\Users\peau\Desktop\NateTest.jpg", im2)
 
-                    xred = [t1redmean, t2redmean, t3redmean, t4redmean]
-                    xgreen = [t1greenmean, t2greenmean, t3greenmean, t4greenmean]
-                    xblue = [t1bluemean, t2bluemean, t3bluemean, t4bluemean]
+                        xred = [t1redmean, t2redmean, t3redmean, t4redmean]
+                        xgreen = [t1greenmean, t2greenmean, t3greenmean, t4greenmean]
+                        xblue = [t1bluemean, t2bluemean, t3bluemean, t4bluemean]
 
 
                     #
@@ -4641,67 +4351,71 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 # print([pred, pgreen, pblue])
 
 
-                if list is not None and len(list) > 0:
-                    self.CalibrationLog.append("Found QR Target Model 2, please proceed with calibration.")
+                if self.CalibrationTargetSelect.currentIndex() == 0:
+                    if len(list) > 0:
+                        self.CalibrationLog.append("Found QR Target Model 2, please proceed with calibration.")
+                    else:
+                        self.CalibrationLog.append("Could not find Calibration Target.")
                 else:
                     self.CalibrationLog.append("Found QR Target Model 1, please proceed with calibration.")
                 # return [ared, agreen, ablue]
             else:
-                if list is not None and len(list) > 0:
-                    targ1values = im2[(target1[1] - int((pixelinch * 0.75) / 2)):(target1[1] + int((pixelinch * 0.75) / 2)),
-                                  (target1[0] - int((pixelinch * 0.75) / 2)):(target1[0] + int((pixelinch * 0.75) / 2))]
-                    targ2values = im2[(target2[1] - int((pixelinch * 0.75) / 2)):(target2[1] + int((pixelinch * 0.75) / 2)),
-                                  (target2[0] - int((pixelinch * 0.75) / 2)):(target2[0] + int((pixelinch * 0.75) / 2))]
-                    targ3values = im2[(target3[1] - int((pixelinch * 0.75) / 2)):(target3[1] + int((pixelinch * 0.75) / 2)),
-                                  (target3[0] - int((pixelinch * 0.75) / 2)):(target3[0] + int((pixelinch * 0.75) / 2))]
-                    targ4values = im2[(target4[1] - int((pixelinch * 0.75) / 2)):(target4[1] + int((pixelinch * 0.75) / 2)),
-                                  (target4[0] - int((pixelinch * 0.75) / 2)):(target4[0] + int((pixelinch * 0.75) / 2))]
-                    if len(im2.shape) > 2:
-                        t1mean = np.mean(targ1values[:,:,0])
-                        t2mean = np.mean(targ2values[:,:,0])
-                        t3mean = np.mean(targ3values[:,:,0])
-                        t4mean = np.mean(targ4values[:,:,0])
-                    else:
-                        t1mean = np.mean(targ1values)
-                        t2mean = np.mean(targ2values)
-                        t3mean = np.mean(targ3values)
-                        t4mean = np.mean(targ4values)
-                    y = [0.87, 0.51, 0.23, 0.0]
-                    if ind[1] == 0:
-                        y = self.refvalues[self.ref]["Mono405"]
+                if self.CalibrationTargetSelect.currentIndex() == 0:
+                    if len(list) > 0:
+                        targ1values = im2[(target1[1] - int((pixelinch * 0.75) / 2)):(target1[1] + int((pixelinch * 0.75) / 2)),
+                                      (target1[0] - int((pixelinch * 0.75) / 2)):(target1[0] + int((pixelinch * 0.75) / 2))]
+                        targ2values = im2[(target2[1] - int((pixelinch * 0.75) / 2)):(target2[1] + int((pixelinch * 0.75) / 2)),
+                                      (target2[0] - int((pixelinch * 0.75) / 2)):(target2[0] + int((pixelinch * 0.75) / 2))]
+                        targ3values = im2[(target3[1] - int((pixelinch * 0.75) / 2)):(target3[1] + int((pixelinch * 0.75) / 2)),
+                                      (target3[0] - int((pixelinch * 0.75) / 2)):(target3[0] + int((pixelinch * 0.75) / 2))]
+                        targ4values = im2[(target4[1] - int((pixelinch * 0.75) / 2)):(target4[1] + int((pixelinch * 0.75) / 2)),
+                                      (target4[0] - int((pixelinch * 0.75) / 2)):(target4[0] + int((pixelinch * 0.75) / 2))]
+                        if len(im2.shape) > 2:
+                            t1mean = np.mean(targ1values[:,:,0])
+                            t2mean = np.mean(targ2values[:,:,0])
+                            t3mean = np.mean(targ3values[:,:,0])
+                            t4mean = np.mean(targ4values[:,:,0])
+                        else:
+                            t1mean = np.mean(targ1values)
+                            t2mean = np.mean(targ2values)
+                            t3mean = np.mean(targ3values)
+                            t4mean = np.mean(targ4values)
+                        y = [0.87, 0.51, 0.23, 0.0]
+                        if ind[1] == 0:
+                            y = self.refvalues[self.ref]["Mono405"]
 
-                    elif ind[1] == 1:
-                        y = self.refvalues[self.ref]["Mono450"]
+                        elif ind[1] == 1:
+                            y = self.refvalues[self.ref]["Mono450"]
 
-                    elif ind[1] == 2:
-                        y = self.refvalues[self.ref]["Mono490"]
+                        elif ind[1] == 2:
+                            y = self.refvalues[self.ref]["Mono490"]
 
-                    elif ind[1] == 3:
-                        y = self.refvalues[self.ref]["Mono518"]
-
-
-                    elif ind[1] == 4:
-                        y = self.refvalues[self.ref]["Mono550"]
+                        elif ind[1] == 3:
+                            y = self.refvalues[self.ref]["Mono518"]
 
 
-                    elif ind[1] == 5:
-                        y = self.refvalues[self.ref]["Mono590"]
-                    elif ind[1] == 6:
-                        y = self.refvalues[self.ref]["Mono615"]
-                    elif ind[1] == 7:
-                        y = self.refvalues[self.ref]["Mono632"]
-                    elif ind[1] == 8:
-                        y = self.refvalues[self.ref]["Mono650"]
-                    elif ind[1] == 9:
-                        y = self.refvalues[self.ref]["Mono685"]
-                    elif ind[1] == 10:
-                        y = self.refvalues[self.ref]["Mono725"]
-                    elif ind[1] == 11:
-                        y = self.refvalues[self.ref]["Mono808"]
-                    elif ind[1] == 12:
-                        y = self.refvalues[self.ref]["Mono850"]
+                        elif ind[1] == 4:
+                            y = self.refvalues[self.ref]["Mono550"]
 
-                    x = [t1mean, t2mean, t3mean, t4mean]
+
+                        elif ind[1] == 5:
+                            y = self.refvalues[self.ref]["Mono590"]
+                        elif ind[1] == 6:
+                            y = self.refvalues[self.ref]["Mono615"]
+                        elif ind[1] == 7:
+                            y = self.refvalues[self.ref]["Mono632"]
+                        elif ind[1] == 8:
+                            y = self.refvalues[self.ref]["Mono650"]
+                        elif ind[1] == 9:
+                            y = self.refvalues[self.ref]["Mono685"]
+                        elif ind[1] == 10:
+                            y = self.refvalues[self.ref]["Mono725"]
+                        elif ind[1] == 11:
+                            y = self.refvalues[self.ref]["Mono808"]
+                        elif ind[1] == 12:
+                            y = self.refvalues[self.ref]["Mono850"]
+
+                        x = [t1mean, t2mean, t3mean, t4mean]
                 else:
                     targ1values = im2[int(target1[1] - ((pixelinch * 0.75) / 2)):(target1[1] + ((pixelinch * 0.75) / 2)),
                                   int(target1[0] - ((pixelinch * 0.75) / 2)):(target1[0] + ((pixelinch * 0.75) / 2))]
@@ -4763,8 +4477,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                 self.multiplication_values["Mono"] = x.dot(y) / x.dot(x)
 
-                if list is not None and len(list) > 0:
-                    self.CalibrationLog.append("Found QR Target Model 2, please proceed with calibration.")
+                if self.CalibrationTargetSelect.currentIndex() == 0:
+                    if len(list) > 0:
+                        self.CalibrationLog.append("Found QR Target Model 2, please proceed with calibration.")
+                    else:
+                        self.CalibrationLog.append("Could not find Calibration Target.")
                 else:
                     self.CalibrationLog.append("Found QR Target Model 1, please proceed with calibration.")
                 QtWidgets.QApplication.processEvents()
@@ -4836,8 +4553,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             if len(infiles) > 1:
                 if ("RAW" in infiles[0].upper()) and ("JPG" in infiles[1].upper()):
                     counter = 0
-                    oldfirmware = False
+
                     for input in infiles[::2]:
+                        oldfirmware = False
                         if customerdata == True:
                             self.PreProcessLog.append(
                                 "processing image: " + str((counter / 2) + 1) + " of " + str(len(infiles) / 2) +
@@ -4862,70 +4580,33 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 udata = np.packbits(np.concatenate([data[0::3], np.array([0, 0, 0, 0] * 12000000, dtype=np.uint8).reshape(12000000,4),   data[2::3], data[1::3]], axis=1).reshape(192000000, 1)).tobytes()
 
                                 img = np.fromstring(udata, np.dtype('u2'), (4000 * 3000)).reshape((3000, 4000))
-                                # udata.tofile(input)
-                                # data2 = data2.reshape((int(dat2size / 12), 12))
-                                # (data[0::2], data[1::2]) = (data[1::2], data[0::2])
-                                # data[0::2] = np.bitwise_xor(data[0::2], data[1::2])
-                                # data[1::2] = np.bitwise_xor(data[0::2], data[1::2])
-                                # data[0::2] = np.bitwise_xor(data[0::2], data[1::2])
-                                # data = data.reshape((int(datsize / 12), 12))
-                                # r = data[:, 0:3]
-                                # gr = data[:, 3:6]
-                                # b = data[:, 6:9]
-                                # gb = data[:, 9:12]
-                                # data = np.reshape([r,gr,b,gb], (12000000, 12))
-                                # images = np.zeros((4000 * 3000), dtype=np.uint16)
-                                # for i in range(0, 16):
-                                #     images += 2 ** (i) * udata[:,15 - i]
-                                # red = (65535.0/31.0 * np.bitwise_and(np.right_shift(data, 11), 0x1f)).astype("uint16")
-                                # green = (65535.0/63.0 * np.bitwise_and(np.right_shift(data, 5), 0x3f)).astype("uint16")
-                                # blue = (65535.0/31.0 * np.bitwise_and(data, 0x1f)).astype("uint16")
-                                #
-                                # img = cv2.merge((blue,green,red)).astype("uint16")
-                                #
-                                #
-                                #
-                                # img = np.reshape(images, (3000, 4000))
-                                # tim = self.debayer(img)
-                                # color = copy.deepcopy(tim)
-                                # color[tim[:, :, 0] >= 65535] = 65535
-                                # color[tim[:, :, 1] >= 65535] = 65535
-                                # color[tim[:, :, 2] >= 65535] = 65535
-                                # cv2.imwrite(outfolder + "test.tif", img)
-                                # cv2.imwrite(outfolder + "testDB.tif", tim)
-                            except Exception as e:
-                                print(e)
-                                # oldfirmware = True
-                        else:
-                            with open(input, "rb") as rawimage:
-                                img = np.fromfile(rawimage, np.dtype('u2'), (4000 * 3000)).reshape((3000, 4000))
 
-                        color = cv2.cvtColor(img, cv2.COLOR_BAYER_RG2RGB).astype("float32")
-                                    # rawimage.seek(0)
-                                    #
-                                    # data = struct.unpack("=18000000B", rawimage.read())
-                                    # k = np.zeros(int(2*len(data)/3))
-                                    # kcount = 0
-                                    # #TODO fix this
-                                    # for oo in range(0, len(data) - 2, 3):
-                                    #     k[kcount], k[kcount + 1] = bitstring.Bits(bytes=data[oo:oo + 3], length=24).unpack('uint:12,uint:12')
-                                    #     kcount = kcount + 2
-                                    #
-                                    # # for i in range(0, int(len(data)/3)):
-                                    # #     # j = struct.pack("=H", data[i])
-                                    # #     # p = struct.pack("=H", data[i + 1])
-                                    # #     # q = struct.pack("=H", data[i + 2])
-                                    # #     k.append(data[i] | data[i + 1] | data[i + 2])
-                                    # #     # k.append((p[1] << 12) | data[i + 2] | 0)
-                                    # k = np.array(k)
-                                    # h = int(np.sqrt(k.shape[0] / (4 / 3)))
-                                    # w = int(h * (4 / 3))
-                                    # img = np.reshape(k, (3000, 4000)).astype("uint16")
-                        if self.PreProcessFilter.currentIndex() == 0 and self.PreProcessCameraModel.currentIndex() == 3:
+                            except Exception as e:
+                                exc_type, exc_obj, exc_tb = sys.exc_info()
+                                # self.PreProcessLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
+                                print(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
+
+                                oldfirmware = True
+                        if oldfirmware:
+                            try:
+                                with open(input, "rb") as rawimage:
+                                    img = np.fromfile(rawimage, np.dtype('u2'), (4000 * 3000)).reshape((3000, 4000))
+                            except Exception as e:
+                                exc_type, exc_obj, exc_tb = sys.exc_info()
+                                # self.PreProcessLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
+                                print(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
+                        try:
+                            color = cv2.cvtColor(img, cv2.COLOR_BAYER_RG2RGB).astype("float32")
+                        except Exception as e:
+                            exc_type, exc_obj, exc_tb = sys.exc_info()
+                            # self.PreProcessLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
+                            print(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
+                        if self.PreProcessColorBox.isChecked():
 
 
                             # redmax = np.setdiff1d(self.imkeys[self.imkeys > int(np.median(color[:,:,0]))], color[:,:,0])[0]
                             # redmin = color[:,:,0].min()
+
                             redmax = np.percentile(color[:,:,0], 98)
 
 
@@ -4975,10 +4656,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             filename = input.split('.')
                             outputfilename = filename[1] + '.tif'
                             cv2.imencode(".tif", color)
-                        # cv2.imencode(".tif", color2)
+
                         cv2.imwrite(outfolder + outputfilename, color)
-                        # outputfilename = filename[1] + '_EQ.tif'
-                        # cv2.imwrite(outfolder + outputfilename, color2)
+
                         if customerdata == True:
                             self.copyExif(infolder + infiles[counter + 1], outfolder + outputfilename)
                         counter += 2
@@ -5040,8 +4720,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         QtWidgets.QApplication.processEvents()
                         cv2.imwrite(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], img)
                         self.copySimple(outphoto, outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
-                        color = cv2.cvtColor(img, cv2.COLOR_BAYER_GB2RGB).astype("uint16")
-                        color2 = cv2.cvtColor(img, cv2.COLOR_BAYER_BG2BGR).astype("uint16")
+                        color = cv2.cvtColor(img, cv2.COLOR_BAYER_GB2RGB).astype("float32")
+                        color2 = cv2.cvtColor(img, cv2.COLOR_BAYER_BG2BGR).astype("float32")
                         # gr = ((color2[:,:,2] + color2[:,:,0])/2).astype("uint16")
                         #
                         # color[:,:,1] = gr
@@ -5055,11 +4735,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         # color[:,:2] = temp1
                         # color = self.debayer(img)
                         # color = cv2.cvtColor(img, cv2.COLOR_BGR2RGB).astype("uint16")
-                        roff = 0
-                        goff = 0
-                        boff = 0
-                        color -= 2690
-                        color = color / 65535
+                        roff = 0.0
+                        goff = 0.0
+                        boff = 0.0
+                        color -= 2690.0
+                        color = color / 65535.0
                         if self.PreProcessColorBox.isChecked():
                             red = color[:, :, 0] = (1.510522 * color[:, :, 0]) + (0.0 * color[:, :, 1]) + (0.0 * color[:, :, 2]) + roff
                             green = color[:, :, 1] = (0.0 * color[:, :, 0]) + (1 * color[:, :, 1]) + (0.0 * color[:, :, 2]) + goff
@@ -5071,6 +4751,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             color[red < 0.0] = 0.0
                             color[green < 0.0] = 0.0
                             color[blue < 0.0] = 0.0
+
+
 
                         color = (color * 65535.0).astype("uint16")
 
@@ -5113,8 +4795,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                     if self.PreProcessFilter.currentIndex() > 16 or self.PreProcessCameraModel.currentIndex() == 2:
                         img = cv2.imread(inphoto, 0)
-
-                        #TODO Take the Matrix from Opencv and try to dot product
                         
                         color = cv2.cvtColor(img, cv2.COLOR_BAYER_GR2RGB)
                         # color = self.debayer(img)
@@ -5183,9 +4863,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             data = [line.strip().split(':') for line in data.split('\r\n') if line.strip()]
             ypr = data[0][1].split()
             # ypr = [0.0] * 3
-            # ypr[0] = abs(float(ypr[0]))
-            # ypr[1] = -float(ypr[1])
-            # ypr[2] = ((float(ypr[2]) + 180.0) % 360.0)
+
+            ypr[0] = abs(float(ypr[0]) % 360.0)
+            ypr[1] = abs((float(ypr[1]) + 180.0) % 360.0)
+            ypr[2] = abs((float(-ypr[2])) % 360.0)
+
+
             w = int(data[1][1])
             h = int(data[2][1])
             model = self.findCameraModel(w * h)
@@ -5290,9 +4973,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 # ypr[0] = abs(float(self.conv.META_PAYLOAD["ATT_Q0"][1]))
                 # ypr[1] = -float(self.conv.META_PAYLOAD["ATT_Q1"][1])
                 # ypr[2] = ((float(self.conv.META_PAYLOAD["ATT_Q2"][1]) + 180.0) % 360.0)
-                ypr[0] = abs(float(self.conv.META_PAYLOAD["ATT_Q0"][1]))
-                ypr[1] = float(self.conv.META_PAYLOAD["ATT_Q1"][1])
-                ypr[2] = ((float(self.conv.META_PAYLOAD["ATT_Q2"][1])))
+                ypr[0] = abs(float(self.conv.META_PAYLOAD["ATT_Q0"][1]) % 360.0)
+                ypr[1] = abs((float(self.conv.META_PAYLOAD["ATT_Q1"][1]) + 180.0) % 360.0)
+                ypr[2] = abs((float(-self.conv.META_PAYLOAD["ATT_Q2"][1])))
+
+                ypr = AdjustYPR(int(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]),int(self.conv.META_PAYLOAD["ARRAY_ID"][1]),ypr)
+                ypr = CurveAdjustment(int(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]),int(self.conv.META_PAYLOAD["ARRAY_ID"][1]),ypr)
                 w = int(data[0][1])
                 h = int(data[1][1])
                 model = self.findCameraModel(w * h)
@@ -5366,6 +5052,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                  r'-Lens=' + lensmodel,
                                  r'-FocalLength=' + focallength,
                                  r'-fnumber=' + fnumber,
+                                 r'-ArrayID=' + str(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]),
+                                 r'-ArrayType=' + str(self.conv.META_PAYLOAD["ARRAY_ID"][1]),
                                  r'-FocalPlaneXResolution=' + str(6.14),
                                  r'-FocalPlaneYResolution=' + str(4.60),
                                  os.path.abspath(outphoto)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, startupinfo=si).stderr.decode("utf-8")
@@ -5410,6 +5098,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                  r'-Lens=' + lensmodel,
                                  r'-FocalLength=' + focallength,
                                  r'-fnumber=' + fnumber,
+                                 r'-ArrayID=' + str(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]),
+                                 r'-ArrayType=' + str(self.conv.META_PAYLOAD["ARRAY_ID"][1]),
                                  r'-FocalPlaneXResolution=' + str(6.14),
                                  r'-FocalPlaneYResolution=' + str(4.60),
                                  os.path.abspath(outphoto)], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
