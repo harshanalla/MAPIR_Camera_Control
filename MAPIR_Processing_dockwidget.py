@@ -1696,7 +1696,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 drv = list(numds1 - numds)[0]
                                 if len(drv) == 1:
                                     self.driveletters.append(drv)
-                                    
+
                                     self.KernelLog.append("Camera " + str(self.pathnames[self.paths.index(cam)]) + " successfully connected to drive " + drv + ":" + os.sep)
                                     files = glob.glob(drv + r":" + os.sep + r"dcim/*/*.[tm]*", recursive=True)
                                     folders = glob.glob(drv + r":" + os.sep + r"dcim/*/")
@@ -4798,7 +4798,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                     if self.PreProcessFilter.currentIndex() > 16 or self.PreProcessCameraModel.currentIndex() == 2:
                         img = cv2.imread(inphoto, 0)
-                        
+
                         color = cv2.cvtColor(img, cv2.COLOR_BAYER_GR2RGB)
                         # color = self.debayer(img)
 
@@ -5253,4 +5253,3 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def closeEvent(self, event):
         self.closingPlugin.emit()
         event.accept()
-

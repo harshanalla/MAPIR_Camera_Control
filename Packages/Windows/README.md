@@ -1,12 +1,15 @@
 
 # Windows OS
-Please Note: We are working on a more robust post processing for Kernel cameras, so post processing using Kernel cameras will be temporarily unavailable in most recent version.
 
 ## Current Version
 
-[May 22nd, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_05222018.exe) 
+[May 25th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_05252018.exe) 
 
 ## Old Versions
+[May 23rd, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_05232018.exe) 
+
+[May 22nd, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_05222018.exe) 
+
 [May 14th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_05142018.exe) 
 
 [May 10th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_05102018.exe) 
