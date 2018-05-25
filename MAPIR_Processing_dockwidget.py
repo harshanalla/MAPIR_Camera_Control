@@ -918,7 +918,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
 
                     item = chr(res[2]) + chr(res[3]) + chr(res[4])
-
+                    self.pathnames.append(item)
                     if i == 0:
                         item += " (Master)"
                     else:
@@ -927,7 +927,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     self.KernelLog.append("Found Camera: " + str(item))
                     QtWidgets.QApplication.processEvents()
 
-                    self.pathnames.append(item)
+
 
                     self.KernelCameraSelect.blockSignals(True)
 
@@ -1424,10 +1424,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.KernelPanel.append("Lens: " + str(LENS_LOOKUP.get(self.getRegister(eRegister.RG_LENS_ID.value), 255)[0][0]) + "mm")
             self.KernelPanel.append(
                 "Filter: " + str(LENS_LOOKUP.get(self.getRegister(eRegister.RG_LENS_ID.value), "")[2]))
-            if shutter == 0:
-                self.KernelPanel.append("Shutter: Auto")
-            else:
-                self.KernelPanel.append("Shutter: " + self.KernelShutterSpeed.itemText(self.getRegister(eRegister.RG_SHUTTER.value) -1) + " sec")
+            # if shutter == 0:
+            #     self.KernelPanel.append("Shutter: Auto")
+            # else:
+            #     self.KernelPanel.append("Shutter: " + self.M_Shutter_Window.KernelShutterSpeed.itemText(self.getRegister(eRegister.RG_SHUTTER.value) -1) + " sec")
             self.KernelPanel.append("ISO: " + str(self.getRegister(eRegister.RG_ISO.value)) + "00")
             # # self.KernelPanel.append("WB: " + str(self.getRegister(eRegister.RG_WHITE_BALANCE.value)))
             # self.KernelPanel.append("AE Setpoint: " + str(self.getRegister(eRegister.RG_AE_SETPOINT.value)))
@@ -1707,7 +1707,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                             treeroot.write(fold + str(self.pathnames[self.paths.index(cam)]) + ".kernelconfig")
                                     else:
                                         if not os.path.exists(drv + r":" + os.sep + r"dcim" + os.sep + str(self.pathnames[self.paths.index(cam)])):
-                                            os.mkdir(drv + r":" + os.sep + r"dcim")
                                             os.mkdir(drv + r":" + os.sep + r"dcim" + os.sep + str(self.pathnames[self.paths.index(cam)]))
                                         treeroot.write(
                                             drv + r":" + os.sep + r"dcim" + os.sep + str(self.pathnames[self.paths.index(cam)]) + ".kernelconfig")
@@ -1794,6 +1793,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             files = glob.glob(drv + r":" + os.sep + r"dcim/*/*")
                             self.KernelLog.append("Deleting files from drive " + str(drv))
                             for file in files:
+                                os.unlink(file)
+                            folds = glob.glob(drv + r":" + os.sep + r"dcim/*")
+                            for file in folds:
                                 os.unlink(file)
                             self.KernelLog.append("Finished deleting files from drive " + str(drv))
                     self.yesdelete = False
@@ -2195,6 +2197,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def on_PreProcessCameraModel_currentIndexChanged(self):
         self.PreProcessVignette.setChecked(False)
         self.PreProcessVignette.setEnabled(False)
+
         if self.PreProcessCameraModel.currentIndex() == 0 or self.PreProcessCameraModel.currentIndex() == 1:
 
 
