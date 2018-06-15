@@ -5,9 +5,10 @@
 
 [June 15th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_06152018.exe)
 
-*
-*
-
+Change Log
+* Fixed Camera Calibration -- updated global minimum and maximum pixel algorithm
+* Fixed calibration without supplying target image
+* Fixed Kernal mapir metadata transfer
 
 ## Old Versions
 [May 31st, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_05312018.exe) 
