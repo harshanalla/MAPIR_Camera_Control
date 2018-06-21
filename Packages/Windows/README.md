@@ -3,10 +3,15 @@
 
 ## Current Version
 
+[June 20th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_06202018.exe)
+Change Log
+* Added histogram clipping feature (brightens images)
+* Fixed miscellaneous issues
+
 [June 15th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_06152018.exe)
 
 Change Log
-* Fixed Camera Calibration -- updated global minimum and maximum pixel algorithm
+* Fixed camera calibration -- updated global minimum and maximum pixel algorithm
 * Fixed calibration without supplying target image
 * Fixed Kernal mapir metadata transfer
 
