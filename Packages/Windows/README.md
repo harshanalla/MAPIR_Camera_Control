@@ -3,11 +3,13 @@
 
 ## Current Version
 
-[June 20th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_06202018.exe)
-Change Log
+[June 20th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_06202018.exe) 
+
+Change Log 
 * Added histogram clipping feature (brightens images)
 * Fixed miscellaneous issues
 
+## Old Versions
 [June 15th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_06152018.exe)
 
 Change Log
@@ -15,7 +17,6 @@ Change Log
 * Fixed calibration without supplying target image
 * Fixed Kernal mapir metadata transfer
 
-## Old Versions
 [May 31st, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_05312018.exe) 
 
 [May 23rd, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_05232018.exe) 
