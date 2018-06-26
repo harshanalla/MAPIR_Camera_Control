@@ -352,6 +352,7 @@ QLineEdit
     border: 0.1ex solid #76797c;
     border-radius: 0.2ex;
     color: #eff0f1;
+    min-width: 100ex;
 }
 
 QGroupBox
@@ -688,7 +689,8 @@ QComboBox
     border: 0.1ex solid #76797c;
     border-radius: 0.2ex;
     padding: 2.0ex;
-    min-width: 20.0ex;
+    min-width: 50.0ex;
+    max-width: 50.0ex;
 }
 
 QPushButton:checked
@@ -753,7 +755,7 @@ QComboBox::drop-down
 {
     subcontrol-origin: padding;
     subcontrol-position: top right;
-    width: 1.5ex;
+    width: 2.0ex;
 
     border-left-width: 0ex;
     border-right-width: 2.0ex;
