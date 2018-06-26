@@ -69,7 +69,6 @@ from ArrayTypes import AdjustYPR, CurveAdjustment
 
 modpath = os.path.dirname(os.path.realpath(__file__))
 
-# print(str(modpath))
 if not os.path.exists(modpath + os.sep + "instring.txt"):
     istr = open(modpath + os.sep + "instring.txt", "w")
     istr.close()
@@ -844,7 +843,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     image_loaded = False
 
     COLOR_CORRECTION_VECTORS = [1.58796, -0.1036, 0.18497, -0.01213, 1, 0.11236, 0.00793, -0.06779, 1.78981]
-
     regs = []
 
     ISO_VALS = (1,2,4,8,16,32)
@@ -3046,18 +3044,19 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         HCP = int(self.HCP_value.text()) / 100
         unique, counts = np.unique(color, return_counts=True)
         freq_array = np.asarray((unique, counts)).T
-      
+
         freq_dict = {}
         mode = self.calculate_mode(freq_array)
+
         for i in freq_array:
             freq_dict[i[0]] = i[1]
 
         HC_Value = 0
         for pixel in freq_array:
-            if round(pixel[1] / freq_dict[mode], 2) == HCP:
-                HC_Value = pixel[0]
-                break
-
+            if pixel[0] > mode:
+                if round(pixel[1] / freq_dict[mode], 2) == HCP:
+                    HC_Value = pixel[0]
+                    break
         return HC_Value
     def on_histogramClipBox_toggled(self):
         if self.histogramClipBox.checkState() == 2:
@@ -3164,10 +3163,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 for j, ind in enumerate(indexes):
                     CHECKED = 2
                     UNCHECKED = 0
-                    # self.CalibrationLog.append("Checking folder " + str(j + 1))
+
                     if ind[0] == -1:
                         pass
-                    elif ((ind[0] > 2) and not(ind[0] == 3 and ind[1] == 2)): #only RGB Cameras
+                    elif ((ind[0] > 2) and not((ind[0] == 3 and ind[1] == 2) or (ind[0] == 3 and ind[1] == 4))): #only RGB Cameras
 
                         if os.path.exists(folderind[j]):
                             files_to_calibrate = []
@@ -3200,7 +3199,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                             # these are a little confusing, but the check to find the highest and lowest pixel value
                             # in each channel in each image and keep the highest/lowest value found.
-                            
                             if self.seed_pass == False:
 
                                 self.pixel_min_max["redmax"] = red.max()#  int(np.setdiff1d(self.imkeys[self.imkeys > int(np.median(red))], red)[0])
@@ -3273,6 +3271,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                         self.HC_max["redmax"] = max(self.get_HC_value(red, "red"), self.HC_max["redmax"])
                                         self.HC_max["greenmax"] = max(self.get_HC_value(green, "green"), self.HC_max["greenmax"])
                                         self.HC_max["bluemax"] = max(self.get_HC_value(blue, "blue"), self.HC_max["bluemax"])
+
 
 
                                 except Exception as e:
@@ -3397,10 +3396,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 self.pixel_min_max["greenmin"] = self.calibrate(base_coef[1], self.pixel_min_max["greenmin"])
                                 self.pixel_min_max["bluemin"] = self.calibrate(base_coef[2], self.pixel_min_max["bluemin"])
 
-                                if self.histogramClipBox.checkState() == CHECKED:
-                                    self.HC_max["redmax"] = self.calibrate(base_coef[0], self.HC_max["redmax"])
-                                    self.HC_max["greenmax"] = self.calibrate(base_coef[1], self.HC_max["greenmax"])
-                                    self.HC_max["bluemax"] = self.calibrate(base_coef[2], self.HC_max["bluemax"])
+                            if self.histogramClipBox.checkState() == CHECKED:
+                                self.HC_max["redmax"] = self.calibrate(base_coef[0], self.HC_max["redmax"])
+                                self.HC_max["greenmax"] = self.calibrate(base_coef[1], self.HC_max["greenmax"])
+                                self.HC_max["bluemax"] = self.calibrate(base_coef[2], self.HC_max["bluemax"])
 
 
                         self.seed_pass = False
@@ -3409,7 +3408,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                         #Calibrate global max and mins
                         if self.useqr == True:
-                            print(self.pixel_min_max)
                             
                             self.pixel_min_max["redmax"] = self.calibrate(self.multiplication_values["Red"], self.pixel_min_max["redmax"])
                             self.pixel_min_max["greenmax"] = self.calibrate(self.multiplication_values["Green"], self.pixel_min_max["greenmax"])
@@ -3502,35 +3500,28 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                     QtWidgets.QApplication.processEvents()
 
                                     if "TIF" in calfile.split('.')[2].upper():
-                                        #red_coef = self.BASE_COEFF_SURVEY3_W_RGN_TIF[0]
-                                        #green_coef = self.BASE_COEFF_SURVEY3_W_RGN_TIF[1]
-                                        #blue_coef = self.BASE_COEFF_SURVEY3_W_RGN_TIF[2]
-                                        #coeff_dict = {"Red": red_coef, "Green": green_coef, "Blue": blue_coef}
-
                                         self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY3_W_RGN_TIF, self.pixel_min_max, outdir, ind)
 
                                     elif "JPG" in calfile.split('.')[2].upper():
-                                        #red_coef = self.BASE_COEFF_SURVEY3_RGN_JPG[0]
-                                        #green_coef = self.BASE_COEFF_SURVEY3_RGN_JPG[1]
-                                        #blue_coef = self.BASE_COEFF_SURVEY3_RGN_JPG[2]
-                                        #coeff_dict = {"Red": red_coef, "Green": green_coef, "Blue": blue_coef}
-
                                         self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY3_RGN_JPG, self.pixel_min_max, outdir, ind)
 
-                                elif self.CalibrationCameraModel.currentIndex() == 3 and self.CalibrationFilter.currentIndex() == 1:  # Survey2 NIR
+                                    else:
+                                        self.failed_calib = True
+                                        self.CalibrationLog.append(
+                                        "No default calibration data for selected camera model. Please please supply a MAPIR Reflectance Target to proceed.\n")
+                                        break
 
-                                    self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY3_W_RGN_TIF, self.pixel_min_max, outdir, ind)
 
-                                elif self.CalibrationCameraModel.currentIndex() == 3 and self.CalibrationFilter.currentIndex() == 2:  # Survey2 NIR
-
-                                    self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY3_W_NGB_TIF, self.pixel_min_max,
-                                                         outdir, ind)
-
-                                elif self.CalibrationCameraModel.currentIndex() == 3 and self.CalibrationFilter.currentIndex() == 3:  # Survey2 NIR
-
-                                    self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY3_W_NGB_TIF, self.pixel_min_max,
-                                                         outdir, ind)
-
+                                elif self.CalibrationCameraModel.currentIndex() == 3 and self.CalibrationFilter.currentIndex() == 1:  # Survey3 NGB
+                                    if "TIF" in calfile.split('.')[2].upper():
+                                        self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY3_W_NGB_TIF, self.pixel_min_max,
+                                                             outdir, ind)
+                                    else:
+                                        self.failed_calib = True
+                                        self.CalibrationLog.append(
+                                        "No default calibration data for selected camera model. Please please supply a MAPIR Reflectance Target to proceed.\n")
+                                        break
+                                    
                                 else:
                                     self.failed_calib = True
                                     self.CalibrationLog.append(
@@ -3696,7 +3687,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                         endloop = True
 
                                 for i, calfile in enumerate(files_to_calibrate):
-                                    # print("cb1")
                                     self.CalibrationLog.append("Calibrating image " + str(i + 1) + " of " + str(len(files_to_calibrate)) + " from folder 1")
                                     QtWidgets.QApplication.processEvents()
                                     os.chdir(calfolder)
@@ -3898,6 +3888,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             print(repr(e))
             print("Line: " + str(exc_tb.tb_lineno))
             self.CalibrationLog.append(str(repr(e)))
+
     def CalibrateMono(self, photo, coeffs, output_directory, ind):
         refimg = cv2.imread(photo, -1)
         print(str(refimg))
@@ -4171,7 +4162,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 
                 #global_HC_max = ((global_HC_max - minpixel) / (maxpixel - minpixel))
                 #global_HC_max *= 255
-
                 red[red > global_HC_max] = global_HC_max
                 green[green > global_HC_max] = global_HC_max
                 blue[blue > global_HC_max] = global_HC_max
@@ -4218,6 +4208,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     red *= 65535
                     green *= 65535
                     blue *= 65535
+
+                    red = red.astype(int)
+                    green = green.astype(int)
+                    blue = blue.astype(int)
 
 
                     # red[blue > 65535] = 65535
@@ -4663,7 +4657,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     yblue = self.refvalues[self.ref]["475/550/850"][2]
 
                 elif (ind[0] == 3 and ind[1] == 3):
-
                     yred = self.refvalues[self.ref]["490/615/808"][0]
                     ygreen = self.refvalues[self.ref]["490/615/808"][1]
                     yblue = self.refvalues[self.ref]["490/615/808"][2]
@@ -4918,8 +4911,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                 counter += 1
         else:
-            print("survey")
-            exit()
             os.chdir(infolder)
             infiles = []
             infiles.extend(glob.glob("." + os.sep + "*.[rR][aA][wW]"))
@@ -5389,8 +5380,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             data = [line.strip().split(':') for line in data.split('\r\n') if line.strip()]
             ypr = data[0][1].split()
             # ypr = [0.0] * 3
-            print(ypr[0])
-            exit()
+
             ypr[0] = abs(float(ypr[0]) % 360.0)
             ypr[1] = abs((float(ypr[1]) + 180.0) % 360.0)
             ypr[2] = abs((float(-ypr[2])) % 360.0)
@@ -5401,7 +5391,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             model = self.findCameraModel(w * h)
             centralwavelength = self.lensvals[3:6][1]
             bandname = self.lensvals[3:6][0]
-            print("bandname: ", bandname)
 
             fnumber = self.lensvals[0][1]
             focallength = self.lensvals[0][0]
@@ -5416,7 +5405,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                      r'-all:all<all:all',
                      r'-ifd0:make=MAPIR',
                      r'-Model=' + model,
-                     #r'-BlackCurrent='
                      #r'-ifd0:blacklevelrepeatdim=' + str(1) + " " + str(1),
                      #r'-ifd0:blacklevel=0',
                      r'-bandname=' + str(bandname[0] + ', ' + bandname[1] + ', ' + bandname[2]),
@@ -5466,9 +5454,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                      os.path.abspath(outphoto)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE,
                     startupinfo=si).stderr.decode("utf-8")
         except Exception as e:
-            print(e)
-            exc_type, exc_obj,exc_tb = sys.exc_info()
-            print("Line: " + str(exc_tb.tb_lineno))
             exifout = subprocess.run(
                 [modpath + os.sep + r'exiftool.exe', #r'-config', modpath + os.sep + r'mapir.config',
                  r'-overwrite_original_in_place', r'-tagsFromFile',
