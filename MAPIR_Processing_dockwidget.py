@@ -2224,17 +2224,18 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 or (self.PreProcessCameraModel.currentText() == "Survey3" and self.PreProcessFilter.currentText() == "RGB")):
 
             self.PreProcessColorBox.setEnabled(True)
+            self.PreProcessVignette.setEnabled(True)
 
         elif self.PreProcessCameraModel.currentText() == "Kernel 14.4":
             if self.PreProcessFilter.currentText() not in ["644 (RGB)", "550/660/850"]:
                 self.PreProcessVignette.setChecked(False)
                 self.PreProcessVignette.setEnabled(False)
 
-                if self.PreProcessFilter.currentText() != "644 (RGB)":
-                    self.PreProcessColorBox.setChecked(False)
-                    self.PreProcessColorBox.setEnabled(False)
+            if self.PreProcessFilter.currentText() != "644 (RGB)":
+                self.PreProcessColorBox.setChecked(False)
+                self.PreProcessColorBox.setEnabled(False)
 
-            elif self.PreProcessFilter.currentText() in ["644 (RGB)", "550/660/850"]:
+            if self.PreProcessFilter.currentText() in ["644 (RGB)", "550/660/850"]:
                 self.PreProcessVignette.setEnabled(True)
 
         elif self.PreProcessCameraModel.currentText() == "Kernel 3.2":
