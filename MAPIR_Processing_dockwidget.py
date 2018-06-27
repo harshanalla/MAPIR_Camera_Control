@@ -28,6 +28,8 @@ warnings.filterwarnings("ignore")
 from PIL import Image
 from PIL.TiffTags import TAGS
 
+
+
 os.umask(0)
 from LensLookups import *
 import datetime
@@ -2246,61 +2248,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             else:
                 self.PreProcessVignette.setChecked(False)
                 self.PreProcessVignette.setEnabled(False)
-
-        elif self.PreProcessCameraModel.currentText() == "Survey3":
-            self.PreProcessVignette.setEnabled(False)
-
-            if self.PreProcessFilter.currentText() == "RGB":
-                self.PreProcessMonoBandBox.setChecked(False)
-
-            elif self.PreProcessFilter.currentText() == "OCN":
-                self.PreProcessMonoBandBox.setChecked(False)
-
-            elif self.PreProcessFilter.currentText() == "RGN":
-                self.PreProcessMonoBandBox.setChecked(False)
-
-            elif self.PreProcessFilter.currentText() == "NGB":
-                self.PreProcessMonoBandBox.setChecked(False)
-
-            elif self.PreProcessFilter.currentText() == "RE":
-                self.PreProcessMonoBandBox.setChecked(True)
-                self.Band_Dropdown.setCurrentIndex(0)
-
-            elif self.PreProcessFilter.currentText() == "NIR":
-                self.PreProcessMonoBandBox.setChecked(True)
-                self.Band_Dropdown.setCurrentIndex(0)
-
-            if self.PreProcessFilter.currentText() != "RGB":
-                self.PreProcessColorBox.setEnabled(False)
-
-
-        elif self.PreProcessCameraModel.currentText() == "Survey2":
-            self.PreProcessVignette.setEnabled(False)
-
-            if self.PreProcessFilter.currentText() == "Red + NIR (NDVI)":
-                self.PreProcessMonoBandBox.setChecked(False)
-
-            elif self.PreProcessFilter.currentText() == "NIR":
-                self.PreProcessMonoBandBox.setChecked(True)
-                self.Band_Dropdown.setCurrentIndex(0)
-
-            elif self.PreProcessFilter.currentText() == "Red":
-                self.PreProcessMonoBandBox.setChecked(True)
-                self.Band_Dropdown.setCurrentIndex(0)
-
-            elif self.PreProcessFilter.currentText() == "Green":
-                self.PreProcessMonoBandBox.setChecked(True)
-                self.Band_Dropdown.setCurrentIndex(1)
-
-            elif self.PreProcessFilter.currentText() == "Blue":
-                self.PreProcessMonoBandBox.setChecked(True)
-                self.Band_Dropdown.setCurrentIndex(2)
-
-            elif self.PreProcessFilter.currentText() == "RGB":
-                self.PreProcessMonoBandBox.setChecked(False)
-
-            if self.PreProcessFilter.currentText() != "RGB":
-                self.PreProcessColorBox.setEnabled(False)
        
         else:
             self.PreProcessColorBox.setChecked(False)
@@ -2310,12 +2257,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def on_PreProcessCameraModel_currentIndexChanged(self):
         self.PreProcessVignette.setChecked(False)
         self.PreProcessVignette.setEnabled(False)
-        self.PreProcessColorBox.setChecked(False)
-        self.PreProcessColorBox.setEnabled(False)
-
-        self.PreProcessMonoBandBox.setChecked(False)
-        self.Band_Dropdown.setEnabled(False)
-        self.PreProcessMonoBandBox.setEnabled(True)
 
         if self.PreProcessCameraModel.currentText() == "Kernel 3.2":
             self.PreProcessFilter.clear()
@@ -2342,7 +2283,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
         elif self.PreProcessCameraModel.currentText() == "Survey3":
             self.PreProcessFilter.clear()
-            self.PreProcessFilter.addItems(["RGB", "OCN", "RGN", "NGB", "RE", "NIR"])
+            self.PreProcessFilter.addItems(["RGB", "RGN", "NGB", "NIR", "OCN"])
             self.PreProcessFilter.setEnabled(True)
             self.PreProcessLens.clear()
             self.PreProcessLens.addItems(["3.37mm (Survey3W)", "8.25mm (Survey3N)"])
@@ -2395,15 +2336,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.PreProcessLens.clear()
             self.PreProcessLens.setEnabled(False)
 
-    def on_PreProcessMonoBandBox_toggled(self):
-        if self.PreProcessMonoBandBox.checkState() == 2:
-            self.Band_Dropdown.addItems(["Band 1 (Red)", "Band 2 (Green)", "Band 3 (Blue)"])
-            self.Band_Dropdown.setEnabled(True)
-
-        elif self.histogramClipBox.checkState() == 0:
-            self.Band_Dropdown.clear()
-            self.Band_Dropdown.setEnabled(False)
-
         QtWidgets.QApplication.processEvents()
     def on_CalibrationCameraModel_currentIndexChanged(self):
         #list of index values
@@ -2436,7 +2368,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
         elif self.CalibrationCameraModel.currentIndex() == SURVEY_3:
             self.CalibrationFilter.clear()
-            self.CalibrationFilter.addItems(["RGN", "NGB", "NIR", "OCN" ]) 
+            self.CalibrationFilter.addItems(["RGN", "NGB", "NIR", "OCN" ])
             self.CalibrationFilter.setEnabled(True)
             self.CalibrationLens.clear()
             self.CalibrationLens.addItems([" 3.37mm (Survey3W)", "8.25mm (Survey3N)"])
@@ -3127,7 +3059,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     HC_Value = pixel[0]
                     break
         return HC_Value
-
     def on_histogramClipBox_toggled(self):
         if self.histogramClipBox.checkState() == 2:
             self.Histogram_Clipping_Percentage.setEnabled(True)
@@ -3396,7 +3327,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                                                + self.BASE_COEFF_DJIX3_NDVI_JPG[2]
                                     self.pixel_min_max["bluemax"] = (self.pixel_min_max["bluemax"] * self.BASE_COEFF_DJIX3_NDVI_JPG[3]) \
                                                                + self.BASE_COEFF_DJIX3_NDVI_JPG[2]
-                            elif ind[0] == 6:
+                            elif ind[0] == 5:
                                 if "tif" or "TIF" in calpixel:
                                     self.pixel_min_max["redmax"] = (
                                                               self.pixel_min_max["redmax"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[1]) \
@@ -3491,6 +3422,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 self.HC_max["redmax"] = self.calibrate(self.multiplication_values["Red"], self.HC_max["redmax"])
                                 self.HC_max["greenmax"] = self.calibrate(self.multiplication_values["Green"], self.HC_max["greenmax"])
                                 self.HC_max["bluemax"] = self.calibrate(self.multiplication_values["Blue"], self.HC_max["bluemax"])
+
 
                         for i, calfile in enumerate(files_to_calibrate):
 
@@ -4341,7 +4273,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                refimg[:, :, 1] = 1
 
             elif (ind[0] == 4 and ind[1] == 1) \
-                    or (ind[0] == 3 and ind[1] == 2) or (ind[0] == 4 and ind[1] == 2):
+                    or (ind[0] == 3 and ind[1] == 2) or (ind[0] == 4 and self.CalibrationFilter.currentIndex() == 2):
                 ### Remove blue and green information if NIR or Red camera
                 # refimg[:, :, 0] = 1
                 # refimg[:, :, 1] = 1
@@ -4609,7 +4541,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             # kernel = np.ones((2, 2), np.uint16)
             # im2 = cv2.erode(im2, kernel, iterations=1)
             # im2 = cv2.dilate(im2, kernel, iterations=1)
-            if ((ind[0] > 1) and (ind[0] == 3 and ind[1] != 2)) or ((ind[0] < 2) and (ind[1] > 10)) or (ind[0] > 5):#or (ind[0] == 4): Kernel 14.0, Survey 3 - RGBs, Survey 2, and Phantoms
+            if ((ind[0] > 1) and (ind[0] == 3 and ind[1] != 2)) or ((ind[0] < 2) and (ind[1] > 10)) or (ind[0] > 5) or (ind[0] == 4): #Kernel 14.0, Survey 3 - RGBs, Survey 2, and Phantoms
                 try:
                     targ1values = im2[(target1[1] - int((pixelinch * 0.75) / 2)):(target1[1] + int((pixelinch * 0.75) / 2)),
                                   (target1[0] - int((pixelinch * 0.75) / 2)):(target1[0] + int((pixelinch * 0.75) / 2))]
@@ -4969,7 +4901,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             for input in infiles:
                 self.PreProcessLog.append(
                     "Processing Image: " + str((counter) + 1) + " of " + str(len(infiles)) +
-                    "  " + input.split(os.sep)[1])
+                    " " + input.split(os.sep)[1])
                 QtWidgets.QApplication.processEvents()
                 filename = input.split('.')
                 outputfilename = outfolder + filename[1] + '.tif'
@@ -4996,7 +4928,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                         if customerdata == True:
                             self.PreProcessLog.append(
-                                "Processing Image: " + str(int((counter / 2) + 1)) + " of " + str(int(len(infiles) / 2)) +
+                                "Processing Image: " + str((counter / 2) + 1) + " of " + str(len(infiles) / 2) +
                                 " " + input.split(os.sep)[1])
                             QtWidgets.QApplication.processEvents()
 
@@ -5083,9 +5015,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             color[color > 1.0] = 1.0
                             color[color < 0.0] = 0.0
 
-                        #if ((self.PreProcessCameraModel.currentText() == "Survey3") 
-                         #       and (self.PreProcessFilter.currentText() == "NIR" or  self.PreProcessFilter.currentText() == "RE")):
-                          #  color = color[:,:,0]
+                        if self.PreProcessCameraModel.currentText() == "Survey3" and self.PreProcessFilter.currentText() == "NIR":
+                            color = color[:,:,0]
                         # maxcol = color.max()
                         # mincol = color.min()
 
@@ -5106,21 +5037,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             outputfilename = filename[1] + '.tif'
                             cv2.imencode(".tif", color)
 
-                        if self.PreProcessMonoBandBox.isChecked():
-                            dropdown_value = self.Band_Dropdown.currentText()
-                            band = dropdown_value[dropdown_value.find("(")+1:dropdown_value.find(")")]
-                            
-                            if band == "Red":
-                                color = color[:,:,0]
-
-                            elif band == "Green":
-                                color = color[:,:,1]
-
-                            elif band == "Blue":
-                                color = color[:,:,2]
-
-                        print(color.shape)
-                        print("writing")
                         cv2.imwrite(outfolder + outputfilename, color)
 
                         if customerdata == True:
