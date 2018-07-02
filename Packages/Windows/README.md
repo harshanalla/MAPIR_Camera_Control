@@ -1,9 +1,11 @@
 
 # Windows OS
 
+Click a below blue text date to download MAPIR Camera Contorl application.
+
 ## Current Version
 
-[DOWNLOAD HERE - June 26th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_06262018.exe)
+[June 26th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_06262018.exe)
 
 Change Log 
 * Fixed histogram clipping feature
