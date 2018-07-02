@@ -3,7 +3,7 @@
 
 ## Current Version
 
-[June 26th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_06262018.exe)
+[DOWNLOAD HERE - June 26th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_06262018.exe)
 
 Change Log 
 * Fixed histogram clipping feature
