@@ -1,7 +1,7 @@
 
 # Windows OS
 
-Click a below blue text date to download MAPIR Camera Contorl application.
+Click a below blue text date to download MAPIR Camera Control application.
 
 ## Current Version
 
