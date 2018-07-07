@@ -28,8 +28,6 @@ warnings.filterwarnings("ignore")
 from PIL import Image
 from PIL.TiffTags import TAGS
 
-
-
 os.umask(0)
 from LensLookups import *
 import datetime
