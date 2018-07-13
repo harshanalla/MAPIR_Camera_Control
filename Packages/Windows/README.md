@@ -1,6 +1,8 @@
 
 # Windows OS
 
+Click a below blue text date to download MAPIR Camera Control application.
+
 ## Current Version
 
 [July 13th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_07132018.exe)
