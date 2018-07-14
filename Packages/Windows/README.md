@@ -1,29 +1,17 @@
 
 # Windows OS
 
-Click a below blue text date to download MAPIR Camera Control application.
-
 ## Current Version
-
-[July 13th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_07132018.exe)
-
-Change Log 
-* Added RE capability
-* Added outputting Mono band feature
-* Added OCN ref values for Version 1 Target
-* Improved target detecting algorithm
-* Improved Mono Calibration algorithm
-
-## Old Versions
 
 [June 26th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_06262018.exe)
 
-Change Log
+Change Log 
 * Fixed histogram clipping feature
 * Added MAPIR logo to taskbar and window
 * Added new filter options for vignette feature
 * Added dark color correction feature
 
+## Old Versions
 [June 20th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_06202018.exe) 
 
 Change Log 
