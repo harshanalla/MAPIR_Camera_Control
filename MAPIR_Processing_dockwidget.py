@@ -5540,7 +5540,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                  r'-ifd0:make=MAPIR',
                                  r'-Model=' + model,
                                  r'-ModelType=perspective',
-                                 r'-BlackCurrent=' + str(dark_frame_value),
+                                 r'-BlackCurrent=' + str(DFV),
                                  r'-Yaw=' + str(ypr[0]),
                                  r'-Pitch=' + str(ypr[1]),
                                  r'-Roll=' + str(ypr[2]),
