@@ -3,17 +3,6 @@
 
 ## Current Version
 
-[July 16th, 2018](https://drive.google.com/file/d/1bTYOLdmUcLdmMXq0VW5NR-G5qqYIVnsL/view?usp=sharing)
-
-Change Log
-* Added RE capability
-* Added outputting Mono band feature
-* Added OCN ref values for Version 1 Target
-* Improved target detecting algorithm
-* Improved Mono Calibration algorithm 
-
-## Old Versions
-
 [June 26th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_06262018.exe)
 
 Change Log 
@@ -22,6 +11,7 @@ Change Log
 * Added new filter options for vignette feature
 * Added dark color correction feature
 
+## Old Versions
 [June 20th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_06202018.exe) 
 
 Change Log 
