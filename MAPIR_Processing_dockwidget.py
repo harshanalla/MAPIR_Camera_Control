@@ -870,6 +870,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         super(MAPIR_ProcessingDockWidget, self).__init__(parent)
 
         self.setupUi(self)
+        self.ViewerCalcButton.setStyleSheet("QPushButton { background-color: None; color: #3f3f3f; }")
+        self.LUTButton.setStyleSheet("QPushButton { background-color: None ; color: #3f3f3f;} ")
+
         try:
             legend = cv2.imread(os.path.dirname(__file__) + "/lut_legend.jpg")
             legh, legw = legend.shape[:2]
@@ -1064,6 +1067,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.VigWindow = Vignette(self)
         self.VigWindow.resize(385, 160)
         self.VigWindow.show()
+
     def on_KernelBrowserButton_released(self):
         with open(modpath + os.sep + "instring.txt", "r+") as instring:
             self.KernelBrowserFile.setText(QtWidgets.QFileDialog.getOpenFileName(directory=instring.read())[0])
@@ -1086,7 +1090,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     self.display_image = self.display_image.astype("uint8")
                 # self.imkeys = np.array(list(range(0, 65536)))
                 self.displaymin = self.display_image.min()
-                self.displaymax = int(np.setdiff1d(self.imkeys[self.imkeys > int(np.median(self.display_image))], self.display_image)[0])
+                self.displaymax = self.display_image.max()
 
 
                 self.display_image[self.display_image > self.displaymax] = self.displaymax
@@ -1117,8 +1121,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.ViewerIndexBox.blockSignals(True)
                 self.ViewerStretchBox.blockSignals(True)
 
-                self.ViewerCalcButton.setEnabled(True)
-                self.LUTButton.setEnabled(False)
+                self.ViewerCalcButton.setStyleSheet("QPushButton { background-color: rgb(50,180,50); color: white }")
                 self.LUTBox.setEnabled(False)
                 self.LUTBox.setChecked(False)
                 self.ViewerIndexBox.setEnabled(False)
@@ -1143,6 +1146,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             print(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
     def on_ViewerStretchBox_toggled(self):
         self.stretchView()
+
     def stretchView(self):
         try:
             if self.image_loaded:
@@ -1176,6 +1180,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             print("Line: " + str(exc_tb.tb_lineno))
     def on_ViewerIndexBox_toggled(self):
         self.applyRaster()
+
     def applyRaster(self):
         try:
             h, w = self.display_image.shape[:2]
@@ -1215,18 +1220,21 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
     def on_LUTBox_toggled(self):
         self.applyLUT()
+
     def applyLUT(self):
         try:
             h, w = self.display_image.shape[:2]
             if self.LUTBox.isChecked():
                 if self.LUTwindow.ClipOption.currentIndex() == 1:
                     self.frame = QtGui.QImage(self.ndvipsuedo.data, w, h, w * 4, QtGui.QImage.Format_RGBA8888)
+
                 else:
                     self.frame = QtGui.QImage(self.ndvipsuedo.data, w, h, w * 3, QtGui.QImage.Format_RGB888)
 
                 legend = cv2.imread(os.path.dirname(__file__) + r'\lut_legend_rgb.jpg', -1).astype("uint8")
                 legend = cv2.cvtColor(legend, cv2.COLOR_BGR2RGB)
                 legh, legw = legend.shape[:2]
+
                 self.legend_frame = QtGui.QImage(legend.data, legw, legh, legw * 3, QtGui.QImage.Format_RGB888)
                 self.LUTGraphic.setPixmap(QtGui.QPixmap.fromImage(
                     QtGui.QImage(self.legend_frame)))
@@ -1252,6 +1260,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 legend = cv2.imread(os.path.dirname(__file__) + r'\lut_legend.jpg', 0).astype("uint8")
                 # legend = cv2.cvtColor(legend, cv2.COLOR_GRAY2RGB)
                 legh, legw = legend.shape[:2]
+
                 self.legend_frame = QtGui.QImage(legend.data, legw, legh, legw, QtGui.QImage.Format_Grayscale8)
                 self.LUTGraphic.setPixmap(QtGui.QPixmap.fromImage(
                     QtGui.QImage(self.legend_frame)))
@@ -1276,12 +1285,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 if self.ViewerIndexBox.isChecked():
                     self.LegendLayout_2.show()
                     self.frame = QtGui.QImage(self.calcwindow.ndvi.data, w, h, w, QtGui.QImage.Format_Grayscale8)
+
                 else:
                     self.LegendLayout_2.hide()
                     self.frame = QtGui.QImage(self.display_image.data, w, h, w * 3, QtGui.QImage.Format_RGB888)
             self.updateViewer(keepAspectRatio=False)
-
             QtWidgets.QApplication.processEvents()
+
         except Exception as e:
             exc_type, exc_obj,exc_tb = sys.exc_info()
             print(e)
@@ -1294,23 +1304,31 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         self.savewindow.resize(385, 110)
         self.savewindow.exec_()
 
-
-
         QtWidgets.QApplication.processEvents()
 
     def on_LUTButton_released(self):
-        if self.LUTwindow == None:
-            self.LUTwindow = Applicator(self)
-        self.LUTwindow.resize(385, 160)
-        self.LUTwindow.show()
+        if self.display_image_original is not None:
+            if self.LUTwindow == None:
+                self.LUTwindow = Applicator(self)
+            self.LUTwindow.resize(385, 160)
+            self.LUTwindow.show()
+        else:
+            None
 
         QtWidgets.QApplication.processEvents()
     def on_ViewerCalcButton_released(self):
-        if self.LUTwindow == None:
-            self.calcwindow = Calculator(self)
-        self.calcwindow.resize(385, 250)
-        self.calcwindow.show()
-        QtWidgets.QApplication.processEvents()
+        if self.display_image_original is not None:
+        
+            if self.LUTwindow == None:
+                self.calcwindow = Calculator(self)
+
+            self.calcwindow.resize(685, 250)
+            self.calcwindow.show()
+            QtWidgets.QApplication.processEvents()
+
+        else:
+            None
+
     def on_ZoomIn_released(self):
         if self.image_loaded == True:
             try:
@@ -3407,6 +3425,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                                                + self.BASE_COEFF_SURVEY2_NDVI_TIF[2]
                                     self.pixel_min_max["bluemax"] = (self.pixel_min_max["bluemax"] * self.BASE_COEFF_SURVEY2_NDVI_TIF[3]) \
                                                                + self.BASE_COEFF_SURVEY2_NDVI_TIF[2]
+
                                 elif filetype in self.JPGS:
                                     self.pixel_min_max["redmax"] = (self.pixel_min_max["redmax"] * self.BASE_COEFF_SURVEY2_NDVI_JPG[1]) \
                                                               + self.BASE_COEFF_SURVEY2_NDVI_JPG[0]
@@ -4190,7 +4209,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         elif camera == "Kernel 14.4":
             return True
 
-        elif camera == "Survey 2" and filt == "Red + NIR (NDVI)":
+        elif camera == "Survey2" and filt == "Red + NIR (NDVI)":
             return True
 
         else:
@@ -4773,7 +4792,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             # return [intcpt, slope]
     # Calibration Steps: End
 
-
     # Helper functions
     # def debayer(self, m):
     #     r = m[0:: 2, 0:: 2]
@@ -5048,6 +5066,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         QtWidgets.QApplication.processEvents()
                         cv2.imwrite(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], img)
                         self.copySimple(outphoto, outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
+
                         color = cv2.cvtColor(img, cv2.COLOR_BAYER_GB2RGB).astype("float32")
                         color2 = cv2.cvtColor(img, cv2.COLOR_BAYER_BG2BGR).astype("float32")
                         # gr = ((color2[:,:,2] + color2[:,:,0])/2).astype("uint16")
@@ -5498,7 +5517,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                  r'-Pitch=' + str(ypr[1]),
                                  r'-Roll=' + str(ypr[2]),
                                  r'-CentralWavelength=' + str(float(centralwavelength[0])) + ', ' + str(float(centralwavelength[1])) + ', ' + str(float(centralwavelength[2])),
-                                 # r'-BandName="{band1=' + str(self.BandNames[bandname][0]) + r'band2=' + str(self.BandNames[bandname][1]) + r'band3=' + str(self.BandNames[bandname][2]) + r'}"',
                                  r'-bandname=' + str(bandname[0] + ', ' + bandname[1] + ', ' + bandname[2]),
                                  # r'-bandname2=' + str( r'F' + self.BandNames.get(bandname, [0,0,0])[1]),
                                  # r'-bandname3=' + str( r'F' + self.BandNames.get(bandname, [0,0,0])[2]),

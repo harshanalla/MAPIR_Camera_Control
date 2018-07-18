@@ -38,19 +38,23 @@ class Calculator(QtWidgets.QDialog, RASTER_CLASS):
             self.processIndex()
             self.parent.ViewerIndexBox.setEnabled(True)
             if self.parent.LUTwindow == None or not self.parent.LUTwindow.isVisible():
-                self.parent.LUTButton.setEnabled(True)
+                self.parent.LUTButton.setStyleSheet("QPushButton { background-color: rgb(50,180,50); color: white; }")
+
             if self.parent.ViewerIndexBox.isChecked():
                 self.parent.applyRaster()
             else:
                 self.parent.ViewerIndexBox.setChecked(True)
+
         except Exception as e:
             print(e)
+
     def on_RasterOkButton_released(self):
         try:
             self.processIndex()
             self.parent.ViewerIndexBox.setEnabled(True)
             if self.parent.LUTwindow == None or not self.parent.LUTwindow.isVisible():
-                self.parent.LUTButton.setEnabled(True)
+                self.parent.LUTButton.setStyleSheet("QPushButton { background-color: rgb(50,180,50); color: white; }")
+
             if self.parent.ViewerIndexBox.isChecked():
                 self.parent.applyRaster()
             else:

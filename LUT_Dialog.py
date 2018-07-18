@@ -27,7 +27,7 @@ class Applicator(QtWidgets.QDialog, LUT_Class):
         self.parent = parent
 
         self.setupUi(self)
-        self.parent.LUTButton.setEnabled(False)
+        self.parent.LUTButton.setStyleSheet("QPushButton { background-color: None; color: #3f3f3f; }")
         self.RasterMin.setText(str(round(self.parent.LUT_Min, 2)))
         self.RasterMax.setText(str(round(self.parent.LUT_Max, 2)))
         try:
@@ -38,9 +38,8 @@ class Applicator(QtWidgets.QDialog, LUT_Class):
             self.LUTColors.setPixmap(QtGui.QPixmap.fromImage(img2))
         except Exception as e:
             print(e)
+
     def on_RasterApplyButton_released(self):
-
-
         self.processLUT()
         self.parent.LUTBox.setEnabled(True)
 
@@ -48,6 +47,7 @@ class Applicator(QtWidgets.QDialog, LUT_Class):
             self.parent.applyLUT()
         else:
             self.parent.LUTBox.setChecked(True)
+
     def on_RasterOkButton_released(self):
         try:
             self.processLUT()
@@ -59,12 +59,13 @@ class Applicator(QtWidgets.QDialog, LUT_Class):
             self.parent.applyLUT()
         else:
             self.parent.LUTBox.setChecked(True)
-        self.parent.LUTButton.setEnabled(True)
+
+        self.parent.LUTButton.setStyleSheet("QPushButton { background-color: rgb(50,180,50); color: white; }")
 
         self.close()
 
     def on_RasterCloseButton_released(self):
-        self.parent.LUTButton.setEnabled(True)
+        self.parent.LUTButton.setStyleSheet("QPushButton { background-color: rgb(50,180,50); color: white; }")
         self.close()
 
     def processLUT(self):
@@ -194,8 +195,10 @@ class Applicator(QtWidgets.QDialog, LUT_Class):
             self._max = float(self.RasterMax.text())
             range_ = copy.deepcopy(self.parent.calcwindow.ndvi)
             temp = copy.deepcopy(self.parent.calcwindow.ndvi)
-            workingmin = (((self._min / (abs(round(self.parent.LUT_Min, 2)) if self._min < 0 else round(self.parent.LUT_Min, 2))) + 1)/2) * 255
-            workingmax = (((self._max / (abs(round(self.parent.LUT_Max, 2)) if self._max > 0 else round(self.parent.LUT_Max, 2))) + 1)/2) * 255
+
+            workingmin = (((self._min / (abs((round(self.parent.LUT_Min, 2))) if self._min < 0 else round(self.parent.LUT_Min, 2) * -1)) + 1)/2) * 255
+            workingmax = (((self._max / (abs((round(self.parent.LUT_Max, 2))) if self._max > 0 else round(self.parent.LUT_Min, 2) * -1)) + 1)/2) * 255
+
             range_[range_ < workingmin] = workingmin
             range_[range_ > workingmax] = workingmax
             range_ = (((range_ - range_.min())/(range_.max() - range_.min())) * 255).astype("uint8")
