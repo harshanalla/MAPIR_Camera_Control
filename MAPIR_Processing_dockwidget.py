@@ -616,36 +616,99 @@ class tEventInfo:
         nr_faces = 0
 
 class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
-    BASE_COEFF_SURVEY1_NDVI_JPG = [-6.33770486888, 331.759383023, 0.0, 0.0, -0.6931339436, 51.3264675118]
+    BASE_COEFF_SURVEY1_NDVI_JPG = {"red":   {"slope": 331.759383023, "intercept": -6.33770486888},
+                                   "green": {"slope": 0.00, "intercept": 0.00},
+                                   "blue":  {"slope": 51.3264675118, "intercept": -0.6931339436}
+                                  }
 
-    BASE_COEFF_SURVEY2_RED_JPG = [-2.55421832, 16.01240929]
-    BASE_COEFF_SURVEY2_GREEN_JPG = [-0.60437250, 4.82869470]
-    BASE_COEFF_SURVEY2_BLUE_JPG = [-0.39268985, 2.67916884]
-    BASE_COEFF_SURVEY2_RED_TIF = [-5.09645820, 0.24177528]
-    BASE_COEFF_SURVEY2_GREEN_TIF = [-1.39528479, 0.07640011]
-    BASE_COEFF_SURVEY2_BLUE_TIF = [-0.67299134, 0.03943339]
+    BASE_COEFF_SURVEY2_RED_JPG = {"slope": 16.01240929, "intercept": -2.55421832}
+    BASE_COEFF_SURVEY2_RED_TIF = {"slope": 0.24177528, "intercept": -5.09645820}
 
-    BASE_COEFF_SURVEY2_NDVI_JPG = [-0.29870245, 6.51199915, 0.0, 0.0, -0.65112026, 10.30416005]
-    BASE_COEFF_SURVEY2_NIR_JPG = [-0.46967653, 7.13619139, 0.0, 0.0, 0.0, 0.0]
-    BASE_COEFF_SURVEY2_NDVI_TIF = [3.21946584661, 1.06087488594, 0.0, 0.0, -43.6505776052, 1.46482226805]
-    BASE_COEFF_SURVEY2_NIR_TIF = [-2.24216724, 0.12962333, 0.0, 0.0, 0.0, 0.0]
+    BASE_COEFF_SURVEY2_GREEN_JPG = {"slope": 4.82869470, "intercept": -0.60437250}
+    BASE_COEFF_SURVEY2_GREEN_TIF = {"slope": 0.07640011, "intercept": -1.39528479}
 
-    BASE_COEFF_SURVEY3_NGB_TIF = [13.2610911247, 3.97721174076, 5.73811506234]
-    BASE_COEFF_SURVEY3_RGN_TIF = [5.09994742157, 3.85344547793, 9.49432813587]
-    BASE_COEFF_SURVEY3_RGN_JPG = [ 357.88839863610343, 307.2693797239227, 843.5578883639961]
-    BASE_COEFF_SURVEY3_OCN_JPG = [1.398521652513452, 1.4491629837930946,  1.4182172407769202]
-    BASE_COEFF_SURVEY3_OCN_TIF = [5.89784551246605, 5.184366435936312,  7.969331481420168]
+    BASE_COEFF_SURVEY2_BLUE_JPG = {"slope": 2.67916884, "intercept": -0.39268985}
+    BASE_COEFF_SURVEY2_BLUE_TIF = {"slope": 0.03943339, "intercept": -0.67299134}
 
-    BASE_COEFF_SURVEY3_NIR_TIF = 13.2610911247
-    BASE_COEFF_SURVEY3_RE_JPG =  1.2062049608427268
-    BASE_COEFF_SURVEY3_RE_TIF = 18.029040677628963
 
-    BASE_COEFF_DJIX3_NDVI_JPG = [-0.34430543, 4.63184993, 0.0, 0.0, -0.49413940, 16.36429964]
-    BASE_COEFF_DJIX3_NDVI_TIF = [-0.74925346, 0.01350319, 0.0, 0.0, -0.77810008, 0.03478272]
-    BASE_COEFF_DJIPHANTOM4_NDVI_JPG = [-1.17016961, 0.03333209, 0.0, 0.0, -0.99455214, 0.05373502]
-    BASE_COEFF_DJIPHANTOM4_NDVI_TIF = [-1.17016961, 0.03333209, 0.0, 0.0, -0.99455214, 0.05373502]
-    BASE_COEFF_DJIPHANTOM3_NDVI_JPG = [-1.54494979, 3.44708472, 0.0, 0.0, -1.40606832, 6.35407929]
-    BASE_COEFF_DJIPHANTOM3_NDVI_TIF = [-1.37495554, 0.01752340, 0.0, 0.0, -1.41073753, 0.03700812]
+    BASE_COEFF_SURVEY2_NDVI_JPG = {"red":   {"slope": 6.51199915, "intercept": -0.29870245},
+                                   "green": {"slope": 0.00, "intercept": 0.00},
+                                   "blue":  {"slope": 10.30416005, "intercept": -0.65112026}
+                                  }
+
+    BASE_COEFF_SURVEY2_NDVI_TIF = {"red":   {"slope": 1.06087488594, "intercept": 3.21946584661},
+                                   "green": {"slope": 0.00, "intercept": 0.00},
+                                   "blue":  {"slope": 1.46482226805, "intercept": -43.6505776052}
+                                  }
+
+    BASE_COEFF_SURVEY2_NIR_JPG = {"slope": 7.13619139, "intercept": -0.46967653}
+    BASE_COEFF_SURVEY2_NIR_TIF = {"slope":  0.12962333, "intercept": -2.24216724}
+
+    BASE_COEFF_SURVEY3_NGB_TIF = {"red":   {"slope": 6.9623355781520475, "intercept": -0.0864835439375467},
+                                  "green": {"slope": 1.8947426321347667, "intercept": -0.0494622920687357},
+                                  "blue":  {"slope": 2.743963570586564, "intercept":  -0.03883688306243116}
+                                 }
+
+    BASE_COEFF_SURVEY3_NGB_JPG = {"red":   {"slope": 1.3572359350724152, "intercept": -0.23211423412281346},
+                                  "green": {"slope": 1.1880427799275182, "intercept": -0.15262065349606874},
+                                  "blue":  {"slope": 1.352860697992975, "intercept":  -0.19361810260132328}
+                                 }
+
+    BASE_COEFF_SURVEY3_RGN_JPG = {"red":   {"slope": 1.3289958195489457, "intercept": -0.17638075239399503},
+                                  "green": {"slope": 1.2902528664499517, "intercept": -0.15262065349606874},
+                                  "blue":  {"slope": 1.387381083964384, "intercept":  -0.2193633829181454}
+                                 }
+
+    BASE_COEFF_SURVEY3_RGN_TIF = {"red":   {"slope": 3.3823966319413326, "intercept": -0.025581742423831766},
+                                  "green": {"slope": 2.0198257823722026, "intercept": -0.019624370783744682},
+                                  "blue":  {"slope": 6.639688121967463, "intercept":  -0.025991734455270532}
+                                 }
+
+    BASE_COEFF_SURVEY3_OCN_JPG = {"red":   {"slope": 1.0228327654792326, "intercept": -0.1847085716228949},
+                                  "green": {"slope":  1.0655229303683258, "intercept": -0.1921036590734388},
+                                  "blue":  {"slope": 1.0562618906633048, "intercept":  -0.2037317328293336}
+                                 }
+
+    BASE_COEFF_SURVEY3_OCN_TIF = {"red":   {"slope": 1.557354345031938, "intercept": -0.0790237907829558},
+                                  "green": {"slope": 1.3794503108318112, "intercept": -0.0743811687912796},
+                                  "blue":  {"slope": 2.1141137232666183, "intercept": -0.0650818927718132}
+                                 }
+
+    BASE_COEFF_SURVEY3_NIR_TIF = {"slope":  13.2610911247, "intercept": 0.0}
+
+    BASE_COEFF_SURVEY3_RE_JPG = {"slope":  0.12962333, "intercept": -2.24216724}
+    BASE_COEFF_SURVEY3_RE_TIF = {"slope":  14.637430522690837, "intercept": -0.11816284659122683}
+
+    BASE_COEFF_DJIX3_NDVI_JPG = {"red":   {"slope": 4.63184993, "intercept": -0.34430543},
+                                 "green": {"slope": 0.00, "intercept": 0.00},
+                                 "blue":  {"slope": 16.36429964, "intercept": -0.49413940}
+                                }
+
+    BASE_COEFF_DJIX3_NDVI_TIF = {"red":   {"slope": 0.01350319, "intercept": -0.74925346},
+                                 "green": {"slope": 0.00, "intercept": 0.00},
+                                 "blue":  {"slope": 0.03478272, "intercept": -0.77810008}
+                                }
+
+    BASE_COEFF_DJIPHANTOM4_NDVI_JPG = {"red":   {"slope": 0.03333209, "intercept": -1.17016961},
+                                       "green": {"slope": 0.00, "intercept": 0.00},
+                                       "blue":  {"slope": 0.05373502, "intercept": -0.99455214}
+                                      }
+
+    BASE_COEFF_DJIPHANTOM4_NDVI_TIF = {"red":   {"slope": 0.03333209, "intercept": -1.17016961},
+                                       "green": {"slope": 0.00, "intercept": 0.00},
+                                       "blue":  {"slope": 0.05373502, "intercept": -0.99455214}
+                                      }
+
+    BASE_COEFF_DJIPHANTOM3_NDVI_JPG = {"red":   {"slope": 3.44708472, "intercept": -1.54494979},
+                                       "green": {"slope": 0.00, "intercept": 0.00},
+                                       "blue":  {"slope": 6.35407929, "intercept": -1.40606832}
+                                      }
+
+    BASE_COEFF_DJIPHANTOM3_NDVI_TIF = {"red":   {"slope":  0.01752340, "intercept": -1.37495554},
+                                       "green": {"slope": 0.00, "intercept": 0.00},
+                                       "blue":  {"slope": 0.03700812, "intercept": -1.41073753}
+                                      }
+
     BASE_COEFF_KERNEL_F644 = [0.0, 0.0]
     BASE_COEFF_KERNEL_F405 = [0.0, 0.0]
     BASE_COEFF_KERNEL_F450 = [0.0, 0.0]
@@ -662,7 +725,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     BASE_COEFF_KERNEL_F660_850 = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     BASE_COEFF_KERNEL_F475_550_850 = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     BASE_COEFF_KERNEL_F550_660_850 = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-
 
     # eFilter = mousewheelFilter()
     camera = 0
@@ -755,10 +817,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                      "greenmax": 0.0, "greenmin": 65535.0,
                      "bluemax": 0.0, "bluemin": 65535.0}
 
-    multiplication_values = {"Red": [0.00],
-                             "Green": [0.00],
-                             "Blue": [0.00],
-                             "Mono": [0.00]}
+    multiplication_values = {"red":   {"slope": 0.00, "intercept": 0.00},
+                             "green": {"slope": 0.00, "intercept": 0.00},
+                             "blue":  {"slope": 0.00, "intercept": 0.00},
+                             "mono":  {"slope": 0.00, "intercept": 0.00}
+                            }
 
     monominmax = {"min": 65535.0,"max": 0.0}
     imkeys_JPG = np.array(list(range(0, 255)))
@@ -3087,7 +3150,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
             elif len(self.CalibrationQRFile.text()) > 0:
                 self.findQR(self.CalibrationQRFile.text(), [self.CalibrationCameraModel, self.CalibrationFilter, self.CalibrationLens])
-                self.qrcoeffs = copy.deepcopy(self.multiplication_values["Mono"])
+                self.qrcoeffs = copy.deepcopy(self.multiplication_values["mono"])
                 print("Multplication Values: ", self.multiplication_values)
                 self.useqr = True
 
@@ -3106,7 +3169,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             elif len(self.CalibrationQRFile_2.text()) > 0:
 
                 self.findQR(self.CalibrationQRFile_2.text(), [self.CalibrationCameraModel_2, self.CalibrationFilter_2, self.CalibrationLens_2])
-                self.qrcoeffs2 = copy.deepcopy(self.multiplication_values["Mono"])
+                self.qrcoeffs2 = copy.deepcopy(self.multiplication_values["mono"])
                 self.useqr = True
             else:
                 self.CalibrationLog.append("Attention! Please select a target image.\n")
@@ -3119,7 +3182,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.CalibrationLog.append("Attention! Please select a camera model.\n")
             elif len(self.CalibrationQRFile_3.text()) > 0:
                 self.findQR(self.CalibrationQRFile_3.text(), [self.CalibrationCameraModel_3, self.CalibrationFilter_3, self.CalibrationLens_3])
-                self.qrcoeffs3 = copy.deepcopy(self.multiplication_values["Mono"])
+                self.qrcoeffs3 = copy.deepcopy(self.multiplication_values["mono"])
                 self.useqr = True
             else:
                 self.CalibrationLog.append("Attention! Please select a target image.\n")
@@ -3132,7 +3195,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.CalibrationLog.append("Attention! Please select a camera model.\n")
             elif len(self.CalibrationQRFile_4.text()) > 0:
                 self.qrcoeffs4 = self.findQR(self.CalibrationQRFile_4.text(), [self.CalibrationCameraModel_4, self.CalibrationFilter_4, self.CalibrationLens_4])
-                self.qrcoeffs4 = copy.deepcopy(self.multiplication_values["Mono"])
+                self.qrcoeffs4 = copy.deepcopy(self.multiplication_values["mono"])
                 self.useqr = True
             else:
                 self.CalibrationLog.append("Attention! Please select a target image.\n")
@@ -3145,7 +3208,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.CalibrationLog.append("Attention! Please select a camera model.\n")
             elif len(self.CalibrationQRFile_5.text()) > 0:
                 self.qrcoeffs5 = self.findQR(self.CalibrationQRFile_5.text(), [self.CalibrationCameraModel_5, self.CalibrationFilter_5, self.CalibrationLens_5])
-                self.qrcoeffs5 = copy.deepcopy(self.multiplication_values["Mono"])
+                self.qrcoeffs5 = copy.deepcopy(self.multiplication_values["mono"])
                 self.useqr = True
             else:
                 self.CalibrationLog.append("Attention! Please select a target image.\n")
@@ -3158,7 +3221,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.CalibrationLog.append("Attention! Please select a camera model.\n")
             elif len(self.CalibrationQRFile_6.text()) > 0:
                 self.qrcoeffs6 = self.findQR(self.CalibrationQRFile_6.text(), [self.CalibrationCameraModel_6, self.CalibrationFilter_6, self.CalibrationLens_6])
-                self.qrcoeffs6 = copy.deepcopy(self.multiplication_values["Mono"])
+                self.qrcoeffs6 = copy.deepcopy(self.multiplication_values["mono"])
                 self.useqr = True
             else:
                 self.CalibrationLog.append("Attention! Please select a target image.\n")
@@ -3167,8 +3230,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.CalibrationLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
 
     #Function that calibrates global max and mins
-    def calibrate(self, multiplier, value):
-        return int(multiplier * value)
+    def calibrate(self, mult_values, value):
+        slope = mult_values["slope"]
+        intercept = mult_values["intercept"]
+
+        return int((slope * value) + intercept)
 
     def get_HC_value(self, color):
         HCP = int(self.HCP_value.text()) / 100
@@ -3274,19 +3340,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 files_to_calibrate5 = []
                 files_to_calibrate6 = []
 
-                # self.CalibrationLog.append("Files to calibrate[0]: " + files_to_calibrate[0])
-                '''indexes = [[self.CalibrationCameraModel.currentIndex(), self.CalibrationFilter.currentIndex(), self.CalibrationLens.currentIndex()],
-                           [self.CalibrationCameraModel_2.currentIndex(), self.CalibrationFilter_2.currentIndex(),
-                            self.CalibrationLens_2.currentIndex()],
-                           [self.CalibrationCameraModel_3.currentIndex(), self.CalibrationFilter_3.currentIndex(),
-                            self.CalibrationLens_3.currentIndex()],
-                           [self.CalibrationCameraModel_4.currentIndex(), self.CalibrationFilter_4.currentIndex(),
-                            self.CalibrationLens_4.currentIndex()],
-                           [self.CalibrationCameraModel_5.currentIndex(), self.CalibrationFilter_5.currentIndex(),
-                            self.CalibrationLens_5.currentIndex()],
-                           [self.CalibrationCameraModel_6.currentIndex(), self.CalibrationFilter_6.currentIndex(),
-                            self.CalibrationLens_6.currentIndex()],
-                           ]'''
 
                 indexes = [[self.CalibrationCameraModel.currentText(), self.CalibrationFilter.currentText(), self.CalibrationLens.currentText()],
                            [self.CalibrationCameraModel_2.currentText(), self.CalibrationFilter_2.currentText(),
@@ -3331,7 +3384,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             files_to_calibrate.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
 
                             if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate[0]:
-                                # self.CalibrationLog.append("Found files to Calibrate.\n")
                                 foldercount = 1
                                 endloop = False
                                 while endloop is False:
@@ -3364,8 +3416,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                                 self.pixel_min_max["bluemax"] = blue.max()
                                 self.pixel_min_max["bluemin"] = blue.min()
-                                
-
 
                                 if self.histogramClipBox.checkState() == self.CHECKED:
                                     self.HC_max["redmax"] = self.get_HC_value(red)
@@ -3398,134 +3448,71 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 except Exception as e:
                                     print("ERROR: ", e)
 
+                        min_max_list = ["redmax", "redmin", "greenmax", "greenmin", "bluemin", "bluemax"]
                         if not self.useqr:
                             filetype = calpixel.split(".")[-1]
+                            min_max_wo_g_list = ["redmax", "redmin", "bluemin", "bluemax"]
 
                             if camera_model == "Survey1":  # Survey1_NDVI
+                                min_max_list = min_max_wo_g_list
                                 if filetype in self.JPGS:
-                                    self.pixel_min_max["redmax"] = (self.pixel_min_max["redmax"] * self.BASE_COEFF_SURVEY1_NDVI_JPG[1]) \
-                                                              + self.BASE_COEFF_SURVEY1_NDVI_JPG[0]
-                                    self.pixel_min_max["redmin"] = (self.pixel_min_max["redmin"] * self.BASE_COEFF_SURVEY1_NDVI_JPG[1]) \
-                                                              + self.BASE_COEFF_SURVEY1_NDVI_JPG[0]
-                                    self.pixel_min_max["bluemin"] = (self.pixel_min_max["bluemin"] * self.BASE_COEFF_SURVEY1_NDVI_JPG[5]) \
-                                                               + self.BASE_COEFF_SURVEY1_NDVI_JPG[4]
-                                    self.pixel_min_max["bluemax"] = (self.pixel_min_max["bluemax"] * self.BASE_COEFF_SURVEY1_NDVI_JPG[5]) \
-                                                               + self.BASE_COEFF_SURVEY1_NDVI_JPG[4]
+                                    base_coef = self.BASE_COEFF_SURVEY1_NDVI_JPG
+
                                 else:
                                     self.failed_calibration()
                                     break
 
                             elif camera_model == "Survey2" and filt == "Red + NIR (NDVI)": #Survey 2 + Red + NIR
+                                min_max_list = min_max_wo_g_list
+
                                 if filetype in self.TIFS:
-                                    self.pixel_min_max["redmax"] = (self.pixel_min_max["redmax"] * self.BASE_COEFF_SURVEY2_NDVI_TIF[1]) \
-                                                              + self.BASE_COEFF_SURVEY2_NDVI_TIF[0]
-                                    self.pixel_min_max["redmin"] = (self.pixel_min_max["redmin"] * self.BASE_COEFF_SURVEY2_NDVI_TIF[1]) \
-                                                              + self.BASE_COEFF_SURVEY2_NDVI_TIF[0]
-                                    self.pixel_min_max["bluemin"] = (self.pixel_min_max["bluemin"] * self.BASE_COEFF_SURVEY2_NDVI_TIF[3]) \
-                                                               + self.BASE_COEFF_SURVEY2_NDVI_TIF[2]
-                                    self.pixel_min_max["bluemax"] = (self.pixel_min_max["bluemax"] * self.BASE_COEFF_SURVEY2_NDVI_TIF[3]) \
-                                                               + self.BASE_COEFF_SURVEY2_NDVI_TIF[2]
+                                    base_coef = self.BASE_COEFF_SURVEY2_NDVI_TIF
 
                                 elif filetype in self.JPGS:
-                                    self.pixel_min_max["redmax"] = (self.pixel_min_max["redmax"] * self.BASE_COEFF_SURVEY2_NDVI_JPG[1]) \
-                                                              + self.BASE_COEFF_SURVEY2_NDVI_JPG[0]
-                                    self.pixel_min_max["redmin"] = (self.pixel_min_max["redmin"] * self.BASE_COEFF_SURVEY2_NDVI_JPG[1]) \
-                                                              + self.BASE_COEFF_SURVEY2_NDVI_JPG[0]
-                                    self.pixel_min_max["bluemin"] = (self.pixel_min_max["bluemin"] * self.BASE_COEFF_SURVEY2_NDVI_JPG[3]) \
-                                                               + self.BASE_COEFF_SURVEY2_NDVI_JPG[2]
-                                    self.pixel_min_max["bluemax"] = (self.pixel_min_max["bluemax"] * self.BASE_COEFF_SURVEY2_NDVI_JPG[3]) \
-                                                               + self.BASE_COEFF_SURVEY2_NDVI_JPG[2]
+                                    base_coef = self.BASE_COEFF_SURVEY2_NDVI_JPG
+
                                 else:
                                     self.failed_calibration()
                                     break
 
                             elif camera_model == "DJI Phantom 3a":
+                                min_max_list = min_max_wo_g_list
                                 if filetype in self.TIFS:
-                                    self.pixel_min_max["redmax"] = (self.pixel_min_max["redmax"] * self.BASE_COEFF_DJIX3_NDVI_TIF[1]) \
-                                                              + self.BASE_COEFF_DJIX3_NDVI_TIF[0]
-                                    self.pixel_min_max["redmin"] = (self.pixel_min_max["redmin"] * self.BASE_COEFF_DJIX3_NDVI_TIF[1]) \
-                                                              + self.BASE_COEFF_DJIX3_NDVI_TIF[0]
-                                    self.pixel_min_max["bluemin"] = (self.pixel_min_max["bluemin"] * self.BASE_COEFF_DJIX3_NDVI_TIF[3]) \
-                                                               + self.BASE_COEFF_DJIX3_NDVI_TIF[2]
-                                    self.pixel_min_max["bluemax"] = (self.pixel_min_max["bluemax"] * self.BASE_COEFF_DJIX3_NDVI_TIF[3]) \
-                                                               + self.BASE_COEFF_DJIX3_NDVI_TIF[2]
+                                    base_coef = self.BASE_COEFF_DJIX3_NDVI_TIF
+
                                 elif filetype in self.JPGS:
-                                    self.pixel_min_max["redmax"] = (self.pixel_min_max["redmax"] * self.BASE_COEFF_DJIX3_NDVI_JPG[1]) \
-                                                              + self.BASE_COEFF_DJIX3_NDVI_JPG[0]
-                                    self.pixel_min_max["redmin"] = (self.pixel_min_max["redmin"] * self.BASE_COEFF_DJIX3_NDVI_JPG[1]) \
-                                                              + self.BASE_COEFF_DJIX3_NDVI_JPG[0]
-                                    self.pixel_min_max["bluemin"] = (self.pixel_min_max["bluemin"] * self.BASE_COEFF_DJIX3_NDVI_JPG[3]) \
-                                                               + self.BASE_COEFF_DJIX3_NDVI_JPG[2]
-                                    self.pixel_min_max["bluemax"] = (self.pixel_min_max["bluemax"] * self.BASE_COEFF_DJIX3_NDVI_JPG[3]) \
-                                                               + self.BASE_COEFF_DJIX3_NDVI_JPG[2]
+                                    base_coef = self.BASE_COEFF_DJIX3_NDVI_JPG
 
                                 else:
                                     self.failed_calibration()
                                     break
 
                             elif camera_model == "DJI Phantom 4":
+                                min_max_list = min_max_wo_g_list
                                 if filetype in self.TIFS:
-                                    self.pixel_min_max["redmax"] = (
-                                                              self.pixel_min_max["redmax"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[1]) \
-                                                              + self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[0]
-                                    self.pixel_min_max["redmin"] = (
-                                                              self.pixel_min_max["redmin"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[1]) \
-                                                              + self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[0]
-                                    self.pixel_min_max["bluemin"] = (self.pixel_min_max["bluemin"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[
-                                        3]) \
-                                                               + self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[2]
-                                    self.pixel_min_max["bluemax"] = (self.pixel_min_max["bluemax"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[
-                                        3]) \
-                                                               + self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF[2]
+                                    base_coef = self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF
+                        
                                 elif filetype in self.JPGS:
-                                    self.pixel_min_max["redmax"] = (
-                                                              self.pixel_min_max["redmax"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[1]) \
-                                                              + self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[0]
-                                    self.pixel_min_max["redmin"] = (
-                                                              self.pixel_min_max["redmin"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[1]) \
-                                                              + self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[0]
-                                    self.pixel_min_max["bluemin"] = (self.pixel_min_max["bluemin"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[
-                                        3]) \
-                                                               + self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[2]
-                                    self.pixel_min_max["bluemax"] = (self.pixel_min_max["bluemax"] * self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[
-                                        3]) \
-                                                               + self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG[2]
+                                    base_coef = self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG
 
                                 else:
                                     self.failed_calibration()
                                     break
 
                             elif camera_model in ["DJI Phantom 4 Pro", "DJI Phantom 3a"]:
+                                min_max_list = min_max_wo_g_list
+
                                 if filetype in self.TIFS:
-                                    self.pixel_min_max["redmax"] = (
-                                                              self.pixel_min_max["redmax"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[1]) \
-                                                              + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[0]
-                                    self.pixel_min_max["redmin"] = (
-                                                              self.pixel_min_max["redmin"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[1]) \
-                                                              + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[0]
-                                    self.pixel_min_max["bluemin"] = (self.pixel_min_max["bluemin"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[
-                                        3]) \
-                                                               + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[2]
-                                    self.pixel_min_max["bluemax"] = (self.pixel_min_max["bluemax"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[
-                                        3]) \
-                                                               + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[2]
+                                    base_coef = self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF
+
                                 elif filetype in self.JPGS:
-                                    self.pixel_min_max["redmax"] = (
-                                                              self.pixel_min_max["redmax"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[1]) \
-                                                              + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[0]
-                                    self.pixel_min_max["redmin"] = (
-                                                              self.pixel_min_max["redmin"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[1]) \
-                                                              + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[0]
-                                    self.pixel_min_max["bluemin"] = (self.pixel_min_max["bluemin"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[
-                                        3]) \
-                                                               + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[2]
-                                    self.pixel_min_max["bluemax"] = (self.pixel_min_max["bluemax"] * self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[3]) \
-                                                               + self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF[2]
+                                    base_coef = self.BASE_COEFF_DJIPHANTOM3_NDVI_JPG
                                 else:
                                     self.failed_calibration()
                                     break
 
                             elif camera_model == "Survey3":
+
                                 if filt == "RGN":
                                     if filetype in self.JPGS:
                                         base_coef = self.BASE_COEFF_SURVEY3_RGN_JPG
@@ -3538,44 +3525,56 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                     elif filetype in self.TIFS:
                                         base_coef = self.BASE_COEFF_SURVEY3_OCN_TIF
 
+                                elif filt == "NGB":
+                                    if filetype in self.JPGS:
+                                        base_coef = self.BASE_COEFF_SURVEY3_NGB_JPG
+                                    elif filetype in self.TIFS:
+                                        base_coef = self.BASE_COEFF_SURVEY3_NGB_TIF
+
                                 else:
                                     self.failed_calibration()
                                     break
-
-                                self.pixel_min_max["redmax"] = self.calibrate(base_coef[0], self.pixel_min_max["redmax"])
-                                self.pixel_min_max["greenmax"] = self.calibrate(base_coef[1], self.pixel_min_max["greenmax"])
-                                self.pixel_min_max["bluemax"] = self.calibrate(base_coef[2], self.pixel_min_max["bluemax"])
-
-                                self.pixel_min_max["redmin"] = self.calibrate(base_coef[0], self.pixel_min_max["redmin"])
-                                self.pixel_min_max["greenmin"] = self.calibrate(base_coef[1], self.pixel_min_max["greenmin"])
-                                self.pixel_min_max["bluemin"] = self.calibrate(base_coef[2], self.pixel_min_max["bluemin"])
 
                             else:
                                 self.failed_calibration()
                                 break
 
+                            for min_max in min_max_list:
+                                if len(min_max) == 6:
+                                    color = min_max[:3]
+                                elif len(min_max) == 7:
+                                    color = min_max[:4]
+                                else:
+                                    color = min_max[:5]
+
+                                self.pixel_min_max[min_max] = self.calibrate(base_coef[color], self.pixel_min_max[min_max])
+
                             if self.histogramClipBox.checkState() == self.CHECKED:
-                                self.HC_max["redmax"] = self.calibrate(base_coef[0], self.HC_max["redmax"])
-                                self.HC_max["greenmax"] = self.calibrate(base_coef[1], self.HC_max["greenmax"])
-                                self.HC_max["bluemax"] = self.calibrate(base_coef[2], self.HC_max["bluemax"])
+                                self.HC_max["redmax"] = self.calibrate(base_coef["Red"], self.HC_max["redmax"])
+                                self.HC_max["greenmax"] = self.calibrate(base_coef["Green"], self.HC_max["greenmax"])
+                                self.HC_max["bluemax"] = self.calibrate(base_coef["Blue"], self.HC_max["bluemax"])
 
 
                         self.seed_pass = False
 
                         #Calibrate global max and mins
                         if self.useqr:
-                            self.pixel_min_max["redmax"] = self.calibrate(self.multiplication_values["Red"], self.pixel_min_max["redmax"])
-                            self.pixel_min_max["greenmax"] = self.calibrate(self.multiplication_values["Green"], self.pixel_min_max["greenmax"])
-                            self.pixel_min_max["bluemax"] = self.calibrate(self.multiplication_values["Blue"], self.pixel_min_max["bluemax"])
 
-                            self.pixel_min_max["redmin"] = self.calibrate(self.multiplication_values["Red"], self.pixel_min_max["redmin"])
-                            self.pixel_min_max["greenmin"] = self.calibrate(self.multiplication_values["Green"], self.pixel_min_max["greenmin"])
-                            self.pixel_min_max["bluemin"] = self.calibrate(self.multiplication_values["Blue"], self.pixel_min_max["bluemin"])
+                            for min_max in min_max_list:
+                                if len(min_max) == 6:
+                                    color = min_max[:3]
+                                elif len(min_max) == 7:
+                                    color = min_max[:4]
+                                else:
+                                    color = min_max[:5]
+
+                                self.pixel_min_max[min_max] = self.calibrate(self.multiplication_values[color], self.pixel_min_max[min_max])
+
 
                             if self.histogramClipBox.checkState() == self.CHECKED:
-                                self.HC_max["redmax"] = self.calibrate(self.multiplication_values["Red"], self.HC_max["redmax"])
-                                self.HC_max["greenmax"] = self.calibrate(self.multiplication_values["Green"], self.HC_max["greenmax"])
-                                self.HC_max["bluemax"] = self.calibrate(self.multiplication_values["Blue"], self.HC_max["bluemax"])
+                                self.HC_max["redmax"] = self.calibrate(self.multiplication_values["red"], self.HC_max["redmax"])
+                                self.HC_max["greenmax"] = self.calibrate(self.multiplication_values["green"], self.HC_max["greenmax"])
+                                self.HC_max["bluemax"] = self.calibrate(self.multiplication_values["blue"], self.HC_max["bluemax"])
 
                         for i, calfile in enumerate(files_to_calibrate):
 
@@ -3592,88 +3591,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                     exc_type, exc_obj,exc_tb = sys.exc_info()
                                     self.CalibrationLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
                             else:
-                                # self.CalibrationLog.append("NOT Using QR")
+                                self.CalibrationLog.append("Calibrating image " + str(i + 1) + " of " + str(len(files_to_calibrate)))
+                                QtWidgets.QApplication.processEvents()
 
-                                if camera_model == "Survey2" and filt == "Red + NIR (NDVI)":
-                                    if "TIF" in calfile.split('.')[2].upper():
-                                        self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY2_NDVI_TIF, self.pixel_min_max, outdir, ind)
-                                    elif "JPG" in calfile.split('.')[2].upper():
-                                        self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY2_NDVI_JPG, self.pixel_min_max, outdir, ind)
-
-                                elif camera_model == "Survey1":
-                                    if "JPG" in calfile.split('.')[2].upper():
-                                        self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY1_NDVI_JPG, self.pixel_min_max, outdir, ind)
-
-                                elif camera_model == "DJI Phantom 3p":
-                                    if "TIF" in calfile.split('.')[2].upper():
-                                        self.CalibratePhotos(calfile, self.BASE_COEFF_DJIX3_NDVI_TIF, self.pixel_min_max, outdir, ind)
-                                    elif "JPG" in calfile.split('.')[2].upper():
-                                        self.CalibratePhotos(calfile, self.BASE_COEFF_DJIX3_NDVI_JPG, self.pixel_min_max, outdir, ind)
-
-                                elif camera_model == "DJI Phantom 4":
-                                    if "TIF" in calfile.split('.')[2].upper():
-                                        self.CalibratePhotos(calfile, self.BASE_COEFF_DJIPHANTOM4_NDVI_TIF, self.pixel_min_max,
-                                                             outdir, ind)
-                                    elif "JPG" in calfile.split('.')[2].upper():
-                                        self.CalibratePhotos(calfile, self.BASE_COEFF_DJIPHANTOM4_NDVI_JPG, self.pixel_min_max,
-                                                             outdir, ind)
-
-                                elif camera_model in ["DJI Phantom 4 Pro", "DJI Phantom 3a"]:
-                                    if "TIF" in calfile.split('.')[2].upper():
-                                        self.CalibratePhotos(calfile, self.BASE_COEFF_DJIPHANTOM3_NDVI_TIF, self.pixel_min_max,
-                                                             outdir, ind)
-                                    elif "JPG" in calfile.split('.')[2].upper():
-                                        self.CalibratePhotos(calfile, self.BASE_COEFF_DJIPHANTOM3_NDVI_JPG, self.pixel_min_max,
-                                                             outdir, ind)
-
-                                elif camera_model == "Survey3" and filt == "RGN":  # Survey3 RGN
-                                    self.CalibrationLog.append("Calibrating image " + str(i + 1) + " of " + str(len(files_to_calibrate)))
-                                    QtWidgets.QApplication.processEvents()
-
-                                    if "TIF" in calfile.split('.')[2].upper():
-                                        self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY3_RGN_TIF, self.pixel_min_max, outdir, ind)
-
-                                    elif "JPG" in calfile.split('.')[2].upper():
-                                        self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY3_RGN_JPG, self.pixel_min_max, outdir, ind)
-
-                                    else:
-                                        self.failed_calib = True
-                                        self.CalibrationLog.append(
-                                        "No default calibration data for selected camera model. Please please supply a MAPIR Reflectance Target to proceed.\n")
-                                        break
-
-                                elif camera_model == "Survey3" and filt == "OCN":  # Survey3 RGN
-                                    self.CalibrationLog.append("Calibrating image " + str(i + 1) + " of " + str(len(files_to_calibrate)))
-                                    QtWidgets.QApplication.processEvents()
-
-                                    if "TIF" in calfile.split('.')[2].upper():
-                                        self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY3_OCN_TIF, self.pixel_min_max, outdir, ind)
-
-                                    elif "JPG" in calfile.split('.')[2].upper():
-                                        self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY3_OCN_JPG, self.pixel_min_max, outdir, ind)
-
-                                    else:
-                                        self.failed_calib = True
-                                        self.CalibrationLog.append(
-                                        "No default calibration data for selected camera model. Please please supply a MAPIR Reflectance Target to proceed.\n")
-                                        break
-
-
-                                elif camera_model == "Survey3" and filt == "NGB":  # Survey3 NGB
-                                    if "TIF" in calfile.split('.')[2].upper():
-                                        self.CalibratePhotos(calfile, self.BASE_COEFF_SURVEY3_NGB_TIF, self.pixel_min_max,
-                                                             outdir, ind)
-                                    else:
-                                        self.failed_calib = True
-                                        self.CalibrationLog.append(
-                                        "No default calibration data for selected camera model. Please please supply a MAPIR Reflectance Target to proceed.\n")
-                                        break
-                                    
-                                else:
-                                    self.failed_calib = True
-                                    self.CalibrationLog.append(
-                                        "No default calibration data for selected camera model. Please please supply a MAPIR Reflectance Target to proceed.\n")
-                                    break
+                                self.CalibratePhotos(calfile, base_coef, self.pixel_min_max, outdir, ind)
 
                     else:
                         if os.path.exists(folderind[j]):
@@ -3685,7 +3606,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             files_to_calibrate.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
 
                             if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate[0]:
-                                # self.CalibrationLog.append("Found files to Calibrate.\n")
                                 foldercount = 1
                                 endloop = False
                                 while endloop is False:
@@ -3731,12 +3651,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             if camera_model == "Survey2":
                                 if filt == "Red":
                                     if filetype in self.JPGS:
-                                        slope = self.BASE_COEFF_SURVEY2_RED_JPG[0]
-                                        intercept = self.BASE_COEFF_SURVEY2_RED_JPG[1]
+                                        base_coef = self.BASE_COEFF_SURVEY2_RED_JPG
 
                                     elif filetype in self.TIFS:
-                                        slope = self.BASE_COEFF_SURVEY2_RED_TIF[0]
-                                        intercept = self.BASE_COEFF_SURVEY2_RED_TIF[1]
+                                        base_coef = self.BASE_COEFF_SURVEY2_RED_TIF
 
                                     else:
                                         self.failed_calibration()
@@ -3744,12 +3662,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                                 elif filt == "Green":
                                     if filetype in self.JPGS:
-                                        slope = self.BASE_COEFF_SURVEY2_GREEN_JPG[0]
-                                        intercept = self.BASE_COEFF_SURVEY2_GREEN_JPG[1]
+                                        base_coef = self.BASE_COEFF_SURVEY2_GREEN_JPG
 
                                     elif filetype in self.TIFS:
-                                        slope = self.BASE_COEFF_SURVEY2_GREEN_TIF[0]
-                                        intercept = self.BASE_COEFF_SURVEY2_GREEN_TIF[1]
+                                        base_coef = self.BASE_COEFF_SURVEY2_GREEN_TIF
 
                                     else:
                                         self.failed_calibration()
@@ -3757,12 +3673,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                                 elif filt == "Blue":
                                     if filetype in self.JPGS:
-                                        slope = self.BASE_COEFF_SURVEY2_BLUE_JPG[0]
-                                        intercept = self.BASE_COEFF_SURVEY2_BLUE_JPG[1]
+                                        base_coef = self.BASE_COEFF_SURVEY2_BLUE_JPG
 
                                     elif filetype in self.TIFS:
-                                        slope = self.BASE_COEFF_SURVEY2_BLUE_TIF[0]
-                                        intercept = self.BASE_COEFF_SURVEY2_BLUE_TIF[1]
+                                        base_coef = self.BASE_COEFF_SURVEY2_BLUE_TIF
 
                                     else:
                                         self.failed_calibration()
@@ -3770,24 +3684,18 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                                 elif filt == "NIR":
                                     if filetype in self.JPGS:
-                                        slope = self.BASE_COEFF_SURVEY2_NIR_JPG[0]
-                                        intercept = self.BASE_COEFF_SURVEY2_NIR_JPG[1]
+                                        base_coef = self.BASE_COEFF_SURVEY2_NIR_JPG
 
                                     elif filetype in self.TIFS:
-                                        slope = self.BASE_COEFF_SURVEY2_NIR_TIF[0]
-                                        intercept = self.BASE_COEFF_SURVEY2_NIR_TIF[1]
+                                        base_coef = self.BASE_COEFF_SURVEY2_NIR_TIF
 
                                     else:
                                         self.failed_calibration()
                                         break
 
-
                                 else:
                                         self.failed_calibration()
                                         break
-
-                                self.monominmax["max"] = (self.monominmax["max"] * slope) + intercept
-                                self.monominmax["min"] = (self.monominmax["min"] * slope) + intercept
 
                             elif camera_model == "Survey3":
                                 if filt == "RE":
@@ -3809,15 +3717,15 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                         self.failed_calibration()
                                         break
 
-                                self.monominmax["max"] = self.calibrate(base_coef, self.monominmax["max"])
-                                self.monominmax["min"] = self.calibrate(base_coef, self.monominmax["min"])
+                            self.monominmax["max"] = self.calibrate(base_coef, self.monominmax["max"])
+                            self.monominmax["min"] = self.calibrate(base_coef, self.monominmax["min"])
 
                         if self.useqr:
-                            self.monominmax["max"] = self.calibrate(self.multiplication_values["Mono"], self.monominmax["max"])
-                            self.monominmax["min"] = self.calibrate(self.multiplication_values["Mono"], self.monominmax["min"])
+                            self.monominmax["max"] = self.calibrate(self.multiplication_values["mono"], self.monominmax["max"])
+                            self.monominmax["min"] = self.calibrate(self.multiplication_values["mono"], self.monominmax["min"])
 
                             if self.histogramClipBox.checkState() == self.CHECKED:
-                                self.HC_mono_max = self.calibrate(self.multiplication_values["Mono"], self.HC_mono_max)
+                                self.HC_mono_max = self.calibrate(self.multiplication_values["mono"], self.HC_mono_max)
                                 
 
                         for i, calfile in enumerate(files_to_calibrate):
@@ -3828,7 +3736,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 try:
                                     self.CalibrationLog.append("Calibrating image " + str(i + 1) + " of " + str(len(files_to_calibrate)))
                                     QtWidgets.QApplication.processEvents()
-                                    self.CalibrateMono(calfile, self.multiplication_values["Mono"], outdir, ind)
+                                    self.CalibrateMono(calfile, self.multiplication_values["mono"], outdir, ind)
 
                                 except Exception as e:
                                     print("ERROR: ", e)
@@ -3838,41 +3746,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 self.CalibrationLog.append("Calibrating image " + str(i + 1) + " of " + str(len(files_to_calibrate)))
                                 QtWidgets.QApplication.processEvents()
 
-                                if camera_model == "Survey2":
-                                    if filt == "Red":
-                                        if "TIF" in calfile.split('.')[2].upper():
-                                            self.CalibrateMono(calfile, self.BASE_COEFF_SURVEY2_RED_TIF, outdir, ind)
-                                        elif "JPG" in calfile.split('.')[2].upper():
-                                            self.CalibrateMono(calfile, self.BASE_COEFF_SURVEY2_RED_JPG, outdir, ind)
-                           
-                                    elif filt == "Green":
-                                        if "TIF" in calfile.split('.')[2].upper():
-                                            self.CalibrateMono(calfile, self.BASE_COEFF_SURVEY2_GREEN_TIF, outdir, ind)
-                                        elif "JPG" in calfile.split('.')[2].upper():
-                                            self.CalibrateMono(calfile, self.BASE_COEFF_SURVEY2_GREEN_JPG, outdir, ind)
-        
-                                    elif filt == "Blue":
-                                        if "TIF" in calfile.split('.')[2].upper():
-                                            self.CalibrateMono(calfile, self.BASE_COEFF_SURVEY2_BLUE_TIF, outdir, ind)
-                                        elif "JPG" in calfile.split('.')[2].upper():
-                                            self.CalibrateMono(calfile, self.BASE_COEFF_SURVEY2_BLUE_JPG, outdir, ind)
-                    
-                                    elif filt == "NIR":
-                                        if "TIF" in calfile.split('.')[2].upper():
-                                            self.CalibrateMono(calfile, self.BASE_COEFF_SURVEY2_NIR_TIF, outdir, ind)
-                                        elif "JPG" in calfile.split('.')[2].upper():
-                                            self.CalibrateMono(calfile, self.BASE_COEFF_SURVEY2_NIR_JPG, outdir, ind)
-
-                                elif camera_model == "Survey3":
-                                    if filt == "RE":
-                                        if "TIF" in calfile.split('.')[2].upper():
-                                            self.CalibrateMono(calfile, self.BASE_COEFF_SURVEY3_RE_TIF, outdir, ind)
-                                        elif "JPG" in calfile.split('.')[2].upper():
-                                            self.CalibrateMono(calfile, self.BASE_COEFF_SURVEY3_RE_JPG, outdir, ind)
-                                        
-                                    elif filt == "NIR":
-                                        if "TIF" in calfile.split('.')[2].upper():
-                                            self.CalibrateMono(calfile, self.BASE_COEFF_SURVEY3_NIR_TIF, outdir, ind)
+                                self.CalibrateMono(calfile, base_coef, outdir, ind)
       
 
                 if not self.failed_calib:
@@ -3893,17 +3767,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             maxpixel = self.monominmax["max"]
             minpixel = self.monominmax["min"]
 
-            camera_model = ind[0]
-
-            if self.useqr:
-                refimg = (refimg * coeff)
-                
-            elif not self.useqr:
-                if camera_model == "Survey3":
-                    refimg = (refimg * coeff)
-
-                elif camera_model == "Survey2":
-                    refimg = (refimg * coeff[1])
+            refimg = ((refimg * coeff["slope"]) + coeff["intercept"])
 
             if self.histogramClipBox.checkState() == self.CHECKED:
                 global_HC_max = self.HC_mono_max
@@ -3992,15 +3856,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             alpha = refimg[:, :, 3]
             refimg = copy.deepcopy(refimg[:, :, :3])
 
-        if self.useqr:
-            red = (red * self.multiplication_values["Red"])
-            green = (green * self.multiplication_values["Green"])
-            blue = (blue * self.multiplication_values["Blue"])
-        
-        elif not self.useqr:
-            red = (red * coeffs[0])
-            green = (green * coeffs[1])
-            blue = (blue * coeffs[2])
+        red = ((red * coeffs["red"]["slope"]) + coeffs["red"]["intercept"])
+        green = ((green * coeffs["green"]["slope"]) + coeffs["green"]["intercept"])
+        blue = ((blue * coeffs["blue"]["slope"]) + coeffs["blue"]["intercept"])
 
         ### find the global maximum (maxpixel) and minimum (minpixel) calibrated pixel values over the entire directory.
         if camera_model == "Survey1":  ###Survey1 NDVI
@@ -4257,7 +4115,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         
         cv2.imwrite(image_line, line_image)
 
-    def calculate_slope(self, x, y):
+    def get_LOBF_values(self, x, y):
         mean_x = np.mean(x)
         mean_y = np.mean(y)
 
@@ -4265,8 +4123,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         denom = sum(np.power(x - mean_x, 2))
 
         slope = numer / denom
+        intercept = mean_y - (slope * mean_x)
 
-        return slope
+        return slope, intercept
 
     def get_filetype(self, image):
         if image.split(".")[1] in self.JPGS:
@@ -4619,14 +4478,19 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 if self.bad_target_photo(x_channels):
                     raise Exception("Bad reflectance image provided. Please use another reflectance image.")
 
-                cofr = self.calculate_slope(xred, yred)
-                cofg = self.calculate_slope(xgreen, ygreen)
-                cofb = self.calculate_slope(xblue, yblue)
+                red_slope, red_intercept = self.get_LOBF_values(xred, yred)
+                green_slope, green_intercept = self.get_LOBF_values(xgreen, ygreen)
+                blue_slope, blue_intercept = self.get_LOBF_values(xblue, yblue)
 
                 #return cofr, cofg, cofb
-                self.multiplication_values["Red"] = cofr
-                self.multiplication_values["Green"] = cofg
-                self.multiplication_values["Blue"] = cofb    
+                self.multiplication_values["red"]["slope"] = red_slope
+                self.multiplication_values["red"]["intercept"] = red_intercept
+
+                self.multiplication_values["green"]["slope"] = green_slope
+                self.multiplication_values["green"]["intercept"] = green_intercept
+
+                self.multiplication_values["blue"]["slope"] = blue_slope
+                self.multiplication_values["blue"]["intercept"] = blue_intercept
 
                 if version == "V2":
                     if len(list) > 0:
@@ -4771,7 +4635,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 if self.bad_target_photo([x]):
                     raise Exception("Bad reflectance image provided. Please use another reflectance image.")
 
-                self.multiplication_values["Mono"] = self.calculate_slope(x, y)
+                slope, intercept = self.get_LOBF_values(x, y)
+
+                self.multiplication_values["mono"]["slope"] = slope
+                self.multiplication_values["mono"]["intercept"] = intercept
 
                 if version == "V2":
                     if len(list) > 0:
