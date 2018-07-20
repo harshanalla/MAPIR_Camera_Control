@@ -618,7 +618,7 @@ class tEventInfo:
 
 class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     BASE_COEFF_SURVEY1_NDVI_JPG = {"red":   {"slope": 331.759383023, "intercept": -6.33770486888},
-                                   "green": {"slope": 0.00, "intercept": 0.00},
+                                   "green": {"slope": 1.00, "intercept": 0.00},
                                    "blue":  {"slope": 51.3264675118, "intercept": -0.6931339436}
                                   }
 
@@ -633,12 +633,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
 
     BASE_COEFF_SURVEY2_NDVI_JPG = {"red":   {"slope": 6.51199915, "intercept": -0.29870245},
-                                   "green": {"slope": 0.00, "intercept": 0.00},
+                                   "green": {"slope": 1.00, "intercept": 0.00},
                                    "blue":  {"slope": 10.30416005, "intercept": -0.65112026}
                                   }
 
     BASE_COEFF_SURVEY2_NDVI_TIF = {"red":   {"slope": 1.06087488594, "intercept": 3.21946584661},
-                                   "green": {"slope": 0.00, "intercept": 0.00},
+                                   "green": {"slope": 1.00, "intercept": 0.00},
                                    "blue":  {"slope": 1.46482226805, "intercept": -43.6505776052}
                                   }
 
@@ -681,32 +681,32 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     BASE_COEFF_SURVEY3_RE_TIF = {"slope":  14.637430522690837, "intercept": -0.11816284659122683}
 
     BASE_COEFF_DJIX3_NDVI_JPG = {"red":   {"slope": 4.63184993, "intercept": -0.34430543},
-                                 "green": {"slope": 0.00, "intercept": 0.00},
+                                 "green": {"slope": 1.00, "intercept": 0.00},
                                  "blue":  {"slope": 16.36429964, "intercept": -0.49413940}
                                 }
 
     BASE_COEFF_DJIX3_NDVI_TIF = {"red":   {"slope": 0.01350319, "intercept": -0.74925346},
-                                 "green": {"slope": 0.00, "intercept": 0.00},
+                                 "green": {"slope": 1.00, "intercept": 0.00},
                                  "blue":  {"slope": 0.03478272, "intercept": -0.77810008}
                                 }
 
     BASE_COEFF_DJIPHANTOM4_NDVI_JPG = {"red":   {"slope": 0.03333209, "intercept": -1.17016961},
-                                       "green": {"slope": 0.00, "intercept": 0.00},
+                                       "green": {"slope": 1.00, "intercept": 0.00},
                                        "blue":  {"slope": 0.05373502, "intercept": -0.99455214}
                                       }
 
     BASE_COEFF_DJIPHANTOM4_NDVI_TIF = {"red":   {"slope": 0.03333209, "intercept": -1.17016961},
-                                       "green": {"slope": 0.00, "intercept": 0.00},
+                                       "green": {"slope": 1.00, "intercept": 0.00},
                                        "blue":  {"slope": 0.05373502, "intercept": -0.99455214}
                                       }
 
     BASE_COEFF_DJIPHANTOM3_NDVI_JPG = {"red":   {"slope": 3.44708472, "intercept": -1.54494979},
-                                       "green": {"slope": 0.00, "intercept": 0.00},
+                                       "green": {"slope": 1.00, "intercept": 0.00},
                                        "blue":  {"slope": 6.35407929, "intercept": -1.40606832}
                                       }
 
     BASE_COEFF_DJIPHANTOM3_NDVI_TIF = {"red":   {"slope":  0.01752340, "intercept": -1.37495554},
-                                       "green": {"slope": 0.00, "intercept": 0.00},
+                                       "green": {"slope": 1.00, "intercept": 0.00},
                                        "blue":  {"slope": 0.03700812, "intercept": -1.41073753}
                                       }
 
@@ -3979,12 +3979,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             refimg = cv2.merge((blue, green, red))
             refimg = cv2.normalize(refimg.astype("float"), None, 0.0, 1.0, cv2.NORM_MINMAX)
 
-        if camera_model == "Survey2" and filt == "Red + NIR (NDVI)":
-           refimg[:, :, 1] = 1
-
-        elif camera_model in ["Survey1", "DJI Phantom 4", "DJI Phantom 3a", "DJI Phantom 3p"]:
-            refimg[:, :, 1] = 1
-
         if self.Tiff2JpgBox.checkState() > 0:
             self.CalibrationLog.append("Making JPG")
             QtWidgets.QApplication.processEvents()
@@ -4648,6 +4642,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     #     # g = (((g - g.min()) / (g.max() - g.min())) * 65536.0).astype("uint16")
     #     return np.dstack([b, g, r])
 
+
     def output_mono_band_validation(self):
         camera_model = self.PreProcessCameraModel.currentText()
         filt = self.PreProcessFilter.currentText()
@@ -4922,7 +4917,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         # color[color > 65535] = 65535
                         # color[color < 0] = 0
                         # color[:, :, 1] = color2[:, :, 2]
+
                         color[:, :, 1] = color2[:, :, 0]
+
                         # temp1 = color[:,:,0]
                         # color[:,:,0] = color[:,:,2]
                         # color[:,:2] = temp1
