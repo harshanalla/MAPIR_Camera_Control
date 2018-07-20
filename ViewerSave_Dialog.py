@@ -20,6 +20,8 @@ class SaveDialog(QtWidgets.QDialog, SAVE_CLASS):
             instring.truncate(0)
             instring.seek(0)
             instring.write(self.ViewerSaveFile.text())
+
+            self.SaveButton.setStyleSheet("QComboBox {width: 75; height: 23;}")
             self.SaveButton.setEnabled(True)
 
     def on_SaveButton_released(self):

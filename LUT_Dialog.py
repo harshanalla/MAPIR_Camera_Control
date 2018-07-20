@@ -27,7 +27,7 @@ class Applicator(QtWidgets.QDialog, LUT_Class):
         self.parent = parent
 
         self.setupUi(self)
-        self.parent.LUTButton.setStyleSheet("QPushButton { background-color: None; color: #3f3f3f; }")
+        self.parent.LUTButton.setEnabled(False)
         self.RasterMin.setText(str(round(self.parent.LUT_Min, 2)))
         self.RasterMax.setText(str(round(self.parent.LUT_Max, 2)))
         try:
@@ -60,12 +60,14 @@ class Applicator(QtWidgets.QDialog, LUT_Class):
         else:
             self.parent.LUTBox.setChecked(True)
 
-        self.parent.LUTButton.setStyleSheet("QPushButton { background-color: rgb(50,180,50); color: white; }")
+        self.parent.LUTButton.setStyleSheet("QComboBox {width: 111; height: 27;}")
+        self.parent.LUTButton.setEnabled(True)
 
         self.close()
 
     def on_RasterCloseButton_released(self):
-        self.parent.LUTButton.setStyleSheet("QPushButton { background-color: rgb(50,180,50); color: white; }")
+        self.parent.LUTButton.setStyleSheet("QComboBox {width: 111; height: 27;}")
+        self.parent.LUTButton.setEnabled(True)
         self.close()
 
     def processLUT(self):

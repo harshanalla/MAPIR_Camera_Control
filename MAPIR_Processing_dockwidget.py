@@ -52,6 +52,7 @@ import hid
 import time
 import json
 import math
+import webbrowser
 
 from MAPIR_Enums import *
 from Calculator import *
@@ -933,8 +934,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         super(MAPIR_ProcessingDockWidget, self).__init__(parent)
 
         self.setupUi(self)
-        self.ViewerCalcButton.setStyleSheet("QPushButton { background-color: None; color: #3f3f3f; }")
-        self.LUTButton.setStyleSheet("QPushButton { background-color: None ; color: #3f3f3f;} ")
+        self.website.setStyleSheet("QPushButton {width: 20; height: 20; font-size: 18px}")
+        self.version.setStyleSheet("QLabel {font-size: 18px;}")
 
         try:
             legend = cv2.imread(os.path.dirname(__file__) + "/lut_legend.jpg")
@@ -977,6 +978,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                 except:
                     self.KernelLog.append("Error disconnecting drive " + drv)
+
+    def on_website_released(self):
+        webbrowser.open('https://www.mapir.camera/')
 
     def on_KernelRefreshButton_released(self):
         # self.exitTransfer()
@@ -1184,7 +1188,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.ViewerIndexBox.blockSignals(True)
                 self.ViewerStretchBox.blockSignals(True)
 
-                self.ViewerCalcButton.setStyleSheet("QPushButton { background-color: rgb(50,180,50); color: white }")
+                self.ViewerCalcButton.setStyleSheet("QComboBox {width: 116; height: 27;}")
+                self.ViewerCalcButton.setEnabled(True)
+                self.LUTButton.setEnabled(False)
                 self.LUTBox.setEnabled(False)
                 self.LUTBox.setChecked(False)
                 self.ViewerIndexBox.setEnabled(False)
@@ -1370,27 +1376,20 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         QtWidgets.QApplication.processEvents()
 
     def on_LUTButton_released(self):
-        if self.display_image_original is not None:
-            if self.LUTwindow == None:
-                self.LUTwindow = Applicator(self)
-            self.LUTwindow.resize(385, 160)
-            self.LUTwindow.show()
-        else:
-            None
+        if self.LUTwindow == None:
+            self.LUTwindow = Applicator(self)
+        self.LUTwindow.resize(385, 160)
+        self.LUTwindow.show()
+   
 
         QtWidgets.QApplication.processEvents()
-    def on_ViewerCalcButton_released(self):
-        if self.display_image_original is not None:
-        
-            if self.LUTwindow == None:
-                self.calcwindow = Calculator(self)
+    def on_ViewerCalcButton_released(self):        
+        if self.LUTwindow == None:
+            self.calcwindow = Calculator(self)
 
-            self.calcwindow.resize(685, 250)
-            self.calcwindow.show()
-            QtWidgets.QApplication.processEvents()
-
-        else:
-            None
+        self.calcwindow.resize(685, 250)
+        self.calcwindow.show()
+        QtWidgets.QApplication.processEvents()
 
     def on_ZoomIn_released(self):
         if self.image_loaded == True:
@@ -3980,31 +3979,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             refimg = cv2.merge((blue, green, red))
             refimg = cv2.normalize(refimg.astype("float"), None, 0.0, 1.0, cv2.NORM_MINMAX)
 
-
         if camera_model == "Survey2" and filt == "Red + NIR (NDVI)":
-            ### Remove green information if NDVI camera
            refimg[:, :, 1] = 1
 
         elif camera_model in ["Survey1", "DJI Phantom 4", "DJI Phantom 3a", "DJI Phantom 3p"]:
             refimg[:, :, 1] = 1
-
-        elif camera_model in ["Survey2", "Survey3"] and filt in ["NIR", "Red", "RE"]:
-            ### Remove blue and green information if NIR or Red camera
-            # refimg[:, :, 0] = 1
-            # refimg[:, :, 1] = 1
-            refimg = refimg[:, :, 2]
-
-        elif camera_model == "Survey2" and filt == "Green":
-            ### Remove blue and red information if GREEN camera
-            # refimg[:, :, 0] = 1
-            # refimg[:, :, 2] = 1
-            refimg = refimg[:, :, 1]
-
-        elif camera_model == "Survey2" and filt == "Green":
-            ### Remove red and green information if BLUE camera
-            # refimg[:, :, 1] = 1
-            # refimg[:, :, 2] = 1
-            refimg = refimg[:, :, 0]
 
         if self.Tiff2JpgBox.checkState() > 0:
             self.CalibrationLog.append("Making JPG")
@@ -4929,7 +4908,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     if self.PreProcessCameraModel.currentText() == "Kernel 14.4":
                         h, w = img.shape[:2]
 
-                        self.PreProcessLog.append("Debayering")
+                        self.PreProcessLog.append("Debayering...")
                         QtWidgets.QApplication.processEvents()
                         cv2.imwrite(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], img)
                         self.copySimple(outphoto, outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
@@ -5117,7 +5096,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                             color =  cv2.merge((blue, green, red))
 
-                        self.PreProcessLog.append("Debayering")
+                        self.PreProcessLog.append("Debayering...")
                         QtWidgets.QApplication.processEvents()
                         cv2.imencode(".tif", color)
                         cv2.imwrite(outphoto, color)

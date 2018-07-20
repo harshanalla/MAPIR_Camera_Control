@@ -24,9 +24,13 @@ class Calculator(QtWidgets.QDialog, RASTER_CLASS):
         self.RasterX.addItem(self.parent.KernelBrowserFile.text().split(r'/')[-1] + " @Band1(Red Channel)")
         self.RasterX.addItem(self.parent.KernelBrowserFile.text().split(r'/')[-1] + " @Band2(Green Channel)")
         self.RasterX.addItem(self.parent.KernelBrowserFile.text().split(r'/')[-1] + " @Band3(Blue Channel)")
+
         self.RasterY.addItem(self.parent.KernelBrowserFile.text().split(r'/')[-1] + " @Band1(Red Channel)")
         self.RasterY.addItem(self.parent.KernelBrowserFile.text().split(r'/')[-1] + " @Band2(Green Channel)")
         self.RasterY.addItem(self.parent.KernelBrowserFile.text().split(r'/')[-1] + " @Band3(Blue Channel)")
+        self.RasterX.setStyleSheet("QComboBox {width: 700;}")
+        self.RasterY.setStyleSheet("QComboBox {width: 700;}")
+
         self.RasterZ.hide()
         self.ZLabel.hide()
         # self.RasterZ.addItem(self.parent.KernelBrowserFile.text().split(os.sep)[-1] + " @Band1")
@@ -38,7 +42,8 @@ class Calculator(QtWidgets.QDialog, RASTER_CLASS):
             self.processIndex()
             self.parent.ViewerIndexBox.setEnabled(True)
             if self.parent.LUTwindow == None or not self.parent.LUTwindow.isVisible():
-                self.parent.LUTButton.setStyleSheet("QPushButton { background-color: rgb(50,180,50); color: white; }")
+                self.parent.LUTButton.setStyleSheet("QComboBox {width: 111; height: 27;}")
+                self.parent.LUTButton.setEnabled(True)
 
             if self.parent.ViewerIndexBox.isChecked():
                 self.parent.applyRaster()
@@ -53,7 +58,8 @@ class Calculator(QtWidgets.QDialog, RASTER_CLASS):
             self.processIndex()
             self.parent.ViewerIndexBox.setEnabled(True)
             if self.parent.LUTwindow == None or not self.parent.LUTwindow.isVisible():
-                self.parent.LUTButton.setStyleSheet("QPushButton { background-color: rgb(50,180,50); color: white; }")
+                self.parent.LUTButton.setStyleSheet("QComboBox {width: 111; height: 27;}")
+                self.parent.LUTButton.setEnabled(True)
 
             if self.parent.ViewerIndexBox.isChecked():
                 self.parent.applyRaster()

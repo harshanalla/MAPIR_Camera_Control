@@ -18,32 +18,32 @@ def resource_path(relative_path):
 
 
 if __name__ == "__main__":
-        try:
+    try:
+        app = QApplication(sys.argv)
+        # splash_pix = QPixmap(os.path.dirname(os.path.realpath(__file__)) + 'lut_legend_rgb.jpg')
+        #
+        # splash = QSplashScreen(splash_pix, Qt.WindowStaysOnTopHint)
+        # splash.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
+        # splash.setEnabled(True)
+        # progressBar = QProgressBar(splash)
+        # progressBar.setMaximum(30)
+        # progressBar.setGeometry(0, splash_pix.height() - 50, splash_pix.width(), 20)
+        # splash.show()
+        # for i in range(1, 31):
+        #         progressBar.setValue(i)
+        #         t = time.time()
+        #         while time.time() < t + 0.1:
+        #                 app.processEvents()
+        file = QFile(resource_path("dark.qss"))
+        file.open(QFile.ReadOnly | QFile.Text)
+        stream = QTextStream(file)
+        app.setStyleSheet(stream.readAll())
+        myapp = MAPIR_ProcessingDockWidget()
+        #myapp.setWindowIcon(QIcon(os.path.join(modpath, "corn_logo_taskbar.png")))
+        myapp.setWindowIcon(QIcon(resource_path("C:\\Users\\ethan\\Desktop\\MAPIR_Camera_Control\\corn_logo_taskbar.png")))
+        myapp.show()
+        # splash.finish(myapp)
 
-                app = QApplication(sys.argv)
-                # splash_pix = QPixmap(os.path.dirname(os.path.realpath(__file__)) + 'lut_legend_rgb.jpg')
-                #
-                # splash = QSplashScreen(splash_pix, Qt.WindowStaysOnTopHint)
-                # splash.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
-                # splash.setEnabled(True)
-                # progressBar = QProgressBar(splash)
-                # progressBar.setMaximum(30)
-                # progressBar.setGeometry(0, splash_pix.height() - 50, splash_pix.width(), 20)
-                # splash.show()
-                # for i in range(1, 31):
-                #         progressBar.setValue(i)
-                #         t = time.time()
-                #         while time.time() < t + 0.1:
-                #                 app.processEvents()
-                file = QFile(resource_path("dark.qss"))
-                file.open(QFile.ReadOnly | QFile.Text)
-                stream = QTextStream(file)
-                app.setStyleSheet(stream.readAll())
-                myapp = MAPIR_ProcessingDockWidget()
-                myapp.setWindowIcon(QIcon(resource_path("C:\\Users\\ethan\\Desktop\\MAPIR_Camera_Control-master\\corn_logo_taskbar.png")))
-                myapp.show()
-                # splash.finish(myapp)
-
-        except Exception as e:
-                print(e)
-        sys.exit(app.exec_())
+    except Exception as e:
+            print(e)
+    sys.exit(app.exec_())
