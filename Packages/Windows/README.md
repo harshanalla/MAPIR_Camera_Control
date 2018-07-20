@@ -3,7 +3,7 @@
 
 ## Current Version
 
-[July 16th, 2018](https://drive.google.com/open?id=1bTYOLdmUcLdmMXq0VW5NR-G5qqYIVnsL)
+[July 16th, 2018](https://drive.google.com/file/d/1Ym_WLbF-jHtuzf3XjfEBMrLqv5Cfrp0o/view?usp=sharing)
 
 Change Log
 * Added RE capability
