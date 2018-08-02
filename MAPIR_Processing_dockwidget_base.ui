@@ -641,7 +641,7 @@
           </property>
          </spacer>
         </item>
-        <item row="0" column="2" rowspan="5">
+        <item row="0" column="2" rowspan="8">
          <widget class="QTextEdit" name="CalibrationLog">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Expanding">

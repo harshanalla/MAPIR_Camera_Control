@@ -65,7 +65,7 @@ import KernelConfig
 from MAPIR_Converter import *
 from Exposure import *
 from ArrayTypes import AdjustYPR, CurveAdjustment
-# import KernelBrowserViewer
+#from Debayer1 import *
 
 modpath = os.path.dirname(os.path.realpath(__file__))
 
@@ -782,7 +782,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
     },
     "newrefvalues":{
-        "660/850": [[0.87032549, 0.52135779, 0.23664799], [0, 0, 0], [0.8653063177, 0.2798126291, 0.2337498097, 0.0193295348]],
+        "660/850": [[0.8691644285714284, 0.2624914285714286, 0.20969199999999993, 0.019544714285714283], [0, 0, 0, 0], [0.8653063177, 0.2798126291, 0.2337498097, 0.0193295348]],
         "446/800": [[0.7882333002, 0.2501235178, 0.1848459584, 0.020036883], [0, 0, 0], [0.8645652801, 0.5037779363, 0.2359041624]],
         "725" : [0.8688518306024209, 0.26302553751154756, 0.2127410973890211, 0.019551020566927594],
         "850": [[0.8649280907, 0.2800907016, 0.2340131491, 0.0195446727], [0, 0, 0], [0, 0, 0]],
@@ -3396,7 +3396,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                         for i, calpixel in enumerate(files_to_calibrate):
                             img = cv2.imread(calpixel, -1)
-
+        
                             if len(img.shape) < 3:
                                 raise IndexError("RGB filter was selected but input folders contain MONO images")
 
@@ -3588,7 +3588,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 except Exception as e:
                                     print("ERROR: ", e)
                                     exc_type, exc_obj,exc_tb = sys.exc_info()
-                                    self.CalibrationLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
+                                    self.CalibrationLog.append(str(e))
                             else:
                                 self.CalibrationLog.append("Calibrating image " + str(i + 1) + " of " + str(len(files_to_calibrate)))
                                 QtWidgets.QApplication.processEvents()
@@ -3932,21 +3932,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 green = green.astype(int)
                 blue = blue.astype(int)
 
-                # index = self.calculateIndex(red, blue)
-                # cv2.imwrite(output_directory + photo.split('.')[1] + "_CALIBRATED_INDEX." + photo.split('.')[2], index)
-
                 red = red.astype("uint8")
                 green = green.astype("uint8")
                 blue = blue.astype("uint8")
 
       
             else: #Float to Tiff
-
-                # maxpixel *= 10
-                # minpixel *= 10
-
-                # tempimg = cv2.merge((blue, green, red)).astype("float32")
-                # cv2.imwrite(output_directory + photo.split('.')[1] + "_Percent." + photo.split('.')[2], tempimg)
 
                 red *= 65535
                 green *= 65535
@@ -3964,14 +3955,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             refimg = cv2.merge((blue, green, red))
 
         else: #Float to Index
-            green[green > 1.0] = 1.0
-            red[red > 1.0] = 1.0
-            blue[blue > 1.0] = 1.0
-
-            green[green < 0.0] = 0.0
-            red[red < 0.0] = 0.0
-            blue[blue < 0.0] = 0.0
-
             red = red.astype("float")
             green = green.astype("float")
             blue = blue.astype("float")
@@ -4057,6 +4040,20 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
         return False
 
+    def check_exposure_quality(self, x, y):
+        if (x[0] == 1 and x[3] == 0):
+            x = x[1:]
+            y = y[1:]
+
+        elif (x[0] == 1):
+            x = x[1:]
+            y = y[1:]
+
+        elif (x[3] == 0):
+            x = x[:-1]
+            y = y[:-1]
+
+        return x, y  
 
     def print_center_targs(self, image, targ1values, targ2values, targ3values, targ4values, target1, target2, target3, target4, angle):
         t1_str = image.split(".")[0] + "_t1." + image.split(".")[1]
@@ -4089,16 +4086,21 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         cv2.imwrite(image_line, line_image)
 
     def get_LOBF_values(self, x, y):
-        mean_x = np.mean(x)
-        mean_y = np.mean(y)
+        try:
+            mean_x = np.mean(x)
+            mean_y = np.mean(y)
 
-        numer = sum((x - mean_x) * (y - mean_y))
-        denom = sum(np.power(x - mean_x, 2))
+            numer = sum((x - mean_x) * (y - mean_y))
+            denom = sum(np.power(x - mean_x, 2))
 
-        slope = numer / denom
-        intercept = mean_y - (slope * mean_x)
+            slope = numer / denom
+            intercept = mean_y - (slope * mean_x)
 
-        return slope, intercept
+            return slope, intercept
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print("Error: ", e)
+            print("Line: " + str(exc_tb.tb_lineno))
 
     def get_filetype(self, image):
         if image.split(".")[1] in self.JPGS:
@@ -4121,6 +4123,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             camera_model = ind[0].currentText()
             fil = ind[1].currentText()
             lens = ind[2].currentText()
+
+            if self.check_if_RGB(camera_model, fil, lens) and len(cv2.imread(image, -1).shape) < 3:
+                raise IndexError("RGB filter was selected but input folders contain MONO images")
+
+            elif not self.check_if_RGB(camera_model, fil, lens) and len(cv2.imread(image, -1).shape) > 2:
+                raise IndexError("Mono filter was selected but input folders contain RGB images")
 
             #Fiducial Finder only needs to be run for Version 2, calib.txt will only be written for Version 2
             if version == "V2":
@@ -4431,7 +4439,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     ygreen = self.refvalues[self.ref]["490/615/808"][1]
                     yblue = self.refvalues[self.ref]["490/615/808"][2]
 
-
                 else: #Survey 2 - NDVI
                     yred = self.refvalues[self.ref]["660/850"][0]
                     ygreen = self.refvalues[self.ref]["660/850"][1]
@@ -4447,9 +4454,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     xgreen = [x / 65535 for x in xgreen]
                     xblue = [x / 65535 for x in xblue]
 
+                xred, yred = self.check_exposure_quality(xred, yred)
+                xgreen, ygreen = self.check_exposure_quality(xgreen, ygreen)
+                xblue, yblue = self.check_exposure_quality(xblue, yblue)
+
                 x_channels = [xred, xgreen, xblue]
                 if self.bad_target_photo(x_channels):
-                    raise Exception("Bad reflectance image provided. Please use another reflectance image.")
+                    self.CalibrationLog.append("WARNING: Provided calibration target photo is not generating good calibration values. For optimal calibration, please use another calibration target photo or check that white balance and exposure settings are set to defualt values. \n")
 
                 red_slope, red_intercept = self.get_LOBF_values(xred, yred)
                 green_slope, green_intercept = self.get_LOBF_values(xgreen, ygreen)
@@ -4606,7 +4617,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     x = [i / 65535 for i in x]
 
                 if self.bad_target_photo([x]):
-                    raise Exception("Bad reflectance image provided. Please use another reflectance image.")
+                    self.CalibrationLog.append("WARNING: Provided calibration target photo is not generating good calibration values. For optimal calibration, please use another calibration target photo or check that white balance and exposure settings are set to defualt values. \n")
 
                 slope, intercept = self.get_LOBF_values(x, y)
 
@@ -4623,8 +4634,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 QtWidgets.QApplication.processEvents()
 
         except Exception as e:
-            exc_type, exc_obj,exc_tb = sys.exc_info()
-            self.CalibrationLog.append("Error: " + str(e) + ' Line: ' + str(exc_tb.tb_lineno))
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
+            self.CalibrationLog.append("Error: " + str(e))
             return
             # slope, intcpt, r_value, p_value, std_err = stats.linregress(x, y)
             # self.CalibrationLog.append("Found QR Target, please proceed with calibration.")
@@ -4641,7 +4653,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     #     # r = (((r - r.min()) / (r.max() - r.min())) * 65536.0).astype("uint16")
     #     # g = (((g - g.min()) / (g.max() - g.min())) * 65536.0).astype("uint16")
     #     return np.dstack([b, g, r])
-
 
     def output_mono_band_validation(self):
         camera_model = self.PreProcessCameraModel.currentText()
@@ -4788,8 +4799,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             # minpixel = greenmin if greenmin < minpixel else minpixel
 
                             # color = cv2.merge((color[:,:,0],color[:,:,2],color[:,:,1])).astype(np.dtype('u2'))
-                            color[:,:,0] = (((color[:,:,0] - redmin) / (redmax - redmin)))
-                            color[:,:,2] = (((color[:,:,2] - bluemin) / (bluemax - bluemin)))
+                            color[:,:,2] = (((color[:,:,2] - redmin) / (redmax - redmin)))
+                            color[:,:,0] = (((color[:,:,0] - bluemin) / (bluemax - bluemin)))
                             color[:,:,1] = (((color[:,:,1] - greenmin) / (greenmax - greenmin)))
                             color[color > 1.0] = 1.0
                             color[color < 0.0] = 0.0
@@ -4822,7 +4833,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             band = dropdown_value[dropdown_value.find("(")+1:dropdown_value.find(")")]
                             
                             if band == "Red":
-                                color = color[:,:,0]
+                                color = color[:,:,2]
                                 color[color >= 65535] = color.min()
 
                             elif band == "Green":
@@ -4830,7 +4841,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 color[color >= 65535] = color.min()
 
                             elif band == "Blue":
-                                color = color[:,:,2]
+                                color = color[:,:,0]
                                 color[color >= 65535] = color.min()
 
                         cv2.imwrite(outfolder + outputfilename, color)
@@ -4885,6 +4896,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         try:
             if "mapir" in inphoto.split('.')[1]:
                 self.conv = Converter()
+
                 if self.PreProcessDarkBox.isChecked():
                     # subprocess.call(
                     #     [modpath + os.sep + r'Mapir_Converter.exe', '-d', os.path.abspath(inphoto),
@@ -4899,7 +4911,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                 try:
 
-
                     if self.PreProcessCameraModel.currentText() == "Kernel 14.4":
                         h, w = img.shape[:2]
 
@@ -4910,6 +4921,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                         color = cv2.cvtColor(img, cv2.COLOR_BAYER_GB2RGB).astype("float32")
                         color2 = cv2.cvtColor(img, cv2.COLOR_BAYER_BG2BGR).astype("float32")
+
+                        #color = demosaicing_CFA_Bayer_Malvar2004(img, pattern="GRBG")
+
                         # gr = ((color2[:,:,2] + color2[:,:,0])/2).astype("uint16")
                         #
                         # color[:,:,1] = gr
@@ -4935,9 +4949,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             green_coeffs = self.COLOR_CORRECTION_VECTORS[3:6]
                             blue_coeffs = self.COLOR_CORRECTION_VECTORS[6:9]
 
-                            red = color[:, :, 0] = (red_coeffs[0] * color[:, :, 0]) + (red_coeffs[1] * color[:, :, 1]) + (red_coeffs[2] * color[:, :, 2]) + roff
+                            red = color[:, :, 2] = (red_coeffs[0] * color[:, :, 0]) + (red_coeffs[1] * color[:, :, 1]) + (red_coeffs[2] * color[:, :, 2]) + roff
                             green = color[:, :, 1] = (green_coeffs[0] * color[:, :, 0]) + (green_coeffs[1] * color[:, :, 1]) + (green_coeffs[2] * color[:, :, 2]) + goff
-                            blue = color[:, :, 2] = (blue_coeffs[0] * color[:, :, 0]) + (blue_coeffs[1] * color[:, :, 1]) + (blue_coeffs[2] * color[:, :, 2]) + boff
+                            blue = color[:, :, 0] = (blue_coeffs[0] * color[:, :, 0]) + (blue_coeffs[1] * color[:, :, 1]) + (blue_coeffs[2] * color[:, :, 2]) + boff
 
                             #need to rescale not clip
                             color[red > 1.0] = 1.0
@@ -4950,9 +4964,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         color = (color * 65535.0).astype("uint16")
 
                         if self.PreProcessVignette.isChecked():
-                            red = color[:, :, 0]
+                            red = color[:, :, 2]
                             green = color[:, :, 1]
-                            blue = color[:, :, 2]
+                            blue = color[:, :, 0]
 
                             lens_str = self.PreProcessLens.currentText().split("m")[0]
                             fil_str = self.PreProcessFilter.currentText()[:3]
@@ -5446,7 +5460,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         if self.MapirTab.currentIndex() == 0:
                             self.PreProcessLog.append("Error: " + str(e) + ' Line: ' + str(exc_tb.tb_lineno))
                         elif self.MapirTab.currentIndex() == 1:
-                            self.CalibrationLog.append("Error: " + str(e) + ' Line: ' + str(exc_tb.tb_lineno))
+                            self.CalibrationLog.append("Error: " + str(e))
                 else:
                     # self.PreProcessLog.append("No IMU data detected.")
                     subprocess.call(
