@@ -68,7 +68,7 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Video Captue Restart Delay</string>
+        <string>Video Capture Restart Delay</string>
        </property>
       </widget>
      </item>

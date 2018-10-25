@@ -65,7 +65,6 @@ import KernelConfig
 from MAPIR_Converter import *
 from Exposure import *
 from ArrayTypes import AdjustYPR, CurveAdjustment
-#from Debayer1 import *
 
 modpath = os.path.dirname(os.path.realpath(__file__))
 
@@ -264,10 +263,12 @@ class KernelTransfer(QtWidgets.QDialog, TRANSFER_CLASS):
             instring.seek(0)
             instring.write(self.ModalOutputFolder.text())
             self.ModalSaveButton.setEnabled(True)
+            self.ModalSaveButton.setStyleSheet("QComboBox {width: 116; height: 27;}")
 
     def on_DeleteBox_toggled(self):
         if self.DeleteBox.isChecked():
             self.ModalSaveButton.setEnabled(True)
+            self.ModalSaveButton.setStyleSheet("QComboBox {width: 116; height: 27;}")
         else:
             self.ModalSaveButton.setEnabled(False)
 
@@ -913,19 +914,25 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     legend_scene = None
     image_loaded = False
 
-    COLOR_CORRECTION_VECTORS = [1.58796, -0.1036, 0.18497, -0.01213, 1, 0.11236, 0.00793, -0.06779, 1.78981]
+    COLOR_CORRECTION_VECTORS = [1.398822546, -0.09047482163, 0.1619316638, -0.01290435996, 0.8994362354, 0.1134681329, 0.007306902204, -0.05995989591, 1.577814579]#101018
     regs = []
-
     DJIS = ["DJI Phantom 4", "DJI Phantom 4 Pro", "DJI Phantom 3a", "DJI Phantom 3p", "DJI X3"]
     SURVEYS = ["Survey1", "Survey2", "Survey3"]
     KERNELS = ["Kernel 1.2", "Kernel 3.2", "Kernel 14.4", "Kernel 14.4"]
+
     ANGLE_SHIFT_QR = 7
 
     JPGS = ["jpg", "JPG", "jpeg", "JPEG"]
     TIFS = ["tiff", "TIFF", "tif", "TIF"]
 
+    PRINCIPALPOINT = "3.84387, 1.53139"
+    PERSPECTIVEFOCALLENGTH = "8.444407"
+    PERSPECTIVEDISTORTION = "-0.07569, 0.059957, -0.02031, -0.01246, 0.016932"
+
     CHECKED = 2 # QT creator syntax for checkState(); 2 signifies the box is checked, 0 is unchecked
     UNCHECKED = 0
+
+    SENSOR_LOOKUP = {6: "14.4 MP", 4: "3.2 MP"}
 
     ISO_VALS = (1,2,4,8,16,32)
     lensvals = None
@@ -1061,6 +1068,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         buf[0] = self.SET_REGISTER_WRITE_REPORT
         buf[1] = eRegister.RG_LENS_ID.value
         buf[2] = DROPDOW_2_LENS.get((self.KernelFilterSelect.currentText(), self.KernelLensSelect.currentText()), 255)
+
         self.writeToKernel(buf)
 
     def on_KernelLensSelect_currentIndexChanged(self):
@@ -1538,7 +1546,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.KernelPanel.clear()
             # self.KernelPanel.append("Hardware ID: " + str(self.getRegister(eRegister.RG_HARDWARE_ID.value)))
             # self.KernelPanel.append("Firmware version: " + str(self.getRegister(eRegister.RG_FIRMWARE_ID.value)))
-            self.KernelPanel.append("Sensor: " + str(self.getRegister(eRegister.RG_SENSOR_ID.value)))
+            self.KernelPanel.append("Sensor: " + self.SENSOR_LOOKUP.get(self.getRegister(eRegister.RG_SENSOR_ID.value), "N/A"))
             self.KernelPanel.append("Lens: " + str(LENS_LOOKUP.get(self.getRegister(eRegister.RG_LENS_ID.value), 255)[0][0]) + "mm")
             self.KernelPanel.append(
                 "Filter: " + str(LENS_LOOKUP.get(self.getRegister(eRegister.RG_LENS_ID.value), "")[2]))
@@ -1816,7 +1824,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 if len(drv) == 1:
                                     self.driveletters.append(drv)
 
-                                    self.KernelLog.append("Camera " + str(self.pathnames[self.paths.index(cam)]) + " successfully connected to drive " + drv + ":" + os.sep)
+                                    self.KernelLog.append("Camera " + str(self.pathnames[self.paths.index(cam)]) + " successfully connected to drive " + drv + ":" + os.sep + "\n")
                                     files = glob.glob(drv + r":" + os.sep + r"dcim/*/*.[tm]*", recursive=True)
                                     folders = glob.glob(drv + r":" + os.sep + r"dcim/*/")
                                     if folders:
@@ -1899,24 +1907,33 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 #     shutil.copy(file, self.transferoutfolder + os.sep + threechar)
                                 QtWidgets.QApplication.processEvents()
                             if threechar:
-                                self.KernelLog.append("Finished extracting images from Camera " + str(threechar) + " number " + str(place + 1) + " of " + str(len(self.driveletters)) + ", at drive " + drv + r':')
+                                self.KernelLog.append("Finished extracting images from Camera " + str(threechar) + " number " + str(place + 1) + " of " + str(len(self.driveletters)) + ", at drive " + drv + r':' + "\n")
                             QtWidgets.QApplication.processEvents()
                         else:
                             self.KernelLog.append("No DCIM folder found in drive " + str(drv) + r":")
                             QtWidgets.QApplication.processEvents()
                     self.yestransfer = False
+
                 if self.yesdelete:
                     for drv in self.driveletters:
                         if os.path.isdir(drv + r":" + os.sep + r"dcim"):
-                            # try:
                             files = glob.glob(drv + r":" + os.sep + r"dcim/*/*")
                             self.KernelLog.append("Deleting files from drive " + str(drv))
+
                             for file in files:
                                 os.unlink(file)
                             folds = glob.glob(drv + r":" + os.sep + r"dcim/*")
-                            for file in folds:
-                                os.unlink(file)
-                            self.KernelLog.append("Finished deleting files from drive " + str(drv))
+
+                            try:
+                                for file in folds:
+                                    os.unlink(file)
+
+                            except Exception as e:
+                                pass
+
+                            self.KernelLog.append("Finished deleting files from drive " + str(drv) + "\n")
+
+
                     self.yesdelete = False
                     # self.modalwindow = KernelDelete(self)
                     # self.modalwindow.resize(400, 200)
@@ -1936,6 +1953,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             # self.exitTransfer()
             # self.KernelTransferButton.setChecked(False)
             self.KernelLog.append("Error: " + str(e) + ' Line: ' + str(exc_tb.tb_lineno))
+
             QtWidgets.QApplication.processEvents()
             self.camera = currentcam
 
@@ -2096,6 +2114,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             return self.regs[code]
         else:
             return 0
+
     def setRegister(self, code, value):
         if code >= eRegister.RG_SIZE.value:
             return False
@@ -2118,7 +2137,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     #         print("Line: " + str(exc_tb.tb_lineno))
     def writeToKernel(self, buffer):
         try:
-
             dev = hid.device()
             dev.open_path(self.camera)
             q = dev.write(buffer)
@@ -2318,13 +2336,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
 
     def on_PreProcessFilter_currentIndexChanged(self):
-        if ((self.PreProcessCameraModel.currentText() == "Kernel 14.4" and self.PreProcessFilter.currentText() == "644 (RGB)")
-                or (self.PreProcessCameraModel.currentText() == "Survey3" and self.PreProcessFilter.currentText() == "RGB")):
+        if (self.PreProcessCameraModel.currentText() == "Kernel 14.4" and self.PreProcessFilter.currentText() == "644 (RGB)"):
 
             self.PreProcessColorBox.setEnabled(True)
-
-            if self.PreProcessCameraModel == "Kernel 14.4":
-                self.PreProcessVignette.setEnabled(True)
+            self.PreProcessVignette.setEnabled(True)
 
         elif self.PreProcessCameraModel.currentText() == "Kernel 14.4":
             if self.PreProcessFilter.currentText() not in ["644 (RGB)", "550/660/850"]:
@@ -2339,6 +2354,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.PreProcessVignette.setEnabled(True)
 
         elif self.PreProcessCameraModel.currentText() == "Kernel 3.2":
+            self.PreProcessMonoBandBox.setEnabled(False)
             if self.PreProcessFilter.currentText() in ["405", "450", "490", "518",
                                                        "550", "590", "615", "632",
                                                        "685", "725", "780","808", 
@@ -2350,6 +2366,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.PreProcessVignette.setEnabled(False)
 
         elif self.PreProcessCameraModel.currentText() == "Survey3":
+            self.PreProcessColorBox.setEnabled(False)
             self.PreProcessVignette.setEnabled(False)
 
             if self.PreProcessFilter.currentText() == "RGB":
@@ -2428,7 +2445,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                             "550", "590", "615", "632",
                                             "650", "685", "725", "780",
                                             "808", "850", "880", "940",
-                                            "945"])
+                                            "945", "NO FILTER"])
 
             self.PreProcessFilter.setEnabled(True)
             self.PreProcessLens.clear()
@@ -2453,7 +2470,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.PreProcessLens.clear()
             self.PreProcessLens.addItems(["3.37mm (Survey3W)", "8.25mm (Survey3N)"])
             self.PreProcessLens.setEnabled(True)
-            self.PreProcessColorBox.setEnabled(True)
 
         elif self.PreProcessCameraModel.currentText() == "Survey2":
             self.PreProcessFilter.clear()
@@ -3044,12 +3060,17 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             # self.PreProcessLog.append("Input folder: " + infolder)
             # self.PreProcessLog.append("Output folder: " + outfolder)
             try:
+                import time
+                start = time.time()
                 self.preProcessHelper(infolder, outfolder)
+                end = time.time()
+                print("time: ", (end - start)/ 60)
+
                 self.PreProcessLog.append("Finished Processing Images.")
 
             except Exception as e:
                 exc_type, exc_obj,exc_tb = sys.exc_info()
-                self.PreProcessLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
+                self.PreProcessLog.append(str(e))
             
             # if os.path.exists(modpath + os.sep + 'Vig'):
             #     shutil.rmtree(modpath + os.sep + 'Vig')
@@ -3240,19 +3261,14 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         unique, counts = np.unique(color, return_counts=True)
         freq_array = np.asarray((unique, counts)).T
 
-        freq_dict = {}
-        mode = self.calculate_mode(freq_array)
+        total_pixels = color.size
+  
+        sum_pixels = 0
+        for pixel in freq_array[::-1]:
+            sum_pixels += pixel[1]
 
-        for i in freq_array:
-            freq_dict[i[0]] = i[1]
-
-        HC_Value = 0
-        for pixel in freq_array:
-            if pixel[0] > mode:
-                if round(pixel[1] / freq_dict[mode], 2) == HCP:
-                    HC_Value = pixel[0]
-                    break
-        return HC_Value
+            if (sum_pixels / total_pixels) >= HCP:
+                return pixel[0]
 
     def on_histogramClipBox_toggled(self):
         if self.histogramClipBox.checkState() == 2:
@@ -3300,7 +3316,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
             elif self.check_HCP_value():
                 self.CalibrationLog.append("Attention! Please select a Histogram Clipping Percentage value between 1-100.")
-                self.CalibrationLog.append("For example 20%, please enter 20\n")
+                self.CalibrationLog.append("For example: for 20%, please enter 20\n")
             
             elif len(self.CalibrationInFolder.text()) <= 0 \
                     and len(self.CalibrationInFolder_2.text()) <= 0 \
@@ -3396,13 +3412,15 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                         for i, calpixel in enumerate(files_to_calibrate):
                             img = cv2.imread(calpixel, -1)
-        
                             if len(img.shape) < 3:
                                 raise IndexError("RGB filter was selected but input folders contain MONO images")
 
                             blue = img[:, :, 0]
                             green = img[:, :, 1]
                             red = img[:, :, 2]
+
+                            if camera_model == "Survey2" and filt == "Red + NIR (NDVI)":
+                                red = img[:, :, 2] - (blue * 0.80)
 
                             # these are a little confusing, but the check to find the highest and lowest pixel value
                             # in each channel in each image and keep the highest/lowest value found.
@@ -3446,6 +3464,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                                 except Exception as e:
                                     print("ERROR: ", e)
+                                    exc_type, exc_obj,exc_tb = sys.exc_info()
+                                    print(' Line: ' + str(exc_tb.tb_lineno))
 
                         min_max_list = ["redmax", "redmin", "greenmax", "greenmin", "bluemin", "bluemax"]
                         if not self.useqr:
@@ -3541,6 +3561,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             for min_max in min_max_list:
                                 if len(min_max) == 6:
                                     color = min_max[:3]
+
                                 elif len(min_max) == 7:
                                     color = min_max[:4]
                                 else:
@@ -3586,7 +3607,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                                     self.CalibratePhotos(calfile, self.multiplication_values, self.pixel_min_max, outdir, ind)
                                 except Exception as e:
-                                    print("ERROR: ", e)
                                     exc_type, exc_obj,exc_tb = sys.exc_info()
                                     self.CalibrationLog.append(str(e))
                             else:
@@ -3642,7 +3662,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                         self.HC_mono_max = max(self.get_HC_value(img), self.HC_mono_max)
 
                                 except Exception as e:
-                                    print("ERROR: ", e)
+                                    exc_type, exc_obj,exc_tb = sys.exc_info()
 
                         if not self.useqr:
                             filetype = calpixel.split(".")[-1]
@@ -3716,6 +3736,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                         self.failed_calibration()
                                         break
 
+                            elif camera_model == "Kernel 3.2":
+                                raise UnboundLocalError("Calibration without a calibration target is not supported for Kernel 3.2")
+
+
                             self.monominmax["max"] = self.calibrate(base_coef, self.monominmax["max"])
                             self.monominmax["min"] = self.calibrate(base_coef, self.monominmax["min"])
 
@@ -3740,7 +3764,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 except Exception as e:
                                     print("ERROR: ", e)
                                     exc_type, exc_obj,exc_tb = sys.exc_info()
-                                    self.CalibrationLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
+                                    exc_type, exc_obj,exc_tb = sys.exc_info()
+                                    print(' Line: ' + str(exc_tb.tb_lineno))
+                                    self.CalibrationLog.append(str(e))
                             else:
                                 self.CalibrationLog.append("Calibrating image " + str(i + 1) + " of " + str(len(files_to_calibrate)))
                                 QtWidgets.QApplication.processEvents()
@@ -3756,6 +3782,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         except Exception as e:
             exc_type, exc_obj,exc_tb = sys.exc_info()
             print(repr(e))
+            print(e)
             print("Line: " + str(exc_tb.tb_lineno))
             self.CalibrationLog.append(str(repr(e)))
 
@@ -3838,7 +3865,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 mode = pixel[0]
         return mode
 
-    def CalibratePhotos(self, photo, coeffs, minmaxes, output_directory, ind):  
+    def CalibratePhotos(self, photo, coeffs, minmaxes, output_directory, ind):
         refimg = cv2.imread(photo, -1)
 
         camera_model = ind[0]
@@ -3850,6 +3877,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         blue = refimg[:, :, 0]
         green = refimg[:, :, 1]
         red = refimg[:, :, 2]
+
+        if camera_model == "Survey2" and filt == "Red + NIR (NDVI)":
+            red = refimg[:, :, 2] - (refimg[:, :, 0] * 0.80)
 
         if refimg.shape[2] > 3:
             alpha = refimg[:, :, 3]
@@ -3990,7 +4020,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 cv2.imwrite(newimg, refimg, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
             self.copyExif(photo, newimg)
 
-
     def calculateIndex(self, visible, nir):
         try:
             nir[nir == 0] = 1
@@ -4041,7 +4070,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         return False
 
     def check_exposure_quality(self, x, y):
-        if (x[0] == 1 and x[3] == 0):
+        if (x[0] == 1 and x[-1] == 0):
             x = x[1:]
             y = y[1:]
 
@@ -4049,7 +4078,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             x = x[1:]
             y = y[1:]
 
-        elif (x[3] == 0):
+        elif (x[-1] == 0):
             x = x[:-1]
             y = y[:-1]
 
@@ -4148,6 +4177,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     while (list is None or len(list) <= 0) and listcounter < 10:
                         with open(r'.' + os.sep + r'calib.txt', 'r+') as cornerfile:
                             list = cornerfile.read()
+                            print("list: ", list, type(list))
 
                         im = im * listcounter
                         listcounter += 1
@@ -4347,8 +4377,19 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             # kernel = np.ones((2, 2), np.uint16)
             # im2 = cv2.erode(im2, kernel, iterations=1)
             # im2 = cv2.dilate(im2, kernel, iterations=1)
+            
+            if camera_model == "Survey2" and fil == "Red + NIR (NDVI)":
+                blue = im2[:, :, 0]
+                green = im2[:, :, 1]
+                red = im2[:, :, 2] - (im2[:, :, 0] * 0.80)
+     
 
-            #((ind[0] > 1) and (ind[0] == 3 and ind[1] != 2)) or ((ind[0] < 2) and (ind[1] > 10)) or (ind[0] > 5)
+                red[red > 65535.0] = 65535.0
+                red[red < 0.0] = 0.0
+                red = red.astype("uint16")
+
+                im2 =  cv2.merge((blue, green, red))
+
 
             if self.check_if_RGB(camera_model, fil, lens):
                 try:
@@ -4391,7 +4432,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 t3greenmean = np.mean(targ3values[:, :, 1])
                 t3bluemean = np.mean(targ3values[:, :, 0])
 
-
                 yred = []
                 yblue = []
                 ygreen = []
@@ -4410,6 +4450,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         xgreen = [t1greenmean, t2greenmean, t3greenmean, t4greenmean]
                         xblue = [t1bluemean, t2bluemean, t3bluemean, t4bluemean]
 
+                    #self.print_center_targs(image, targ1values, targ2values, targ3values, targ4values, target1, target2, target3, target4, angle)
 
                 else:
                     yred = [0.87, 0.51, 0.23]
@@ -4419,7 +4460,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     xred = [t1redmean, t2redmean, t3redmean]
                     xgreen = [t1greenmean, t2greenmean, t3greenmean]
                     xblue = [t1bluemean, t2bluemean, t3bluemean]
-
+    
                 if ((camera_model == "Survey3" and fil == "RGN") or (camera_model == "DJI Phantom 4 Pro") 
                         or (camera_model == "Kernel 14.4" and fil =="550/660/850")):
                     yred = self.refvalues[self.ref]["550/660/850"][0]
@@ -4454,11 +4495,17 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     xgreen = [x / 65535 for x in xgreen]
                     xblue = [x / 65535 for x in xblue]
 
+                print("ygreen: ", ygreen)
+
                 xred, yred = self.check_exposure_quality(xred, yred)
                 xgreen, ygreen = self.check_exposure_quality(xgreen, ygreen)
                 xblue, yblue = self.check_exposure_quality(xblue, yblue)
 
+                if any(item == 1 or item == 0 or np.isnan(item) for item in xred + xgreen + xblue):
+                    raise Exception("Provided calibration target photo is not generating good calibration values. Please use another calibration target photo.")
+
                 x_channels = [xred, xgreen, xblue]
+
                 if self.bad_target_photo(x_channels):
                     self.CalibrationLog.append("WARNING: Provided calibration target photo is not generating good calibration values. For optimal calibration, please use another calibration target photo or check that white balance and exposure settings are set to defualt values. \n")
 
@@ -4475,6 +4522,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                 self.multiplication_values["blue"]["slope"] = blue_slope
                 self.multiplication_values["blue"]["intercept"] = blue_intercept
+
+                if (camera_model == "Survey2" and fil == "Red + NIR (NDVI)"):
+                    self.multiplication_values["green"]["slope"] = 1
+                    self.multiplication_values["green"]["intercept"] = 0
+
 
                 if version == "V2":
                     if len(list) > 0:
@@ -4665,20 +4717,64 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         if self.PreProcessMonoBandBox.isChecked():
             self.output_mono_band_validation()
 
+        self.HC_max = {"redmax": 0.0,
+                       "greenmax": 0.0, 
+                       "bluemax": 0.0, }
+
+        self.HC_mono_max = 0
+        self.global_HC_max = 0
+        self.min = 0
+        self.max = 0
+
         if self.PreProcessCameraModel.currentText() in self.DJIS:
             os.chdir(infolder)
             infiles = []
             infiles.extend(glob.glob("." + os.sep + "*.DNG"))
             infiles.sort()
             counter = 0
+
             for input in infiles:
-                self.PreProcessLog.append(
-                    "Processing Image: " + str((counter) + 1) + " of " + str(len(infiles)) +
-                    " " + input.split(os.sep)[1])
+                log_string = "Processing Image: {} of {}  {}\n".format(str((counter) + 1), str(len(infiles)), input.split(os.sep)[1])
+                self.PreProcessLog.append(log_string)
                 QtWidgets.QApplication.processEvents()
                 self.openDNG(infolder + input.split('.')[1] + "." + input.split('.')[2], outfolder, customerdata)
 
+                if self.Process_Histogram_ClipBox.isChecked():
+                    inphoto = infolder + input.split('.')[1] + "." + input.split('.')[2]
+                    newfile = inphoto.split(".")[0] + ".tiff"
+                    _, file = os.path.split(newfile)
+                    full_path = os.path.join(outfolder, file)
+
+                    img = cv2.imread(full_path, -1)
+                    if counter == 0:
+                        self.HC_max["redmax"] = self.get_clipping_value(img[:, :, 2])
+                        self.HC_max["greenmax"] = self.get_clipping_value(img[:, :, 1])
+                        self.HC_max["bluemax"] = self.get_clipping_value(img[:, :, 0])
+
+                        self.min = img[:, :, 0].min() if img[:, :, 0].min() < img[:, :, 1].min() else img[:, :, 1].min()
+                        self.min = img[:, :, 2].min() if img[:, :, 2].min() < self.min else self.min
+
+                    else:
+                        self.HC_max["redmax"] = max(self.get_clipping_value(img[:, :, 2]), self.HC_max["redmax"])
+                        self.HC_max["greenmax"] = max(self.get_clipping_value(img[:, :, 1]), self.HC_max["greenmax"])
+                        self.HC_max["bluemax"] = max(self.get_clipping_value(img[:, :, 0]), self.HC_max["bluemax"])
+
+                        self.min = min(img[:, :, 0].min(), self.min)
+                        self.min = min(img[:, :, 1].min(), self.min)
+                        self.min = min(img[:, :, 2].min(), self.min)
+
                 counter += 1
+
+            if self.Process_Histogram_ClipBox.isChecked():
+                files = os.listdir(outfolder)
+                for count, file in enumerate(files):
+                    QtWidgets.QApplication.processEvents()
+                    output_filepath = os.path.join(outfolder, file)
+
+                    log_string = "Clipping Histogram: {} of {}  {} \n".format((count + 1), len(files), file)
+                    self.PreProcessLog.append(log_string)
+                    self.clip_histogram(output_filepath)
+
 
         elif self.PreProcessCameraModel.currentText() in self.KERNELS:
             os.chdir(infolder)
@@ -4686,21 +4782,27 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             infiles.extend(glob.glob("." + os.sep + "*.[mM][aA][pP][iI][rR]"))
             infiles.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
             infiles.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
-            counter = 0
+            counter = 0 
 
             for input in infiles:
-                self.PreProcessLog.append(
-                    "Processing Image: " + str((counter) + 1) + " of " + str(len(infiles)) +
-                    "  " + input.split(os.sep)[1])
+                log_string = "Processing Image: {} of {}  {}\n".format(str((counter) + 1), str(len(infiles)), input.split(os.sep)[1])
+                self.PreProcessLog.append(log_string)
                 QtWidgets.QApplication.processEvents()
+
                 filename = input.split('.')
                 outputfilename = outfolder + filename[1] + '.tif'
-                # print(infolder + input.split('.')[1] + "." + input.split('.')[2])
-                # print(outfolder + outputfilename)
-                self.openMapir(infolder + input.split('.')[1] + "." + input.split('.')[2],  outputfilename, input, outfolder)
-
-
+                self.openMapir(infolder + input.split('.')[1] + "." + input.split('.')[2],  outputfilename, input, outfolder, counter)
                 counter += 1
+
+            if self.Process_Histogram_ClipBox.isChecked():
+                files = os.listdir(outfolder)
+                for count, file in enumerate(files):
+                    QtWidgets.QApplication.processEvents()
+                    outputfilename = os.path.join(outfolder, file)
+
+                    log_string = "Clipping Histogram: {} of {}  {} \n".format((count + 1), len(files), file)
+                    self.PreProcessLog.append(log_string)
+                    self.clip_histogram(outputfilename, file, infolder)
         else:
             os.chdir(infolder)
             infiles = []
@@ -4710,16 +4812,15 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             infiles.sort()
 
             if len(infiles) > 1:
-                if ("RAW" in infiles[0].upper()) and ("JPG" in infiles[1].upper()):
+                if ("RAW" in infiles[0].upper()) and ("JPG" in infiles[1].upper() or "JPG" in infiles[1].upper()):
                     counter = 0
 
                     for input in infiles[::2]:
                         oldfirmware = False
 
                         if customerdata == True:
-                            self.PreProcessLog.append(
-                                "Processing Image: " + str(int((counter / 2) + 1)) + " of " + str(int(len(infiles) / 2)) +
-                                " " + input.split(os.sep)[1])
+                            log_string = "Processing Image: {} of {}  {} \n".format(str(int((counter / 2) + 1)), str(int(len(infiles) / 2)), input.split(os.sep)[1])
+                            self.PreProcessLog.append(log_string)
                             QtWidgets.QApplication.processEvents()
 
                         if self.PreProcessCameraModel.currentText() == "Survey3":
@@ -4739,9 +4840,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 data[1::2] = temp
 
                                 udata = np.packbits(np.concatenate([data[0::3], np.array([0, 0, 0, 0] * 12000000, dtype=np.uint8).reshape(12000000,4),   data[2::3], data[1::3]], axis=1).reshape(192000000, 1)).tobytes()
-
                                 img = np.fromstring(udata, np.dtype('u2'), (4000 * 3000)).reshape((3000, 4000))
-
+                
                             except Exception as e:
                                 exc_type, exc_obj, exc_tb = sys.exc_info()
                                 # self.PreProcessLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
@@ -4751,17 +4851,21 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                         elif self.PreProcessCameraModel.currentText() == "Survey2":
                             with open(input, "rb") as rawimage:
-                                img = np.fromfile(rawimage, np.dtype('u2'), (4608 * 3456)).reshape((3456, 4608))
+                                jpg_file = next(x for x in os.listdir(infolder) if "JPG" in x or "jpg" in x)
+                                image_path = infolder + '/' + jpg_file
+                                height, width, _ = cv2.imread(image_path, -1).shape
+
+                                img = np.fromfile(rawimage, np.dtype('u2'), (width * height)).reshape((height, width))
 
                         if oldfirmware:
-                            try:
-                                with open(input, "rb") as rawimage:
-                                    img = np.fromfile(rawimage, np.dtype('u2'), (4000 * 3000)).reshape((3000, 4000))
-                            except Exception as e:
-                                exc_type, exc_obj, exc_tb = sys.exc_info()
-                                # self.PreProcessLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
-                                print(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
+                            with open(input, "rb") as rawimage:
+                                img = np.fromfile(rawimage, np.dtype('u2'), (4000 * 3000))
 
+                                if img.shape[0] != (4000 * 3000):
+                                    raise IndexError("Resolution of the image is {}. MCC only supports processing 12MP resolution. Please reset resolution to default settings.".format(img.shape[0]))
+
+                                img = img.reshape((3000, 4000))
+                     
                         try:
                             color = cv2.cvtColor(img, cv2.COLOR_BAYER_RG2RGB).astype("float32")
 
@@ -4769,6 +4873,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             exc_type, exc_obj, exc_tb = sys.exc_info()
                             # self.PreProcessLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
                             print(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
+
 
                         if self.PreProcessColorBox.isChecked():
 
@@ -4811,6 +4916,24 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         # maxcol = color.max()
                         # mincol = color.min()
 
+                        if self.Process_Histogram_ClipBox.isChecked():
+                            if counter == 0:
+                                self.HC_max["redmax"] = self.get_clipping_value(color[:, :, 2])
+                                self.HC_max["greenmax"] = self.get_clipping_value(color[:, :, 1])
+                                self.HC_max["bluemax"] = self.get_clipping_value(color[:, :, 0])
+
+                                self.min = color[:, :, 0].min() if color[:, :, 0].min() < color[:, :, 1].min() else color[:, :, 1].min()
+                                self.min = color[:, :, 2].min() if color[:, :, 2].min() < self.min else self.min
+
+                            else:
+                                self.HC_max["redmax"] = max(self.get_clipping_value(color[:, :, 2]), self.HC_max["redmax"])
+                                self.HC_max["greenmax"] = max(self.get_clipping_value(color[:, :, 1]), self.HC_max["greenmax"])
+                                self.HC_max["bluemax"] = max(self.get_clipping_value(color[:, :, 0]), self.HC_max["bluemax"])
+
+                                self.min = min(color[:, :, 0].min(), self.min)
+                                self.min = min(color[:, :, 1].min(), self.min)
+                                self.min = min(color[:, :, 2].min(), self.min)
+
                         if self.PreProcessJPGBox.isChecked():
                             # color = (color - int(np.percentile(color, 2))) / (int(np.percentile(color, 98)) - int(np.percentile(color, 2)))
                             color = color * 255.0
@@ -4850,6 +4973,16 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             self.copyExif(infolder + infiles[counter + 1], outfolder + outputfilename)
                         counter += 2
 
+                    if self.Process_Histogram_ClipBox.isChecked():
+                        files = os.listdir(outfolder)
+                        for count, file in enumerate(files):
+                            QtWidgets.QApplication.processEvents()
+                            output_filepath = os.path.join(outfolder, file)
+
+                            log_string = "Clipping Histogram: {} of {}  {} \n".format((count + 1), len(files), file)
+                            self.PreProcessLog.append(log_string)
+                            self.clip_histogram(output_filepath)
+
                 else:
                     self.PreProcessLog.append(
                         "Incorrect file structure. Please arrange files in a RAW, JPG, RAW, JPG... format.")
@@ -4880,37 +5013,306 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 subprocess.call([r'/usr/local/bin/dcraw', '-6', '-T', inphoto])
             if customerdata == True:
                 self.copyExif(os.path.abspath(inphoto), newfile)
+
             shutil.move(newfile, outfolder)
+            
+
         else:
             self.PreProcessLog.append("Attention!: " + str(newfile) + " already exists.")
 
     def get_dark_frame_value(self, fil_str):
+        res = "3.2" if "3.2" in self.PreProcessCameraModel.currentText() else "14.4"
         with open(modpath + os.sep + r'Dark_Frame_Values.json') as json_data:
             DFVS = json.load(json_data)
-            dark_frame_value = DFVS["14.4"][self.PreProcessLens.currentText()][fil_str]
+
+            if res == "3.2":
+                dark_frame_value = DFVS[res][fil_str]
+            else:
+                dark_frame_value = DFVS[res][self.PreProcessLens.currentText()][fil_str]
 
         return dark_frame_value
 
-    def openMapir(self, inphoto, outphoto, input, outfolder):
-        # self.PreProcessLog.append(str(inphoto) + " " + str(outphoto))
-        try:
-            if "mapir" in inphoto.split('.')[1]:
-                self.conv = Converter()
+    def color_correction(self, color):
+        roff = 0.0
+        goff = 0.0
+        boff = 0.0
 
+        red_coeffs = self.COLOR_CORRECTION_VECTORS[6:9]
+        green_coeffs = self.COLOR_CORRECTION_VECTORS[3:6]
+        blue_coeffs = self.COLOR_CORRECTION_VECTORS[:3]
+
+        color[:, :, 2] = (red_coeffs[0] * color[:, :, 0]) + (red_coeffs[1] * color[:, :, 1]) + (red_coeffs[2] * color[:, :, 2]) + roff
+        color[:, :, 1] = (green_coeffs[0] * color[:, :, 0]) + (green_coeffs[1] * color[:, :, 1]) + (green_coeffs[2] * color[:, :, 2]) + goff
+        color[:, :, 0] = (blue_coeffs[0] * color[:, :, 0]) + (blue_coeffs[1] * color[:, :, 1]) + (blue_coeffs[2] * color[:, :, 2]) + boff
+
+        #need to rescale not clip
+        color[color > 1.0] = 1.0
+        color[color < 0.0] = 0.0
+
+        return color
+
+    def apply_vignette_dark_color(self, color, h, w):
+        red = color[:, :, 2]
+        green = color[:, :, 1]
+        blue = color[:, :, 0]
+
+        lens_str = self.PreProcessLens.currentText().split("m")[0]
+        fil_str = self.PreProcessFilter.currentText()[:3]
+
+        if "/" in self.PreProcessFilter.currentText():
+            fil_names = self.PreProcessFilter.currentText().split("/")
+            fil_str = fil_names[0] + "-" + fil_names[1] + "-" + fil_names[2]
+
+        dark_frame_value = self.get_dark_frame_value(fil_str)
+        
+        with open(modpath + os.sep + r"vig_" + fil_str + "_" + lens_str + "_" + "1" + r".txt", "rb") as vigfilered:
+            v_array = np.ndarray((h, w), np.dtype("float32"), np.fromfile(vigfilered, np.dtype("float32")))
+            red -= dark_frame_value
+            red = red / v_array
+            red[red > 65535.0] = 65535.0
+            red[red < 0.0] = 0.0
+        
+        with open(modpath + os.sep + r"vig_" + fil_str + "_" + lens_str + "_" + "2" + r".txt", "rb") as vigfilegreen:
+            v_array = np.ndarray((h, w), np.dtype("float32"),
+                                 np.fromfile(vigfilegreen, np.dtype("float32")))
+            green -= dark_frame_value
+            green = green / v_array
+
+            green[green > 65535.0] = 65535.0
+            green[green < 0.0] = 0.0
+
+
+        with open(modpath + os.sep + r"vig_" + fil_str + "_" + lens_str + "_" + "3" + r".txt", "rb") as vigfileblue:
+            v_array = np.ndarray((h, w), np.dtype("float32"),
+                                 np.fromfile(vigfileblue, np.dtype("float32")))
+            blue -= dark_frame_value
+            blue = blue / v_array
+
+            blue[blue > 65535.0] = 65535.0
+            blue[blue < 0.0] = 0.0
+
+
+        red = red.astype("uint16")
+        green = green.astype("uint16")
+        blue = blue.astype("uint16")
+        color =  cv2.merge((blue, green, red))
+
+        return color
+
+
+    def get_clipping_value(self, color):
+        np.set_printoptions(threshold=np.nan, suppress=True)
+        HCP = int(self.Process_HC_Value.text()) / 100
+        unique, counts = np.unique(color, return_counts=True)
+        freq_array = np.asarray((unique, counts)).T
+
+        total_pixels = color.size
+  
+        sum_pixels = 0
+
+        for pixel in freq_array[::-1]:
+            sum_pixels += pixel[1]
+
+            if (sum_pixels / total_pixels) >= HCP:
+                return pixel[0]
+
+    def merge(self, red, blue, green, filetype):
+        if filetype == "TIF":
+            red *= 65535
+            green *= 65535
+            blue *= 65535
+
+            red = red.astype(int)
+            green = green.astype(int)
+            blue = blue.astype(int)
+
+            red = red.astype("uint16")
+            green = green.astype("uint16")
+            blue = blue.astype("uint16")
+
+            return cv2.merge((blue, green, red))
+
+        elif filetype == "JPG":
+            red *= 255
+            green *= 255
+            blue *= 255
+
+            red = red.astype(int)
+            green = green.astype(int)
+            blue = blue.astype(int)
+
+            red = red.astype("uint8")
+            green = green.astype("uint8")
+            blue = blue.astype("uint8")
+
+            return cv2.merge((blue, green, red))
+
+
+    def clip_histogram(self, outphoto, file = None, infolder = None):
+        try:
+            img = cv2.imread(outphoto, -1)
+
+            if self.PreProcessCameraModel.currentText() == "Kernel 14.4":
+                filename = file.split(".")[0]
+                mapir_file = filename + ".mapir"
+                mapir_file_path = os.path.join(infolder, mapir_file)
+      
+                cv2.imwrite(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], img)
+                self.copySimple(outphoto, outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
+
+                self.conv = Converter()
                 if self.PreProcessDarkBox.isChecked():
-                    # subprocess.call(
-                    #     [modpath + os.sep + r'Mapir_Converter.exe', '-d', os.path.abspath(inphoto),
-                    #      os.path.abspath(outphoto)], startupinfo=si)
+                    _, _, _, self.lensvals = self.conv.openRaw(mapir_file_path, outphoto, darkscale=True)
+                else:
+                    _, _, _, self.lensvals = self.conv.openRaw(mapir_file_path, outphoto, darkscale=False)
+
+            camera_model = self.PreProcessCameraModel.currentText()
+            filt = self.PreProcessFilter.currentText()
+            lens = self.PreProcessLens.currentText()
+
+            if self.check_if_RGB(camera_model, filt, lens):
+                red = img[:, :, 2]
+                blue = img[:, :, 0]
+                green = img[:, :, 1]
+
+                self.global_HC_max = self.HC_max["redmax"] if self.HC_max["redmax"] > self.HC_max["bluemax"] else self.HC_max["bluemax"]
+                self.global_HC_max = self.HC_max["greenmax"] if self.HC_max["greenmax"] > self.global_HC_max else self.global_HC_max
+
+                red[red > self.global_HC_max] = self.global_HC_max
+                green[green > self.global_HC_max] = self.global_HC_max
+                blue[blue > self.global_HC_max] = self.global_HC_max
+
+                red = ((red - self.min) / (self.global_HC_max - self.min))
+                green = ((green - self.min) / (self.global_HC_max - self.min))
+                blue = ((blue - self.min) / (self.global_HC_max - self.min))
+
+                red[red < 0.0 ] = 0.0
+                green[green < 0.0 ] = 0.0
+                blue[blue < 0.0 ] = 0.0
+
+                red[red > 1.0 ] = 1.0
+                green[green > 1.0 ] = 1.0
+                blue[blue > 1.0 ] = 1.0
+
+            else:
+                self.global_HC_max = self.HC_mono_max
+                img = ((img - self.min) / (self.global_HC_max - self.min))
+                img[img < 0.0 ] = 0.0
+                img[img > 1.0 ] = 1.0
+
+                img *= 65535
+                img = img.astype(int)
+                img = img.astype("uint16")
+
+            if camera_model == "Kernel 14.4":
+                img = self.merge(red, blue, green, "TIF")
+
+                cv2.imencode(".tif", img)
+                cv2.imwrite(outphoto, img)
+                self.copyMAPIR(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], outphoto)
+                os.unlink(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
+
+            elif camera_model == "Survey3":
+
+                if self.PreProcessJPGBox.isChecked():
+                    color = self.merge(red, green, blue, 'JPG')
+                    cv2.imencode(".jpg", color)
+                else:
+                    color = self.merge(red, blue, green, "TIF")
+                    cv2.imencode(".tif", color)
+
+                cv2.imwrite(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], color)
+                self.copyExif(outphoto, outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
+
+                cv2.imwrite(outphoto, color)
+                self.copyExif(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], outphoto)
+                os.unlink(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
+
+            elif camera_model in self.DJIS:
+                img = self.merge(red, blue, green, "TIF")
+                cv2.imwrite(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], img)
+                self.copyExif(outphoto, outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
+
+                cv2.imwrite(outphoto, img)
+                self.copyExif(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], outphoto)
+                os.unlink(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
+
+            elif camera_model == "Kernel 3.2":
+                cv2.imwrite(outphoto, img)
+                self.copyMAPIR(outphoto, outphoto)
+
+        except Exception as e:
+            exc_type, exc_obj,exc_tb = sys.exc_info()
+
+    def on_Process_Histogram_ClipBox_toggled(self):
+        if self.Process_Histogram_ClipBox.checkState() == 2:
+            self.Process_Histogram_ClipBox_Label.setEnabled(True)
+            self.Process_HC_Value.setEnabled(True)
+
+        elif self.Process_Histogram_ClipBox.checkState() == 0:
+            self.Process_Histogram_ClipBox_Label.setEnabled(False)
+            self.Process_HC_Value.setEnabled(False)
+            self.Process_HC_Value.clear()
+
+    def on_PreProcessColorBox_toggled(self):
+        if self.PreProcessCameraModel.currentText() == "Kernel 14.4" and self.PreProcessFilter.currentText() == "644 (RGB)":
+            if self.PreProcessColorBox.isChecked():
+                self.PreProcessVignette.setChecked(True)
+
+    def bad_process_hcp_value(self):
+        if "." in self.Process_HC_Value.text():
+            return True
+
+        if self.Process_Histogram_ClipBox.checkState() and not self.Process_HC_Value.text():
+            return True
+
+        elif (self.Process_Histogram_ClipBox.checkState() and (int(self.Process_HC_Value.text()) < 1 or int(self.Process_HC_Value.text()) > 100)):
+            return True
+
+        else:
+            return False
+
+    def blur(self, color):
+        red = color[:, :, 2]
+        blue = color[:, :, 0]
+        green = color[:, :, 1]
+
+        BF = 0.2
+        DF = (8 * BF) + 1
+        blur_kernel = np.array([[BF,BF,BF],[BF,1,BF],[BF,BF,BF]])/ DF;
+        green = cv2.filter2D(green,-1,blur_kernel)
+        color =  cv2.merge((blue, green, red))
+
+        return color
+
+    def rotate_image(self, h, w, color):
+        M = cv2.getRotationMatrix2D((w/2,h/2), 180, 1)
+        color = cv2.warpAffine(color, M, (w,h))
+        return color
+
+    def openMapir(self, inphoto, outphoto, input, outfolder, count):
+        try:
+            camera_model = self.PreProcessCameraModel.currentText()
+            filt = self.PreProcessFilter.currentText()
+            lens = self.PreProcessLens.currentText()
+
+            if self.Process_Histogram_ClipBox.isChecked():
+                if self.bad_process_hcp_value():
+                    self.PreProcessLog.append("Attention! Please select a Histogram Clipping Percentage value between 1-100.")
+                    self.PreProcessLog.append("For example: for 20%, please enter 20\n")
+
+            if inphoto.endswith('.mapir'):
+                self.conv = Converter()
+                if self.PreProcessDarkBox.isChecked():
                     _, _, _, self.lensvals = self.conv.openRaw(inphoto, outphoto, darkscale=True)
                 else:
-                    # subprocess.call(
-                    #     [modpath + os.sep + r'Mapir_Converter.exe', os.path.abspath(inphoto),
-                    #      os.path.abspath(outphoto)], startupinfo=si)
                     _, _, _, self.lensvals = self.conv.openRaw(inphoto, outphoto, darkscale=False)
+
+
                 img = cv2.imread(outphoto, -1)
 
-                try:
 
+                try:
                     if self.PreProcessCameraModel.currentText() == "Kernel 14.4":
                         h, w = img.shape[:2]
 
@@ -4920,107 +5322,66 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         self.copySimple(outphoto, outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
 
                         color = cv2.cvtColor(img, cv2.COLOR_BAYER_GB2RGB).astype("float32")
-                        color2 = cv2.cvtColor(img, cv2.COLOR_BAYER_BG2BGR).astype("float32")
+                        color = self.blur(color)
 
-                        #color = demosaicing_CFA_Bayer_Malvar2004(img, pattern="GRBG")
+                        if self.Process_Histogram_ClipBox.isChecked():
+                            if count == 0:
+                                self.HC_max["redmax"] = self.get_clipping_value(color[:, :, 2])
+                                self.HC_max["greenmax"] = self.get_clipping_value(color[:, :, 1])
+                                self.HC_max["bluemax"] = self.get_clipping_value(color[:, :, 0])
 
-                        # gr = ((color2[:,:,2] + color2[:,:,0])/2).astype("uint16")
-                        #
-                        # color[:,:,1] = gr
-                        #
-                        # color[color > 65535] = 65535
-                        # color[color < 0] = 0
-                        # color[:, :, 1] = color2[:, :, 2]
+                                self.min = color[:, :, 0].min() if color[:, :, 0].min() < color[:, :, 1].min() else color[:, :, 1].min()
+                                self.min = color[:, :, 2].min() if color[:, :, 2].min() < self.min else self.min
 
-                        color[:, :, 1] = color2[:, :, 0]
+                            else:
+                                self.HC_max["redmax"] = max(self.get_clipping_value(color[:, :, 2]), self.HC_max["redmax"])
+                                self.HC_max["greenmax"] = max(self.get_clipping_value(color[:, :, 1]), self.HC_max["greenmax"])
+                                self.HC_max["bluemax"] = max(self.get_clipping_value(color[:, :, 0]), self.HC_max["bluemax"])
 
-                        # temp1 = color[:,:,0]
-                        # color[:,:,0] = color[:,:,2]
-                        # color[:,:2] = temp1
-                        # color = self.debayer(img)
-                        # color = cv2.cvtColor(img, cv2.COLOR_BGR2RGB).astype("uint16")
-                        roff = 0.0
-                        goff = 0.0
-                        boff = 0.0
+                                self.min = min(color[:, :, 0].min(), self.min)
+                                self.min = min(color[:, :, 1].min(), self.min)
+                                self.min = min(color[:, :, 2].min(), self.min)
+
+
+                        if self.PreProcessVignette.isChecked():
+                            color = self.apply_vignette_dark_color(color, h, w)
+
                         color = color / 65535.0
-
                         if self.PreProcessColorBox.isChecked():
-                            red_coeffs = self.COLOR_CORRECTION_VECTORS[:3]
-                            green_coeffs = self.COLOR_CORRECTION_VECTORS[3:6]
-                            blue_coeffs = self.COLOR_CORRECTION_VECTORS[6:9]
+                            if not self.PreProcessVignette.isChecked():
+                                self.PreProcessLog.append("WARNING: For better results you need to apply vignette, dark frame subtraction, and color correction together. \n")
 
-                            red = color[:, :, 2] = (red_coeffs[0] * color[:, :, 0]) + (red_coeffs[1] * color[:, :, 1]) + (red_coeffs[2] * color[:, :, 2]) + roff
-                            green = color[:, :, 1] = (green_coeffs[0] * color[:, :, 0]) + (green_coeffs[1] * color[:, :, 1]) + (green_coeffs[2] * color[:, :, 2]) + goff
-                            blue = color[:, :, 0] = (blue_coeffs[0] * color[:, :, 0]) + (blue_coeffs[1] * color[:, :, 1]) + (blue_coeffs[2] * color[:, :, 2]) + boff
-
-                            #need to rescale not clip
-                            color[red > 1.0] = 1.0
-                            color[green > 1.0] = 1.0
-                            color[blue > 1.0] = 1.0
-                            color[red < 0.0] = 0.0
-                            color[green < 0.0] = 0.0
-                            color[blue < 0.0] = 0.0
+                            color = self.color_correction(color)
 
                         color = (color * 65535.0).astype("uint16")
 
-                        if self.PreProcessVignette.isChecked():
-                            red = color[:, :, 2]
-                            green = color[:, :, 1]
-                            blue = color[:, :, 0]
-
-                            lens_str = self.PreProcessLens.currentText().split("m")[0]
-                            fil_str = self.PreProcessFilter.currentText()[:3]
-
-                            if "/" in self.PreProcessFilter.currentText():
-                                fil_names = self.PreProcessFilter.currentText().split("/")
-                                fil_str = fil_names[0] + "-" + fil_names[1] + "-" + fil_names[2]
-
-                            dark_frame_value = self.get_dark_frame_value(fil_str)
-                            
-                            with open(modpath + os.sep + r"vig_" + fil_str + "_" + lens_str + "_" + "1" + r".txt", "rb") as vigfilered:
-                                v_array = np.ndarray((h, w), np.dtype("float32"), np.fromfile(vigfilered, np.dtype("float32")))
-                                red = red / v_array
-                                red[red > 65535.0] = 65535.0
-                                red[red < 0.0] = 0.0
-                            
-                                red -= dark_frame_value
-
-                            with open(modpath + os.sep + r"vig_" + fil_str + "_" + lens_str + "_" + "2" + r".txt", "rb") as vigfilegreen:
-                                v_array = np.ndarray((h, w), np.dtype("float32"),
-                                                     np.fromfile(vigfilegreen, np.dtype("float32")))
-                                green = green / v_array
-                                green[green > 65535.0] = 65535.0
-                                green[green < 0.0] = 0.0
-
-                                green -= dark_frame_value
-
-                            with open(modpath + os.sep + r"vig_" + fil_str + "_" + lens_str + "_" + "3" + r".txt", "rb") as vigfileblue:
-                                v_array = np.ndarray((h, w), np.dtype("float32"),
-                                                     np.fromfile(vigfileblue, np.dtype("float32")))
-                                blue = blue / v_array
-                                blue[blue > 65535.0] = 65535.0
-                                blue[blue < 0.0] = 0.0
-
-                                blue -= dark_frame_value
-
-                            red = red.astype("uint16")
-                            green = green.astype("uint16")
-                            blue = blue.astype("uint16")
-
-                            color =  cv2.merge((blue, green, red))
+                        if self.conv.STD_PAYLOAD["LINK_ID"] in [1,3]:
+                            color = self.rotate_image(h, w, color)
 
                         cv2.imencode(".tif", color)
+                        path = outphoto.split(".")[0] + "." + outphoto.split(".")[1]
+                        cv2.imwrite(path, color)
 
-                        cv2.imwrite(outphoto, color)
                         self.copyMAPIR(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], outphoto)
                         os.unlink(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
 
                         self.PreProcessLog.append("Done Debayering \n")
                         QtWidgets.QApplication.processEvents()
+
                     else:
                         h, w = img.shape[:2]
 
                         try:
+                            if self.Process_Histogram_ClipBox.isChecked():
+                                if count == 0:
+                                    self.HC_mono_max = self.get_clipping_value(img)
+                                    self.min = img.min()
+
+                                else:
+                                    self.HC_mono_max = max(self.get_clipping_value(img), self.HC_mono_max)
+                                    self.min = min(img.min(), self.min)
+
+
                             if self.PreProcessVignette.isChecked():
                                 with open(modpath + os.sep + r'Dark_Frame_Values.json') as json_data:
                                     DFVS = json.load(json_data)
@@ -5031,23 +5392,22 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                     # with open(self.VignetteFileSelect.text(), "rb") as vigfile:
                                     v_array = np.ndarray((h, w), np.dtype("float32"),
                                                          np.fromfile(vigfile, np.dtype("float32")))
+
                                     img = img / v_array
+
                                     img[img > 65535.0] = 65535.0
                                     img[img < 0.0] = 0.0
-                                    img -= dark_frame_value
 
+                                    img -= dark_frame_value
                                     img = img.astype("uint16")
 
                                 cv2.imwrite(outphoto, img)
                         except Exception as e:
-                            print("Error: ", e)
                             exc_type, exc_obj,exc_tb = sys.exc_info()
-                            print(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
                             self.PreProcessLog.append("No vignette correction data found")
                             QtWidgets.QApplication.processEvents()
 
                         self.copyMAPIR(outphoto, outphoto)
-                        # self.PreProcessLog.append("Skipped Debayering")
                         QtWidgets.QApplication.processEvents()
 
                 except Exception as e:
@@ -5058,6 +5418,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                     if self.PreProcessCameraModel.currentText() == "Kernel 14.4":
                         img = cv2.imread(inphoto, 0)
+                        h, w = img.shape[:2]
 
                         color = cv2.cvtColor(img, cv2.COLOR_BAYER_GR2RGB)
                         # color = self.debayer(img)
@@ -5289,7 +5650,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
              r'-all:all<all:all',
              os.path.abspath(outphoto)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE,
             startupinfo=si).stderr.decode("utf-8")
-        print(exifout)
+        data = subprocess.run(
+                    args=[modpath + os.sep + r'exiftool.exe', '-m', r'-ifd0:imagewidth', r'-ifd0:imageheight', os.path.abspath(inphoto)],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                    stdin=subprocess.PIPE, startupinfo=si).stdout.decode("utf-8")
 
     def copyMAPIR(self, inphoto, outphoto):
         if sys.platform == "win32":
@@ -5310,13 +5674,40 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 # ypr[0] = abs(float(self.conv.META_PAYLOAD["ATT_Q0"][1]))
                 # ypr[1] = -float(self.conv.META_PAYLOAD["ATT_Q1"][1])
                 # ypr[2] = ((float(self.conv.META_PAYLOAD["ATT_Q2"][1]) + 180.0) % 360.0)
-                ypr[0] = abs(float(self.conv.META_PAYLOAD["ATT_Q0"][1]) % 360.0)
-                ypr[1] = abs((float(self.conv.META_PAYLOAD["ATT_Q1"][1]) + 180.0) % 360.0)
-                ypr[2] = abs((float(-self.conv.META_PAYLOAD["ATT_Q2"][1])))
+
+                ypr[0] = abs(float(self.conv.META_PAYLOAD["ATT_Q0"][1]))
+                ypr[1] = abs(float(self.conv.META_PAYLOAD["ATT_Q1"][1])) 
+                ypr[2] = abs(float(self.conv.META_PAYLOAD["ATT_Q2"][1]))
+
+                #ypr[0] = abs(float(self.conv.META_PAYLOAD["ATT_Q0"][1]) % 360.0)
+                #ypr[1] = abs((float(self.conv.META_PAYLOAD["ATT_Q1"][1]) + 180.0) % 360.0)
+                #ypr[2] = abs((float(-self.conv.META_PAYLOAD["ATT_Q2"][1])))
+
+                self.conv.META_PAYLOAD["ARRAY_ID"][1] = self.conv.STD_PAYLOAD["LINK_ID"]
+                #ypr = {"yaw": 0, "pitch": 0, "roll": 0}
 
                 if self.conv.META_PAYLOAD["ARRAY_TYPE"][1] != 0: 
-                    ypr = AdjustYPR(int(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]),int(self.conv.META_PAYLOAD["ARRAY_ID"][1]),ypr)
-                    ypr = CurveAdjustment(int(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]),int(self.conv.META_PAYLOAD["ARRAY_ID"][1]),ypr)
+                    ypr = AdjustYPR(int(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]), int(self.conv.META_PAYLOAD["ARRAY_ID"][1]),ypr)
+                    ypr = CurveAdjustment(int(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]), int(self.conv.META_PAYLOAD["ARRAY_ID"][1]),ypr)
+
+                '''
+                if self.conv.STD_PAYLOAD["LINK_ID"] == 0:
+                    ypr[0] -= 45
+                    ypr[0] -= 180
+
+                elif self.conv.STD_PAYLOAD["LINK_ID"] == 1:
+                    ypr[0] -= 45
+
+                elif self.conv.STD_PAYLOAD["LINK_ID"] == 2:
+                    ypr[0] += 45
+
+                elif self.conv.STD_PAYLOAD["LINK_ID"] == 3:
+                    ypr[0] -= 45'''
+
+                ypr = [x % 360 if x > 360 else x for x in ypr]
+                ypr = [x % 360 if x < 0 else x for x in ypr]
+                #print("after: ", ypr)
+                #print()
 
                 w = int(data[0][1])
                 h = int(data[1][1])
@@ -5369,16 +5760,33 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                  #r'-ifd0:blacklevelrepeatdim=' + str(1) + " " + str(1),
                                  #r'-ifd0:blacklevel=0',
                                  r'-ModelType=perspective',
-                                 r'-BlackCurrent=' + str(str(DFV) + ', ' + str(DFV) + ', ' + str(DFV)),
-                                 r'-Yaw=' + str(ypr[0]),
-                                 r'-Pitch=' + str(ypr[1]),
-                                 r'-Roll=' + str(ypr[2]),
-                                 r'-CentralWavelength=' + str(float(centralwavelength[0])) + ', ' + str(float(centralwavelength[1])) + ', ' + str(float(centralwavelength[2])),
-                                 r'-bandname=' + str(bandname[0] + ', ' + bandname[1] + ', ' + bandname[2]),
-                                 # r'-bandname2=' + str( r'F' + self.BandNames.get(bandname, [0,0,0])[1]),
-                                 # r'-bandname3=' + str( r'F' + self.BandNames.get(bandname, [0,0,0])[2]),
+                                 r'-BlackCurrent=' + str(DFV),
+                                 r'-BlackCurrent=' + str(DFV),
+                                 r'-BlackCurrent=' + str(DFV),
+                                 #r'-Yaw=' + str(ypr[0]),
+                                 #r'-Pitch=' + str(ypr[1]),
+                                 #r'-Roll=' + str(ypr[2]),
+                                 r'-CentralWavelength=' + str(float(centralwavelength[0])), 
+                                 r'-CentralWavelength=' + str(float(centralwavelength[1])),
+                                 r'-CentralWavelength=' + str(float(centralwavelength[2])),
+                                 r'-bandname=' + bandname[0],
+                                 r'-bandname=' + bandname[1],
+                                 r'-bandname=' + bandname[2],
+                                 r'-PrincipalPoint=' + self.PRINCIPALPOINT,
+                                 #r'-PrincipalPoint=' + self.PRINCIPALPOINT[0],
+                                 #r'-PrincipalPoint=' + self.PRINCIPALPOINT[1],
+                                 r'-PerspectiveFocalLength=' + self.PERSPECTIVEFOCALLENGTH,
+                                 r'-PerspectiveDistortion=' + self.PERSPECTIVEDISTORTION,
+                                 #r'-PerspectiveDistortion=' + str(float(self.PERSPECTIVEDISTORTION[0])),
+                                 #r'-PerspectiveDistortion=' + str(float(self.PERSPECTIVEDISTORTION[1])),
+                                 #r'-PerspectiveDistortion=' + str(float(self.PERSPECTIVEDISTORTION[2])),
+                                 #r'-PerspectiveDistortion=' + str(float(self.PERSPECTIVEDISTORTION[3])),
+                                 #r'-PerspectiveDistortion=' + str(float(self.PERSPECTIVEDISTORTION[4])),
 
-                                 r'-WavelengthFWHM=' +str( self.lensvals[3:6][0][2] + ', ' + self.lensvals[3:6][1][2] + ', ' + self.lensvals[3:6][2][2]),
+                                 r'-WavelengthFWHM=' + self.lensvals[3:6][0][2],
+                                 r'-WavelengthFWHM=' + self.lensvals[3:6][1][2],
+                                 r'-WavelengthFWHM=' + self.lensvals[3:6][2][2],
+
                                  r'-GPSLatitude="' + str(self.conv.META_PAYLOAD["GNSS_LAT_HI"][1]) + r'"',
 
                                  r'-GPSLongitude="' + str(self.conv.META_PAYLOAD["GNSS_LON_HI"][1]) + r'"',
@@ -5400,12 +5808,21 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                  r'-Lens=' + lensmodel,
                                  r'-FocalLength=' + focallength,
                                  r'-fnumber=' + fnumber,
-                                 r'-ArrayID=' + str(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]),
-                                 r'-ArrayType=' + str(self.conv.META_PAYLOAD["ARRAY_ID"][1]),
-                                 r'-FocalPlaneXResolution=' + str(6.14),
-                                 r'-FocalPlaneYResolution=' + str(4.60),
+                                 r'-ArrayID=' + str(self.conv.META_PAYLOAD["ARRAY_ID"][1]),
+                                 r'-ArrayType=' + str(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]),
+                                 r'-FocalPlaneXResolution#=' + '714286/1000',
+                                 r'-FocalPlaneYResolution#=' + '714286/1000',
+                                 r'-FocalPlaneResolutionUnit#=' + '4',
                                  os.path.abspath(outphoto)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, startupinfo=si).stderr.decode("utf-8")
                         else:
+
+                            for count, item in enumerate(centralwavelength):
+                                if item == "":
+                                    if (count + 1) == len(centralwavelength):
+                                        CWL = item
+                                    continue
+                                else:
+                                    CWL = item
 
                             exifout = subprocess.run(
                                 [modpath + os.sep + r'exiftool.exe', r'-config', modpath + os.sep + r'mapir.config',
@@ -5416,10 +5833,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                  r'-Model=' + model,
                                  r'-ModelType=perspective',
                                  r'-BlackCurrent=' + str(DFV),
-                                 r'-Yaw=' + str(ypr[0]),
-                                 r'-Pitch=' + str(ypr[1]),
-                                 r'-Roll=' + str(ypr[2]),
-                                 r'-CentralWavelength=' + str(float(centralwavelength[0])),
+                                 #r'-Yaw=' + str(ypr[0]),
+                                 #r'-Pitch=' + str(ypr[1]),
+                                 #r'-Roll=' + str(ypr[2]),
+                                 r'-CentralWavelength=' + str(CWL if CWL == "" else float(CWL)),
                                  #r'-ifd0:blacklevelrepeatdim=' + str(1) + " " +  str(1),
                                  #r'-ifd0:blacklevel=0',
                                  # r'-BandName="{band1=' + str(self.BandNames[bandname][0]) + r'band2=' + str(self.BandNames[bandname][1]) + r'band3=' + str(self.BandNames[bandname][2]) + r'}"',
@@ -5447,10 +5864,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                  r'-Lens=' + lensmodel,
                                  r'-FocalLength=' + focallength,
                                  r'-fnumber=' + fnumber,
-                                 r'-ArrayID=' + str(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]),
-                                 r'-ArrayType=' + str(self.conv.META_PAYLOAD["ARRAY_ID"][1]),
-                                 r'-FocalPlaneXResolution=' + str(6.14),
-                                 r'-FocalPlaneYResolution=' + str(4.60),
+                                 r'-ArrayID=' + str(self.conv.META_PAYLOAD["ARRAY_ID"][1]),
+                                 r'-ArrayType=' + str(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]),
+                                 r'-FocalPlaneXResolution=' + '714286/1000',
+                                 r'-FocalPlaneYResolution=' + '714286/1000',
+                                 r'-FocalPlaneResolutionUnit#=' + '4',
                                  os.path.abspath(outphoto)], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                 stdin=subprocess.PIPE, startupinfo=si).stderr.decode("utf-8")
                         print(exifout)
