@@ -8,10 +8,10 @@
 [October 25th, 2018 - With Kernel Vignette Correction Support](https://drive.google.com/file/d/1BRnrqcKS3Bp97sT6tnT7GCIMo1sTlK4L/view?usp=sharing)
 
 Change Log
-* Added hiistogram clipping in processing tab
+* Added histogram clipping in processing tab
 * Updated histogram clipping algorithm
 * Changed debayering algorithm
-* Added NIR bleed to Survey2 camera
+* Added NIR bleed to Survey2 camera calibration
 
 ## Old Versions
 [August 2nd, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_08022018.exe)
