@@ -10,7 +10,7 @@
 Change Log
 * Added histogram clipping in processing tab
 * Updated histogram clipping algorithm
-* Changed debayering algorithm
+* Modified Kernel debayering algorithm
 * Added NIR bleed to Survey2 camera calibration
 
 ## Old Versions
