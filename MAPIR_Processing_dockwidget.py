@@ -5290,6 +5290,64 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         color = cv2.warpAffine(color, M, (w,h))
         return color
 
+    def remove_lines(self, img, h, w):
+        diff_perc = .50
+        bad_rows = []
+        
+        for row in range(h):
+            cols_start = list(range(0, 0 + (5 * 9), 5))
+            cols_end = list(range(w - (5 * 9), w, 5))
+            cols = cols_start + cols_end
+
+            front = True
+            count = 0
+
+            for col in cols:
+                if row == 0 or row == 1:
+                    pixel_above = 0
+                    pixel_below = img.item(row+2)
+
+                elif row == (h-1) or row == (h-2):
+                    pixel_above = img.item(row-2)
+                    pixel_below = 0
+
+                else:
+                    pixel_below = img.item(row+2, col) 
+                    pixel_above = img.item(row-2, col)
+
+                if (pixel_above / img.item(row, col)) < diff_perc and (pixel_below / img.item(row, col)) < diff_perc:
+                    count += 1
+
+                    if count == 3:
+                        bad_rows.append(row)
+
+                        if front and cols.index(col) > 2:
+                            cols = list(reversed(cols))
+                            front = False
+                        else:
+                            continue
+
+        bad_rows = list(set(bad_rows))
+        for row in bad_rows:
+            for col in range(w):
+
+                if row == 0 or row == 1:
+                    f_pixel = img.item(row+2, col)
+                    s_pixel = img.item(row+4, col)
+
+                elif row == (h-1) or row == (h-2):
+                    f_pixel = img.item(row-2, col)
+                    s_pixel = img.item(row-4, col)
+
+                else:
+                    f_pixel = img.item(row+2, col)
+                    s_pixel = img.item(row-2, col)
+
+
+                img[row, col] = (f_pixel + s_pixel) / 2
+
+        return img
+
     def openMapir(self, inphoto, outphoto, input, outfolder, count):
         try:
             camera_model = self.PreProcessCameraModel.currentText()
@@ -5305,9 +5363,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.conv = Converter()
                 if self.PreProcessDarkBox.isChecked():
                     _, _, _, self.lensvals = self.conv.openRaw(inphoto, outphoto, darkscale=True)
+
                 else:
                     _, _, _, self.lensvals = self.conv.openRaw(inphoto, outphoto, darkscale=False)
-
 
                 img = cv2.imread(outphoto, -1)
 
@@ -5315,6 +5373,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 try:
                     if self.PreProcessCameraModel.currentText() == "Kernel 14.4":
                         h, w = img.shape[:2]
+
+                        if self.conv.META_PAYLOAD["ARRAY_TYPE"][1] in [100, 101]:
+                            img = self.remove_lines(img, h, w)
 
                         self.PreProcessLog.append("Debayering...")
                         QtWidgets.QApplication.processEvents()
@@ -5355,7 +5416,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                         color = (color * 65535.0).astype("uint16")
 
-                        if self.conv.STD_PAYLOAD["LINK_ID"] in [1,3]:
+                        if self.conv.STD_PAYLOAD["LINK_ID"] in [1,3] and self.conv.META_PAYLOAD["ARRAY_TYPE"][1] == 101:
                             color = self.rotate_image(h, w, color)
 
                         cv2.imencode(".tif", color)
