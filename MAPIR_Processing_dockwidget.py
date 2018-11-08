@@ -825,6 +825,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                              "mono":  {"slope": 0.00, "intercept": 0.00}
                             }
 
+
+    qr_coeffs = {}
+
     monominmax = {"min": 65535.0,"max": 0.0}
     imkeys_JPG = np.array(list(range(0, 255)))
     imkeys = np.array(list(range(0, 65536)))
@@ -3171,6 +3174,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             elif len(self.CalibrationQRFile.text()) > 0:
                 self.findQR(self.CalibrationQRFile.text(), [self.CalibrationCameraModel, self.CalibrationFilter, self.CalibrationLens])
                 self.qrcoeffs = copy.deepcopy(self.multiplication_values["mono"])
+                self.qr_coeffs[1] = copy.deepcopy(self.multiplication_values["mono"])
                 print("Multplication Values: ", self.multiplication_values)
                 self.useqr = True
 
@@ -3190,6 +3194,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                 self.findQR(self.CalibrationQRFile_2.text(), [self.CalibrationCameraModel_2, self.CalibrationFilter_2, self.CalibrationLens_2])
                 self.qrcoeffs2 = copy.deepcopy(self.multiplication_values["mono"])
+                self.qr_coeffs[2] = copy.deepcopy(self.multiplication_values["mono"])
                 self.useqr = True
             else:
                 self.CalibrationLog.append("Attention! Please select a target image.\n")
@@ -3203,6 +3208,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             elif len(self.CalibrationQRFile_3.text()) > 0:
                 self.findQR(self.CalibrationQRFile_3.text(), [self.CalibrationCameraModel_3, self.CalibrationFilter_3, self.CalibrationLens_3])
                 self.qrcoeffs3 = copy.deepcopy(self.multiplication_values["mono"])
+                self.qr_coeffs[3] = copy.deepcopy(self.multiplication_values["mono"])
                 self.useqr = True
             else:
                 self.CalibrationLog.append("Attention! Please select a target image.\n")
@@ -3216,6 +3222,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             elif len(self.CalibrationQRFile_4.text()) > 0:
                 self.qrcoeffs4 = self.findQR(self.CalibrationQRFile_4.text(), [self.CalibrationCameraModel_4, self.CalibrationFilter_4, self.CalibrationLens_4])
                 self.qrcoeffs4 = copy.deepcopy(self.multiplication_values["mono"])
+                self.qr_coeffs[4] = copy.deepcopy(self.multiplication_values["mono"])
                 self.useqr = True
             else:
                 self.CalibrationLog.append("Attention! Please select a target image.\n")
@@ -3229,6 +3236,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             elif len(self.CalibrationQRFile_5.text()) > 0:
                 self.qrcoeffs5 = self.findQR(self.CalibrationQRFile_5.text(), [self.CalibrationCameraModel_5, self.CalibrationFilter_5, self.CalibrationLens_5])
                 self.qrcoeffs5 = copy.deepcopy(self.multiplication_values["mono"])
+                self.qr_coeffs[5] = copy.deepcopy(self.multiplication_values["mono"])
                 self.useqr = True
             else:
                 self.CalibrationLog.append("Attention! Please select a target image.\n")
@@ -3242,6 +3250,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             elif len(self.CalibrationQRFile_6.text()) > 0:
                 self.qrcoeffs6 = self.findQR(self.CalibrationQRFile_6.text(), [self.CalibrationCameraModel_6, self.CalibrationFilter_6, self.CalibrationLens_6])
                 self.qrcoeffs6 = copy.deepcopy(self.multiplication_values["mono"])
+                self.qr_coeffs[6] = copy.deepcopy(self.multiplication_values["mono"])
                 self.useqr = True
             else:
                 self.CalibrationLog.append("Attention! Please select a target image.\n")
@@ -3337,6 +3346,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 calfolder4 = self.CalibrationInFolder_4.text()
                 calfolder5 = self.CalibrationInFolder_5.text()
                 calfolder6 = self.CalibrationInFolder_6.text()
+                
                 self.pixel_min_max = {"redmax": 0.0, "redmin": 65535.0,
                                       "greenmax": 0.0, "greenmin": 65535.0,
                                       "bluemax": 0.0, "bluemin": 65535.0}
@@ -3346,6 +3356,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                "bluemax": 0.0, }
 
                 self.HC_mono_max = 0
+                self.multiple_inputs = False
+                self.maxes = {}
+                self.mins = {}
+                self.HC_mult_max = {}
 
                 # self.CalibrationLog.append("Calibration target folder is: " + calfolder + "\n")
                 files_to_calibrate = []
@@ -3368,6 +3382,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                            [self.CalibrationCameraModel_6.currentText(), self.CalibrationFilter_6.currentText(),
                             self.CalibrationLens_6.currentText()],
                            ]
+
+                if indexes[1][0] != "":
+                    self.multiple_inputs = True
 
                 folderind = [calfolder,
                              calfolder2,
@@ -3454,7 +3471,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                                     self.pixel_min_max["bluemax"] = max(blue.max(), self.pixel_min_max["bluemax"])
                                     self.pixel_min_max["bluemin"] = min(blue.min(), self.pixel_min_max["bluemin"])
-
 
                                     if self.histogramClipBox.checkState() == self.CHECKED:
                                         self.HC_max["redmax"] = max(self.get_HC_value(red), self.HC_max["redmax"])
@@ -3600,7 +3616,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                             cameramodel = ind
                             if self.useqr:
-                                # self.CalibrationLog.append("Using QR")
                                 try:
                                     self.CalibrationLog.append("Calibrating image " + str(i + 1) + " of " + str(len(files_to_calibrate)))
                                     QtWidgets.QApplication.processEvents()
@@ -3624,17 +3639,18 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             files_to_calibrate.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
                             files_to_calibrate.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
 
-                            if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate[0]:
-                                foldercount = 1
-                                endloop = False
-                                while endloop is False:
-                                    outdir = folderind[j] + os.sep + "Calibrated_" + str(foldercount)
+                            if not self.multiple_inputs:  
+                                if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate[0]:
+                                    foldercount = 1
+                                    endloop = False
+                                    while endloop is False:
+                                        outdir = folderind[j] + os.sep + "Calibrated_" + str(foldercount)
 
-                                    if os.path.exists(outdir):
-                                        foldercount += 1
-                                    else:
-                                        os.mkdir(outdir)
-                                        endloop = True
+                                        if os.path.exists(outdir):
+                                            foldercount += 1
+                                        else:
+                                            os.mkdir(outdir)
+                                            endloop = True
 
                         for i, calpixel in enumerate(files_to_calibrate):
                             img = cv2.imread(calpixel, -1)
@@ -3739,27 +3755,92 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             elif camera_model == "Kernel 3.2":
                                 raise UnboundLocalError("Calibration without a calibration target is not supported for Kernel 3.2")
 
+                            if self.multiple_inputs:
+                                self.maxes[j + 1] = self.calibrate(base_coef, img.max())
+                                self.mins[j + 1] = self.calibrate(base_coef, img.min())
 
-                            self.monominmax["max"] = self.calibrate(base_coef, self.monominmax["max"])
-                            self.monominmax["min"] = self.calibrate(base_coef, self.monominmax["min"])
+                            else:
+                                self.monominmax["max"] = self.calibrate(base_coef, self.monominmax["max"])
+                                self.monominmax["min"] = self.calibrate(base_coef, self.monominmax["min"])
 
                         if self.useqr:
-                            self.monominmax["max"] = self.calibrate(self.multiplication_values["mono"], self.monominmax["max"])
-                            self.monominmax["min"] = self.calibrate(self.multiplication_values["mono"], self.monominmax["min"])
+                            if self.multiple_inputs:
+                                self.maxes[j + 1] = self.calibrate(self.qr_coeffs[j + 1], img.max())
+                                self.mins[j + 1] = self.calibrate(self.qr_coeffs[j + 1], img.min())
 
-                            if self.histogramClipBox.checkState() == self.CHECKED:
-                                self.HC_mono_max = self.calibrate(self.multiplication_values["mono"], self.HC_mono_max)
+                                if self.histogramClipBox.checkState() == self.CHECKED:
+                                    self.HC_mult_max[j + 1] = self.calibrate(self.qr_coeffs[j + 1], self.get_HC_value(img))
+
+                            else:
+                                self.monominmax["max"] = self.calibrate(self.multiplication_values["mono"], self.monominmax["max"])
+                                self.monominmax["min"] = self.calibrate(self.multiplication_values["mono"], self.monominmax["min"])
+
+                                if self.histogramClipBox.checkState() == self.CHECKED:
+                                    self.HC_mono_max = self.calibrate(self.multiplication_values["mono"], self.HC_mono_max)
                                 
+                        
+                        if not self.multiple_inputs:
+                            for i, calfile in enumerate(files_to_calibrate):
+                                cameramodel = ind
+                                if self.useqr:
+                                    try:
+                                        self.CalibrationLog.append("Calibrating image " + str(i + 1) + " of " + str(len(files_to_calibrate)))
+                                        QtWidgets.QApplication.processEvents()
+                                        self.CalibrateMono(calfile, self.multiplication_values["mono"], outdir, ind)
+
+                                    except Exception as e:
+                                        print("ERROR: ", e)
+                                        exc_type, exc_obj,exc_tb = sys.exc_info()
+                                        exc_type, exc_obj,exc_tb = sys.exc_info()
+                                        print(' Line: ' + str(exc_tb.tb_lineno))
+                                        self.CalibrationLog.append(str(e))
+                                else:
+                                    self.CalibrationLog.append("Calibrating image " + str(i + 1) + " of " + str(len(files_to_calibrate)))
+                                    QtWidgets.QApplication.processEvents()
+
+                                    self.CalibrateMono(calfile, base_coef, outdir, ind)
+
+                if self.multiple_inputs and not self.check_if_RGB(camera_model, filt, lens):
+                    self.monominmax["max"] = max(list(self.maxes.values()))
+                    self.monominmax["min"] = min(list(self.mins.values()))
+
+                    if self.histogramClipBox.checkState() == self.CHECKED:
+                        self.HC_mono_max = max(list(self.HC_mult_max.values()))
+
+                    for j, ind in enumerate(indexes):
+                        camera_model = ind[0]
+                        filt = ind[1]
+                        lens = ind[2]
+
+                        if camera_model == "":
+                            continue
+
+                        if os.path.exists(folderind[j]):
+                            files_to_calibrate = []
+                            os.chdir(folderind[j])
+                            files_to_calibrate.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
+                            files_to_calibrate.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
+                            files_to_calibrate.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
+                            files_to_calibrate.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
+
+                            if "tif" or "TIF" or "jpg" or "JPG" in files_to_calibrate[0]:
+                                foldercount = 1
+                                endloop = False
+                                while endloop is False:
+                                    outdir = folderind[j] + os.sep + "Calibrated_" + str(foldercount)
+
+                                    if os.path.exists(outdir):
+                                        foldercount += 1
+                                    else:
+                                        os.mkdir(outdir)
+                                        endloop = True
 
                         for i, calfile in enumerate(files_to_calibrate):
-
-                            cameramodel = ind
                             if self.useqr:
-
                                 try:
                                     self.CalibrationLog.append("Calibrating image " + str(i + 1) + " of " + str(len(files_to_calibrate)))
                                     QtWidgets.QApplication.processEvents()
-                                    self.CalibrateMono(calfile, self.multiplication_values["mono"], outdir, ind)
+                                    self.CalibrateMono(calfile, self.qr_coeffs[j + 1], outdir, ind)
 
                                 except Exception as e:
                                     print("ERROR: ", e)
@@ -3768,11 +3849,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                     print(' Line: ' + str(exc_tb.tb_lineno))
                                     self.CalibrationLog.append(str(e))
                             else:
-                                self.CalibrationLog.append("Calibrating image " + str(i + 1) + " of " + str(len(files_to_calibrate)))
-                                QtWidgets.QApplication.processEvents()
+                                raise Exception("Calibrating multiple inputs without calibration target not supported for mono images")
 
-                                self.CalibrateMono(calfile, base_coef, outdir, ind)
-      
 
                 if not self.failed_calib:
                     self.CalibrationLog.append("Finished Calibrating " + str(len(files_to_calibrate) + len(files_to_calibrate2) + len(files_to_calibrate3) + len(files_to_calibrate4) + len(files_to_calibrate5) + len(files_to_calibrate6)) + " images\n")
@@ -3781,10 +3859,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
         except Exception as e:
             exc_type, exc_obj,exc_tb = sys.exc_info()
-            print(repr(e))
             print(e)
             print("Line: " + str(exc_tb.tb_lineno))
-            self.CalibrationLog.append(str(repr(e)))
 
     def CalibrateMono(self, photo, coeff, output_directory, ind):
         try:
@@ -5285,11 +5361,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
         return color
 
-    def rotate_image(self, h, w, color):
-        M = cv2.getRotationMatrix2D((w/2,h/2), 180, 1)
-        color = cv2.warpAffine(color, M, (w,h))
-        return color
-
     def remove_lines(self, img, h, w):
         diff_perc = .50
         bad_rows = []
@@ -5417,7 +5488,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         color = (color * 65535.0).astype("uint16")
 
                         if self.conv.STD_PAYLOAD["LINK_ID"] in [1,3] and self.conv.META_PAYLOAD["ARRAY_TYPE"][1] == 101:
-                            color = self.rotate_image(h, w, color)
+                            color = cv2.flip(color, -1)
 
                         cv2.imencode(".tif", color)
                         path = outphoto.split(".")[0] + "." + outphoto.split(".")[1]
@@ -5473,7 +5544,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                 except Exception as e:
                     exc_type, exc_obj,exc_tb = sys.exc_info()
-                    print(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
             else:
                 try:
 
