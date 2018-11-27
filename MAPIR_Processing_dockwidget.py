@@ -4071,6 +4071,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         if self.Tiff2JpgBox.checkState() > 0:
             self.CalibrationLog.append("Making JPG")
             QtWidgets.QApplication.processEvents()
+
             cv2.imencode(".jpg", refimg)
             cv2.imwrite(output_directory + photo.split('.')[1] + "_CALIBRATED.JPG", refimg,
                         [int(cv2.IMWRITE_JPEG_QUALITY), 100])
@@ -4571,8 +4572,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     xgreen = [x / 65535 for x in xgreen]
                     xblue = [x / 65535 for x in xblue]
 
-                print("ygreen: ", ygreen)
-
                 xred, yred = self.check_exposure_quality(xred, yred)
                 xgreen, ygreen = self.check_exposure_quality(xgreen, ygreen)
                 xblue, yblue = self.check_exposure_quality(xblue, yblue)
@@ -5011,12 +5010,14 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 self.min = min(color[:, :, 2].min(), self.min)
 
                         if self.PreProcessJPGBox.isChecked():
+                            color = color / 65535.0
                             # color = (color - int(np.percentile(color, 2))) / (int(np.percentile(color, 98)) - int(np.percentile(color, 2)))
                             color = color * 255.0
                             color = color.astype("uint8")
                             filename = input.split('.')
                             outputfilename = filename[1] + '.jpg'
                             cv2.imencode(".jpg", color)
+
                         else:
                             #color = (color - int(np.percentile(color, 2))) / (int(np.percentile(color, 98))  - int(np.percentile(color, 2)))
                             color = color * 65535.0
@@ -5399,6 +5400,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             continue
 
         bad_rows = list(set(bad_rows))
+        print(bad_rows)
         for row in bad_rows:
             for col in range(w):
 
@@ -5817,7 +5819,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.conv.META_PAYLOAD["ARRAY_ID"][1] = self.conv.STD_PAYLOAD["LINK_ID"]
                 #ypr = {"yaw": 0, "pitch": 0, "roll": 0}
 
-                if self.conv.META_PAYLOAD["ARRAY_TYPE"][1] != 0: 
+                if self.conv.META_PAYLOAD["ARRAY_TYPE"][1] != 0:
                     ypr = AdjustYPR(int(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]), int(self.conv.META_PAYLOAD["ARRAY_ID"][1]),ypr)
                     ypr = CurveAdjustment(int(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]), int(self.conv.META_PAYLOAD["ARRAY_ID"][1]),ypr)
 
@@ -5837,8 +5839,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                 ypr = [x % 360 if x > 360 else x for x in ypr]
                 ypr = [x % 360 if x < 0 else x for x in ypr]
-                #print("after: ", ypr)
-                #print()
 
                 w = int(data[0][1])
                 h = int(data[1][1])
@@ -5894,9 +5894,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                  r'-BlackCurrent=' + str(DFV),
                                  r'-BlackCurrent=' + str(DFV),
                                  r'-BlackCurrent=' + str(DFV),
-                                 #r'-Yaw=' + str(ypr[0]),
-                                 #r'-Pitch=' + str(ypr[1]),
-                                 #r'-Roll=' + str(ypr[2]),
+                                 r'-Yaw=' + str(ypr[0]),
+                                 r'-Pitch=' + str(ypr[1]),
+                                 r'-Roll=' + str(ypr[2]),
                                  r'-CentralWavelength=' + str(float(centralwavelength[0])), 
                                  r'-CentralWavelength=' + str(float(centralwavelength[1])),
                                  r'-CentralWavelength=' + str(float(centralwavelength[2])),
@@ -5964,9 +5964,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                  r'-Model=' + model,
                                  r'-ModelType=perspective',
                                  r'-BlackCurrent=' + str(DFV),
-                                 #r'-Yaw=' + str(ypr[0]),
-                                 #r'-Pitch=' + str(ypr[1]),
-                                 #r'-Roll=' + str(ypr[2]),
+                                 r'-Yaw=' + str(ypr[0]),
+                                 r'-Pitch=' + str(ypr[1]),
+                                 r'-Roll=' + str(ypr[2]),
                                  r'-CentralWavelength=' + str(CWL if CWL == "" else float(CWL)),
                                  #r'-ifd0:blacklevelrepeatdim=' + str(1) + " " +  str(1),
                                  #r'-ifd0:blacklevel=0',
