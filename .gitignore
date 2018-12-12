@@ -1,4 +1,6 @@
 Vignette_Script.py
+instring.txt
 
 /build
 /dist
+/__pycache__
