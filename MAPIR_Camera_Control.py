@@ -39,7 +39,7 @@ if __name__ == "__main__":
         stream = QTextStream(file)
         app.setStyleSheet(stream.readAll())
         myapp = MAPIR_ProcessingDockWidget()
-        myapp.setWindowIcon(QIcon(resource_path("C:\\Users\\ethan\\Desktop\\MAPIR_Camera_Control\\corn_logo_taskbar.png")))
+        myapp.setWindowIcon(QIcon(resource_path("C:\\Users\\Software\\Desktop\\GITHUB\\MAPIR_Camera_Control\\corn_logo_taskbar.png")))
         myapp.show()
         # splash.finish(myapp)
 
