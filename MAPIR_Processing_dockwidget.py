@@ -2482,6 +2482,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.PreProcessLens.clear()
             self.PreProcessLens.addItems(["3.97mm"])
             self.PreProcessLens.setEnabled(False)
+            self.PreProcessDarkBox.setEnabled(True)
 
         elif self.PreProcessCameraModel.currentText() == "Survey1":
             self.PreProcessFilter.clear()
