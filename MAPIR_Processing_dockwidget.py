@@ -2473,6 +2473,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.PreProcessLens.clear()
             self.PreProcessLens.addItems(["3.37mm (Survey3W)", "8.25mm (Survey3N)"])
             self.PreProcessLens.setEnabled(True)
+            self.PreProcessDarkBox.setEnabled(True)
 
         elif self.PreProcessCameraModel.currentText() == "Survey2":
             self.PreProcessFilter.clear()
@@ -2538,7 +2539,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.PreProcessJPGBox.setEnabled(False)
 
     def on_PreProcessJPGBox_toggled(self):
-        if self.PreProcessCameraModel.currentText() in self.KERNELS:
+        if self.PreProcessCameraModel.currentText() in self.KERNELS or self.PreProcessCameraModel.currentText() in self.SURVEYS:
             if self.PreProcessJPGBox.checkState() == 0:
                 self.PreProcessDarkBox.setEnabled(True)
             else:
@@ -3063,7 +3064,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             # self.PreProcessLog.append("Input folder: " + infolder)
             # self.PreProcessLog.append("Output folder: " + outfolder)
             try:
-                import time
                 start = time.time()
                 self.preProcessHelper(infolder, outfolder)
                 end = time.time()
@@ -4869,6 +4869,19 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.openMapir(infolder + input.split('.')[1] + "." + input.split('.')[2],  outputfilename, input, outfolder, counter)
                 counter += 1
 
+            incomplete_files = [file for file in os.listdir(outfolder) if "_TEMP" in file]
+            for count, file in enumerate(incomplete_files):
+                QtWidgets.QApplication.processEvents()
+                mapir_filename = file.rsplit('.', 1)[0].replace("_TEMP", "") + ".mapir"
+                output_filename = file.replace("_TEMP", "")
+
+                mapir_filepath = os.path.join(infolder, mapir_filename)
+                output_filepath = os.path.join(outfolder, output_filename)
+
+                log_string = "Reprocessing Image: {} of {} {}\n".format(count + 1, len(incomplete_files), mapir_filename)
+                self.PreProcessLog.append(log_string)
+                self.openMapir(mapir_filepath,  output_filepath, mapir_filename, outfolder, 1)
+
             if self.Process_Histogram_ClipBox.isChecked():
                 files = os.listdir(outfolder)
                 for count, file in enumerate(files):
@@ -4949,7 +4962,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             # self.PreProcessLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
                             print(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
 
-
                         if self.PreProcessColorBox.isChecked():
 
 
@@ -5017,6 +5029,15 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             filename = input.split('.')
                             outputfilename = filename[1] + '.jpg'
                             cv2.imencode(".jpg", color)
+
+                        elif self.PreProcessDarkBox.isChecked():
+                            color = color / 65535.0
+                            color = color * 4095.0
+                            color = color.astype("uint16")
+
+                            filename = input.split('.')
+                            outputfilename = filename[1] + '.tif'
+                            cv2.imencode(".tif", color)
 
                         else:
                             #color = (color - int(np.percentile(color, 2))) / (int(np.percentile(color, 98))  - int(np.percentile(color, 2)))
@@ -5400,7 +5421,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             continue
 
         bad_rows = list(set(bad_rows))
-        print(bad_rows)
         for row in bad_rows:
             for col in range(w):
 
