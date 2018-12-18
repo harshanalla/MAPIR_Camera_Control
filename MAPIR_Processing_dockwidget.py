@@ -3587,9 +3587,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 self.pixel_min_max[min_max] = self.calibrate(base_coef[color], self.pixel_min_max[min_max])
 
                             if self.histogramClipBox.checkState() == self.CHECKED:
-                                self.HC_max["redmax"] = self.calibrate(base_coef["Red"], self.HC_max["redmax"])
-                                self.HC_max["greenmax"] = self.calibrate(base_coef["Green"], self.HC_max["greenmax"])
-                                self.HC_max["bluemax"] = self.calibrate(base_coef["Blue"], self.HC_max["bluemax"])
+                                self.HC_max["redmax"] = self.calibrate(base_coef["red"], self.HC_max["redmax"])
+                                self.HC_max["greenmax"] = self.calibrate(base_coef["green"], self.HC_max["greenmax"])
+                                self.HC_max["bluemax"] = self.calibrate(base_coef["blue"], self.HC_max["bluemax"])
 
 
                         self.seed_pass = False
