@@ -4062,12 +4062,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             refimg = cv2.merge((blue, green, red))
 
         else: #Float to Index
-            red = red.astype("float")
-            green = green.astype("float")
-            blue = blue.astype("float")
+            red = red.astype("float32")
+            green = green.astype("float32")
+            blue = blue.astype("float32")
 
-            refimg = cv2.merge((blue, green, red))
-            refimg = cv2.normalize(refimg.astype("float"), None, 0.0, 1.0, cv2.NORM_MINMAX)
+            #refimg = cv2.merge((blue, green, red))
+            #refimg = cv2.normalize(refimg.astype("float32"), None, 0.0, 1.0, cv2.NORM_MINMAX)
 
         if self.Tiff2JpgBox.checkState() > 0:
             self.CalibrationLog.append("Making JPG")
@@ -4080,23 +4080,58 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.copyExif(photo, output_directory + photo.split('.')[1] + "_CALIBRATED.JPG")
 
         else:
-            newimg = output_directory + photo.split('.')[1] + "_CALIBRATED." + photo.split('.')[2]
-            if 'tif' in photo.split('.')[2].lower():
-                cv2.imencode(".tif", refimg)
-                cv2.imwrite(newimg, refimg)
+            if self.IndexBox.isChecked():
+                newimg_r = output_directory + photo.split('.')[1] + "_CALIBRATED_red." + photo.split('.')[2]
+                newimg_b = output_directory + photo.split('.')[1] + "_CALIBRATED_blue." + photo.split('.')[2]
+                newimg_g = output_directory + photo.split('.')[1] + "_CALIBRATED_green." + photo.split('.')[2]
+
+                cv2.imencode(".tif", red)
+                cv2.imencode(".tif", green)
+                cv2.imencode(".tif", blue)
+
+                cv2.imwrite(newimg_r, red)
+                cv2.imwrite(newimg_b, blue)
+                cv2.imwrite(newimg_g, green)
+
                 srin = gdal.Open(photo)
                 inproj = srin.GetProjection()
                 transform = srin.GetGeoTransform()
                 gcpcount = srin.GetGCPs()
-                srout = gdal.Open(newimg, gdal.GA_Update)
+
+                srout = gdal.Open(newimg_r, gdal.GA_Update)
+                srout = gdal.Open(newimg_g, gdal.GA_Update)
+                srout = gdal.Open(newimg_b, gdal.GA_Update)
+
                 srout.SetProjection(inproj)
                 srout.SetGeoTransform(transform)
                 srout.SetGCPs(gcpcount, srin.GetGCPProjection())
                 srout = None
                 srin = None
+
+                self.copyExif(photo, newimg_r)
+                self.copyExif(photo, newimg_g)
+                self.copyExif(photo, newimg_b)
+
             else:
-                cv2.imwrite(newimg, refimg, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
-            self.copyExif(photo, newimg)
+                newimg = output_directory + photo.split('.')[1] + "_CALIBRATED." + photo.split('.')[2]
+                if 'tif' in photo.split('.')[2].lower():
+                    cv2.imencode(".tif", refimg)
+                    cv2.imwrite(newimg, refimg)
+
+                    srin = gdal.Open(photo)
+                    inproj = srin.GetProjection()
+                    transform = srin.GetGeoTransform()
+                    gcpcount = srin.GetGCPs()
+
+                    srout = gdal.Open(newimg, gdal.GA_Update)
+                    srout.SetProjection(inproj)
+                    srout.SetGeoTransform(transform)
+                    srout.SetGCPs(gcpcount, srin.GetGCPProjection())
+                    srout = None
+                    srin = None
+                else:
+                    cv2.imwrite(newimg, refimg, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
+                self.copyExif(photo, newimg)
 
     def calculateIndex(self, visible, nir):
         try:
@@ -5304,12 +5339,21 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 img = img.astype("uint16")
 
             if camera_model == "Kernel 14.4":
-                img = self.merge(red, blue, green, "TIF")
 
-                cv2.imencode(".tif", img)
-                cv2.imwrite(outphoto, img)
-                self.copyMAPIR(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], outphoto)
-                os.unlink(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
+                if self.PreProcessJPGBox.isChecked():
+                    img = self.merge(red, green, blue, 'JPG')
+                    cv2.imencode(".jpg", img)
+
+                    cv2.imwrite(outphoto, img)
+                    self.copyMAPIR(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], outphoto)
+                    os.unlink(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1]) #todo
+
+                else:
+                    img = self.merge(red, blue, green, "TIF")
+                    cv2.imencode(".tif", img)
+                    cv2.imwrite(outphoto, img)
+                    self.copyMAPIR(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], outphoto)
+                    os.unlink(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
 
             elif camera_model == "Survey3":
 
@@ -5513,12 +5557,48 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         if self.conv.STD_PAYLOAD["LINK_ID"] in [1,3] and self.conv.META_PAYLOAD["ARRAY_TYPE"][1] == 101:
                             color = cv2.flip(color, -1)
 
-                        cv2.imencode(".tif", color)
-                        path = outphoto.split(".")[0] + "." + outphoto.split(".")[1]
+                        if self.PreProcessJPGBox.isChecked():
+                            color = color / 65535.0
+                            color = color * 255.0
+                            color = color.astype("uint8")
+
+                            filename_arr = os.path.basename(outphoto).split('.')
+                            outputfilename = filename_arr[0] + '.jpg'
+                            cv2.imencode(".jpg", color)
+                            path = os.path.join(os.path.dirname(outphoto), outputfilename)
+                            jpg_outphoto = path
+
+                        else:
+                            cv2.imencode(".tif", color)
+                            path = outphoto.split(".")[0] + "." + outphoto.split(".")[1]
+
+                        if self.PreProcessMonoBandBox.isChecked():
+                            dropdown_value = self.Band_Dropdown.currentText()
+                            band = dropdown_value[dropdown_value.find("(")+1:dropdown_value.find(")")]
+                            cutoff = 255.0 if self.PreProcessJPGBox.isChecked() else 65535.0
+
+                            if band == "Red":
+                                color = color[:,:,2]
+                                color[color >= cutoff] = color.min()
+
+                            elif band == "Green":
+                                color = color[:,:,1]
+                                color[color >= cutoff] = color.min()
+
+                            elif band == "Blue":
+                                color = color[:,:,0]
+                                color[color >= cutoff] = color.min()
+
                         cv2.imwrite(path, color)
 
-                        self.copyMAPIR(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], outphoto)
-                        os.unlink(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
+                        if self.PreProcessJPGBox.isChecked():
+                            self.copyMAPIR(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], jpg_outphoto)
+                            os.unlink(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
+                            os.unlink(outphoto)
+
+                        else:
+                            self.copyMAPIR(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], outphoto)
+                            os.unlink(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
 
                         self.PreProcessLog.append("Done Debayering \n")
                         QtWidgets.QApplication.processEvents()
