@@ -2369,7 +2369,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.PreProcessVignette.setEnabled(False)
 
         elif self.PreProcessCameraModel.currentText() == "Survey3":
-            self.PreProcessColorBox.setEnabled(False)
+            self.PreProcessColorBox.setEnabled(True)
             self.PreProcessVignette.setEnabled(False)
 
             if self.PreProcessFilter.currentText() == "RGB":
@@ -4995,67 +4995,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                         except Exception as e:
                             exc_type, exc_obj, exc_tb = sys.exc_info()
-                            # self.PreProcessLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
                             print(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
 
                         if self.PreProcessColorBox.isChecked():
-
-
-                            # redmax = np.setdiff1d(self.imkeys[self.imkeys > int(np.median(color[:,:,0]))], color[:,:,0])[0]
-                            # redmin = color[:,:,0].min()
-
-                            redmax = np.percentile(color[:,:,0], 98)
-                            redmin = np.percentile(color[:, :, 0], 2)
-
-                            # greenmax = \
-                            #     np.setdiff1d(self.imkeys[self.imkeys > int(np.median(color[:,:,2]))], color[:,:,2])[0]
-                            # greenmin = color[:,:,2].min()
-                            greenmax = np.percentile(color[:, :, 1], 98)
-
-                            greenmin = np.percentile(color[:, :, 1], 2)
-
-                            # bluemax = \
-                            #     np.setdiff1d(self.imkeys[self.imkeys > int(np.median(color[:,:,1]))], color[:,:,1])[0]
-                            # bluemin = color[:,:,1].min()
-                            bluemax = np.percentile(color[:, :, 2], 98)
-
-                            bluemin = np.percentile(color[:, :, 2], 2)
-
-                            # maxpixel = redmax if redmax > bluemax else bluemax
-                            # maxpixel = greenmax if greenmax > maxpixel else maxpixel
-                            # minpixel = redmin if redmin < bluemin else bluemin
-                            # minpixel = greenmin if greenmin < minpixel else minpixel
-
-                            # color = cv2.merge((color[:,:,0],color[:,:,2],color[:,:,1])).astype(np.dtype('u2'))
-                            color[:,:,2] = (((color[:,:,2] - redmin) / (redmax - redmin)))
-                            color[:,:,0] = (((color[:,:,0] - bluemin) / (bluemax - bluemin)))
-                            color[:,:,1] = (((color[:,:,1] - greenmin) / (greenmax - greenmin)))
-                            color[color > 1.0] = 1.0
-                            color[color < 0.0] = 0.0
-
-                        #if ((self.PreProcessCameraModel.currentText() == "Survey3") 
-                         #       and (self.PreProcessFilter.currentText() == "NIR" or  self.PreProcessFilter.currentText() == "RE")):
-                          #  color = color[:,:,0]
-                        # maxcol = color.max()
-                        # mincol = color.min()
-
-                        if self.Process_Histogram_ClipBox.isChecked():
-                            if counter == 0:
-                                self.HC_max["redmax"] = self.get_clipping_value(color[:, :, 2])
-                                self.HC_max["greenmax"] = self.get_clipping_value(color[:, :, 1])
-                                self.HC_max["bluemax"] = self.get_clipping_value(color[:, :, 0])
-
-                                self.min = color[:, :, 0].min() if color[:, :, 0].min() < color[:, :, 1].min() else color[:, :, 1].min()
-                                self.min = color[:, :, 2].min() if color[:, :, 2].min() < self.min else self.min
-
-                            else:
-                                self.HC_max["redmax"] = max(self.get_clipping_value(color[:, :, 2]), self.HC_max["redmax"])
-                                self.HC_max["greenmax"] = max(self.get_clipping_value(color[:, :, 1]), self.HC_max["greenmax"])
-                                self.HC_max["bluemax"] = max(self.get_clipping_value(color[:, :, 0]), self.HC_max["bluemax"])
-
-                                self.min = min(color[:, :, 0].min(), self.min)
-                                self.min = min(color[:, :, 1].min(), self.min)
-                                self.min = min(color[:, :, 2].min(), self.min)
+                            color = color / 65535.0
+                            color = self.color_correction(color)
+                            color = color * 65535.0
 
                         if self.PreProcessJPGBox.isChecked():
                             color = color / 65535.0
@@ -5076,30 +5021,51 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             cv2.imencode(".tif", color)
 
                         else:
-                            #color = (color - int(np.percentile(color, 2))) / (int(np.percentile(color, 98))  - int(np.percentile(color, 2)))
-                            color = color * 65535.0
+                            if self.PreProcessColorBox.checkState() == self.UNCHECKED:
+                                color = color * 65535.0
+
                             color = color.astype("uint16")
+
                             if not self.PreProcessColorBox.isChecked():
                                 color = cv2.bitwise_not(color)
                             filename = input.split('.')
                             outputfilename = filename[1] + '.tif'
                             cv2.imencode(".tif", color)
 
+                        if self.Process_Histogram_ClipBox.isChecked():
+                            if counter == 0:
+                                self.HC_max["redmax"] = self.get_clipping_value(color[:, :, 2])
+                                self.HC_max["greenmax"] = self.get_clipping_value(color[:, :, 1])
+                                self.HC_max["bluemax"] = self.get_clipping_value(color[:, :, 0])
+
+                                self.min = color[:, :, 0].min() if color[:, :, 0].min() < color[:, :, 1].min() else color[:, :, 1].min()
+                                self.min = color[:, :, 2].min() if color[:, :, 2].min() < self.min else self.min
+
+                            else:
+                                self.HC_max["redmax"] = max(self.get_clipping_value(color[:, :, 2]), self.HC_max["redmax"])
+                                self.HC_max["greenmax"] = max(self.get_clipping_value(color[:, :, 1]), self.HC_max["greenmax"])
+                                self.HC_max["bluemax"] = max(self.get_clipping_value(color[:, :, 0]), self.HC_max["bluemax"])
+
+                                self.min = min(color[:, :, 0].min(), self.min)
+                                self.min = min(color[:, :, 1].min(), self.min)
+                                self.min = min(color[:, :, 2].min(), self.min)
+
                         if self.PreProcessMonoBandBox.isChecked():
                             dropdown_value = self.Band_Dropdown.currentText()
                             band = dropdown_value[dropdown_value.find("(")+1:dropdown_value.find(")")]
-                            
+                            cutoff = 255.0 if self.PreProcessJPGBox.isChecked() else 65535.0
+
                             if band == "Red":
                                 color = color[:,:,2]
-                                color[color >= 65535] = color.min()
+                                color[color >= cutoff] = color.min()
 
                             elif band == "Green":
                                 color = color[:,:,1]
-                                color[color >= 65535] = color.min()
+                                color[color >= cutoff] = color.min()
 
                             elif band == "Blue":
                                 color = color[:,:,0]
-                                color[color >= 65535] = color.min()
+                                color[color >= cutoff] = color.min()
 
                         cv2.imwrite(outfolder + outputfilename, color)
 
@@ -5356,7 +5322,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     os.unlink(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
 
             elif camera_model == "Survey3":
-
                 if self.PreProcessJPGBox.isChecked():
                     color = self.merge(red, green, blue, 'JPG')
                     cv2.imencode(".jpg", color)
