@@ -3,7 +3,18 @@
 
 ## Current Version
 
-[October 25th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_10252018.exe)
+[January 10th, 2019](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_01102019.exe)
+
+[January 10th, 2019 - With Kernel Vignette Correction Support](https://drive.google.com/file/d/11C7ay-zvXV0RME888bwTPVbz0XvdAixQ/view?usp=sharing)
+
+Change Log
+* Added color correction (white balance) support for Survey3 RGB camera models
+* Improved Histogram Clipping
+* Fixed 'Output Mono Band' feature bug
+* Fixed 'Dark Tiff' feature bug
+
+## Old Versions
+[October 25th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_01102019.exe)
 
 [October 25th, 2018 - With Kernel Vignette Correction Support](https://drive.google.com/file/d/1BRnrqcKS3Bp97sT6tnT7GCIMo1sTlK4L/view?usp=sharing)
 
@@ -13,7 +24,6 @@ Change Log
 * Modified Kernel debayering algorithm
 * Added NIR bleed to Survey2 camera calibration
 
-## Old Versions
 [August 2nd, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_08022018.exe)
 
 [August 2nd, 2018 - With Kernel Vignette Correction Support](https://drive.google.com/file/d/1_l3lkNa9_6MzjOsMRvIgOjTJRBMEoXBD/view?usp=sharing)
