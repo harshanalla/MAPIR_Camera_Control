@@ -4495,11 +4495,16 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 blue = im2[:, :, 0]
                 green = im2[:, :, 1]
                 red = im2[:, :, 2] - (im2[:, :, 0] * 0.80)
-     
 
-                red[red > 65535.0] = 65535.0
-                red[red < 0.0] = 0.0
-                red = red.astype("uint16")
+                if "JPG" in os.path.splitext(image)[1]:
+                    red[red > 255.0] = 255.0
+                    red[red < 0.0] = 0.0
+                    red = red.astype("uint8")
+
+                else:
+                    red[red > 65535.0] = 65535.0
+                    red[red < 0.0] = 0.0
+                    red = red.astype("uint16")
 
                 im2 =  cv2.merge((blue, green, red))
 
