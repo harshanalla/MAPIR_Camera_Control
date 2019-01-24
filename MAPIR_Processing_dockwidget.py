@@ -936,6 +936,43 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     UNCHECKED = 0
 
     SENSOR_LOOKUP = {6: "14.4 MP", 4: "3.2 MP"}
+    SHUTTER_SPEED_LOOKUP = {1: "1/32000",
+                            2: "1/16000",
+                            3: "1/8000",
+                            4: "1/6000",
+                            5: "1/4000",
+                            6: "1/2000",
+                            7: "1/1600",
+                            8: "1/1250",
+                            9: "1/1000",
+                            10: "1/800",
+                            11: "1/640",
+                            12: "1/500",
+                            13: "1/400",
+                            14: "1/320",
+                            15: "1/250",
+                            16: "1/200",
+                            17: "1/160",
+                            18: "1/125",
+                            19: "1/100",
+                            20: "1/80",
+                            21: "1/60",
+                            22: "1/50",
+                            23: "1/40",
+                            24: "1/30",
+                            25: "1/25",
+                            26: "1/20",
+                            27: "1/15",
+                            28: "1/12",
+                            29: "1/10",
+                            30: "1/8",
+                            31: "1/6.4",
+                            32: "1/5",
+                            33: "1/4",
+                            34: "1/3.2",
+                            35: "1/2.5",
+                            36: "1/2",
+                            37: "1/1" }
 
     ISO_VALS = (1,2,4,8,16,32)
     lensvals = None
@@ -1553,10 +1590,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.KernelPanel.append("Lens: " + str(LENS_LOOKUP.get(self.getRegister(eRegister.RG_LENS_ID.value), 255)[0][0]) + "mm")
             self.KernelPanel.append(
                 "Filter: " + str(LENS_LOOKUP.get(self.getRegister(eRegister.RG_LENS_ID.value), "")[2]))
-            # if shutter == 0:
-            #     self.KernelPanel.append("Shutter: Auto")
-            # else:
-            #     self.KernelPanel.append("Shutter: " + self.M_Shutter_Window.KernelShutterSpeed.itemText(self.getRegister(eRegister.RG_SHUTTER.value) -1) + " sec")
+
+            if shutter == 0:
+                self.KernelPanel.append("Shutter: Auto")
+            else:
+                self.KernelPanel.append("Shutter: " + str(self.SHUTTER_SPEED_LOOKUP.get(self.getRegister(eRegister.RG_SHUTTER.value), "N/A")) + " sec")
             self.KernelPanel.append("ISO: " + str(self.getRegister(eRegister.RG_ISO.value)) + "00")
             # # self.KernelPanel.append("WB: " + str(self.getRegister(eRegister.RG_WHITE_BALANCE.value)))
             # self.KernelPanel.append("AE Setpoint: " + str(self.getRegister(eRegister.RG_AE_SETPOINT.value)))
@@ -2420,6 +2458,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
             elif self.PreProcessFilter.currentText() == "RGB":
                 self.PreProcessMonoBandBox.setChecked(False)
+                self.PreProcessColorBox.setEnabled(True)
 
             if self.PreProcessFilter.currentText() != "RGB":
                 self.PreProcessColorBox.setEnabled(False)
@@ -4168,6 +4207,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         elif camera == "Survey2" and filt == "Red + NIR (NDVI)":
             return True
 
+        elif camera == "Survey2" and filt == "RGB":
+            return True
+
         else:
             return False
 
@@ -4200,19 +4242,19 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def print_center_targs(self, image, targ1values, targ2values, targ3values, targ4values, target1, target2, target3, target4, angle):
         t1_str = image.split(".")[0] + "_t1." + image.split(".")[1]
         t1_image = targ1values
-        cv2.imwrite(t1_str, t1_image)
+        #cv2.imwrite(t1_str, t1_image)
 
         t2_str = image.split(".")[0] + "_t2." + image.split(".")[1]
         t2_image = targ2values
-        cv2.imwrite(t2_str, t2_image)
+        #cv2.imwrite(t2_str, t2_image)
 
         t3_str = image.split(".")[0] + "_t3." + image.split(".")[1]
         t3_image = targ3values
-        cv2.imwrite(t3_str, t3_image)
+        #cv2.imwrite(t3_str, t3_image)
 
         t4_str = image.split(".")[0] + "_t4." + image.split(".")[1]
         t4_image = targ4values
-        cv2.imwrite(t4_str, t4_image)
+        #cv2.imwrite(t4_str, t4_image)
 
         if angle > self.ANGLE_SHIFT_QR:
             image_line = image.split(".")[0] + "_circles_shift." + image.split(".")[1]
