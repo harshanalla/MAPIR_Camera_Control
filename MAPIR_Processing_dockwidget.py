@@ -5440,6 +5440,36 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
         return color
 
+    def rotate_image(self, h, w, color):
+        M = cv2.getRotationMatrix2D((w/2,h/2), 180, 1)
+        color = cv2.warpAffine(color, M, (w,h))
+        return color
+
+    def check_if_rotate(self, link_id, array_type):
+        if array_type == 101 and link_id in [1,3]:
+            return True
+
+        elif array_type in [2, 3, 6, 7] and link_id == 0:
+            return True
+
+        elif array_type in [4, 5] and link_id == 1:
+            return True
+
+        elif array_type in [8, 9] and link_id in [1, 3]:
+            return True
+
+        elif array_type in [10, 11] and link_id in [0, 2 ]:
+            return True
+
+        elif array_type in [12, 13] and link_id in [1, 3, 5]:
+            return True
+
+        elif array_type in [14, 15] and link_id in [0, 2, 4]:
+            return True
+
+        else:
+            return False
+
     def remove_lines(self, img, h, w):
         diff_perc = .50
         bad_rows = []
@@ -5566,7 +5596,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                         color = (color * 65535.0).astype("uint16")
 
-                        if self.conv.STD_PAYLOAD["LINK_ID"] in [1,3] and self.conv.META_PAYLOAD["ARRAY_TYPE"][1] == 101:
+                        if self.check_if_rotate(self.conv.STD_PAYLOAD["LINK_ID"], self.conv.META_PAYLOAD["ARRAY_TYPE"][1]):
                             color = cv2.flip(color, -1)
 
                         if self.PreProcessJPGBox.isChecked():
@@ -5648,7 +5678,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                     img -= dark_frame_value
                                     img = img.astype("uint16")
 
-                                cv2.imwrite(outphoto, img)
+                            if self.check_if_rotate(self.conv.STD_PAYLOAD["LINK_ID"], self.conv.META_PAYLOAD["ARRAY_TYPE"][1]):
+                                img = cv2.flip(img, -1)
+
+                            cv2.imwrite(outphoto, img)
                         except Exception as e:
                             exc_type, exc_obj,exc_tb = sys.exc_info()
                             self.PreProcessLog.append("No vignette correction data found")
@@ -5659,6 +5692,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                 except Exception as e:
                     exc_type, exc_obj,exc_tb = sys.exc_info()
+                    print(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
             else:
                 try:
 
@@ -5963,6 +5997,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 focallength = self.lensvals[0][0]
                 lensmodel = self.lensvals[0][0] + "mm"
 
+                pixels_per_unit = "289855/1000" if model == "Kernel 3.2MP" else "714286/1000"
+
             except Exception as e:
                 exc_type, exc_obj,exc_tb = sys.exc_info()
                 ypr = None
@@ -5976,7 +6012,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 #      # r'-all:all<all:all',
                 #      os.path.abspath(outphoto)], startupinfo=si)
             finally:
-
                 if ypr is not None:
                     try:
                         dto = datetime.datetime.fromtimestamp(self.conv.META_PAYLOAD["TIME_SECS"][1])
@@ -6054,8 +6089,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                  r'-fnumber=' + fnumber,
                                  r'-ArrayID=' + str(self.conv.META_PAYLOAD["ARRAY_ID"][1]),
                                  r'-ArrayType=' + str(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]),
-                                 r'-FocalPlaneXResolution#=' + '714286/1000',
-                                 r'-FocalPlaneYResolution#=' + '714286/1000',
+                                 r'-FocalPlaneXResolution#=' + pixels_per_unit,
+                                 r'-FocalPlaneYResolution#=' + pixels_per_unit,
                                  r'-FocalPlaneResolutionUnit#=' + '4',
                                  os.path.abspath(outphoto)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, startupinfo=si).stderr.decode("utf-8")
                         else:
@@ -6110,8 +6145,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                  r'-fnumber=' + fnumber,
                                  r'-ArrayID=' + str(self.conv.META_PAYLOAD["ARRAY_ID"][1]),
                                  r'-ArrayType=' + str(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]),
-                                 r'-FocalPlaneXResolution=' + '714286/1000',
-                                 r'-FocalPlaneYResolution=' + '714286/1000',
+                                 r'-FocalPlaneXResolution=' + pixels_per_unit,
+                                 r'-FocalPlaneYResolution=' + pixels_per_unit,
                                  r'-FocalPlaneResolutionUnit#=' + '4',
                                  os.path.abspath(outphoto)], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                 stdin=subprocess.PIPE, startupinfo=si).stderr.decode("utf-8")
