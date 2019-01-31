@@ -1533,7 +1533,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
 
 
-
             shutter = self.getRegister(eRegister.RG_SHUTTER.value)
             if shutter == 0:
                 self.KernelExposureMode.setCurrentIndex(0)
@@ -1563,6 +1562,39 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             media = self.getRegister(eRegister.RG_MEDIA_FILES_CNT.value)
             self.KernelFolderCount.setCurrentIndex(media)
 
+            sensor = self.SENSOR_LOOKUP.get(self.getRegister(eRegister.RG_SENSOR_ID.value), "N/A")
+
+            if sensor == "14.4 MP":
+                self.KernelLensSelect.clear()
+                self.KernelLensSelect.addItems(["3.37mm", "8.25mm"])
+
+                self.KernelFilterSelect.clear()
+                self.KernelFilterSelect.addItems(["RGN", "UVR", "NGB", "RGN", "NO FILTER"])
+
+            else:
+                self.KernelLensSelect.clear()
+                self.KernelLensSelect.addItems(["9.6mm", "3.5mm", "5.5mm", "12.0mm", "16.0mm", "35.0mm"])
+
+                self.KernelFilterSelect.clear()
+                kernel_3_2_filter_list = ["405",
+                                          "450",
+                                          "490",
+                                          "518",
+                                          "550",
+                                          "590",
+                                          "615",
+                                          "632",
+                                          "650",
+                                          "685",
+                                          "725",
+                                          "780",
+                                          "808",
+                                          "850",
+                                          "880",
+                                          "940",
+                                          "945"]
+
+                self.KernelFilterSelect.addItems(kernel_3_2_filter_list)
 
 
             fil = str(LENS_LOOKUP.get(self.getRegister(eRegister.RG_LENS_ID.value), 255)[2])
@@ -1586,6 +1618,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.KernelPanel.clear()
             # self.KernelPanel.append("Hardware ID: " + str(self.getRegister(eRegister.RG_HARDWARE_ID.value)))
             # self.KernelPanel.append("Firmware version: " + str(self.getRegister(eRegister.RG_FIRMWARE_ID.value)))
+
+
             self.KernelPanel.append("Sensor: " + self.SENSOR_LOOKUP.get(self.getRegister(eRegister.RG_SENSOR_ID.value), "N/A"))
             self.KernelPanel.append("Lens: " + str(LENS_LOOKUP.get(self.getRegister(eRegister.RG_LENS_ID.value), 255)[0][0]) + "mm")
             self.KernelPanel.append(
