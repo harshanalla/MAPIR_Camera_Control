@@ -1569,7 +1569,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.KernelLensSelect.addItems(["3.37mm", "8.25mm"])
 
                 self.KernelFilterSelect.clear()
-                self.KernelFilterSelect.addItems(["RGN", "UVR", "NGB", "RGN", "NO FILTER"])
+                self.KernelFilterSelect.addItems(["RGB", "UVR", "NGB", "RGN", "NO FILTER"])
 
             else:
                 self.KernelLensSelect.clear()
@@ -4397,6 +4397,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     # self.CalibrationLog.append(list)
                     temp = np.fromstring(str(list), dtype=int, sep=',')
                     self.coords = [[temp[0],temp[1]],[temp[2],temp[3]],[temp[6],temp[7]],[temp[4],temp[5]]]
+                    print(self.coords)
 
             #Finding coordinates for Version 1
             else:
@@ -6122,7 +6123,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                  r'-FocalLength=' + focallength,
                                  r'-fnumber=' + fnumber,
                                  r'-ArrayID=' + str(self.conv.META_PAYLOAD["ARRAY_ID"][1]),
-                                 r'-ArrayType=' + str(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]),
+                                 r'-ArrayType=' + str(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]), #add rig name and rig index
                                  r'-FocalPlaneXResolution#=' + pixels_per_unit,
                                  r'-FocalPlaneYResolution#=' + pixels_per_unit,
                                  r'-FocalPlaneResolutionUnit#=' + '4',
