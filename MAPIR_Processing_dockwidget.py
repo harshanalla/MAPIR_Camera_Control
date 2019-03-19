@@ -5484,22 +5484,25 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         if array_type == 101 and link_id in [1,3]:
             return True
 
-        elif array_type in [2, 3, 6, 7] and link_id == 0:
+        elif array_type == 2 and link_id == 0:
             return True
 
-        elif array_type in [4, 5] and link_id == 1:
+        elif array_type == 4 and link_id == 1:
             return True
 
-        elif array_type in [8, 9] and link_id in [1, 3]:
+        elif array_type == 6 and link_id == 0:
             return True
 
-        elif array_type in [10, 11] and link_id in [0, 2 ]:
+        elif array_type == 8 and link_id in [1, 3]:
             return True
 
-        elif array_type in [12, 13] and link_id in [1, 3, 5]:
+        elif array_type == 10 and link_id in [0, 2]:
             return True
 
-        elif array_type in [14, 15] and link_id in [0, 2, 4]:
+        elif array_type == 12 and link_id in [1, 3, 5]:
+            return True
+
+        elif array_type == 14 and link_id in [0, 2, 4]:
             return True
 
         else:
