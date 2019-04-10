@@ -3,6 +3,17 @@
 
 ## Current Version
 
+[April 10th, 2019](https://drive.google.com/file/d/1r2jW86vwbqRdyLicFYfvLbBTOqMcPqU0/view?usp=sharing)
+
+[April 10th, 2019 - With Kernel Vignette Correction Support](https://drive.google.com/file/d/1TyxfoaPVguxnCWYHWBRQxjnfgdT11IZz/view?usp=sharing)
+
+Change Log
+* Added new lenses for Kernel 3.2
+* Added Array Type Rotations
+* Added JPG support for NIR bleed
+* Fixed 'Kernel 3.2 TIF to JPG' feature bug
+
+## Old Versions
 [January 10th, 2019](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_01102019.exe)
 
 [January 10th, 2019 - With Kernel Vignette Correction Support](https://drive.google.com/file/d/11C7ay-zvXV0RME888bwTPVbz0XvdAixQ/view?usp=sharing)
@@ -13,7 +24,6 @@ Change Log
 * Fixed 'Output Mono Band' feature bug
 * Fixed 'Dark Tiff' feature bug
 
-## Old Versions
 [October 25th, 2018](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_01102019.exe)
 
 [October 25th, 2018 - With Kernel Vignette Correction Support](https://drive.google.com/file/d/1BRnrqcKS3Bp97sT6tnT7GCIMo1sTlK4L/view?usp=sharing)

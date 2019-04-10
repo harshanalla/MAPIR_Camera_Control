@@ -30,7 +30,7 @@ from PIL.TiffTags import TAGS
 
 os.umask(0)
 from LensLookups import *
-import datetime
+from datetime import datetime
 import sys
 import shutil
 import platform
@@ -1038,6 +1038,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         self.ConnectKernels()
 
     def ConnectKernels(self):
+        filter_dic = {}
         self.KernelLog.append(' ')
         all_cameras = hid.enumerate(self.VENDOR_ID, self.PRODUCT_ID)
         if all_cameras == []:
@@ -1056,11 +1057,23 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                     arid = self.writeToKernel(buf)[2]
                     self.paths.insert(arid, cam['path'])
+
+                    self.camera = cam['path']
+                    buf = [0] * 512
+                    buf[0] = self.SET_REGISTER_BLOCK_READ_REPORT
+                    buf[1] = eRegister.RG_MEDIA_FILE_NAME_A.value
+                    buf[2] = 3
+
+                    res = self.writeToKernel(buf)
+                    item = chr(res[2]) + chr(res[3]) + chr(res[4])
+                    filter_dic[arid] = item
+
                     QtWidgets.QApplication.processEvents()
 
             self.KernelCameraSelect.blockSignals(True)
             self.KernelCameraSelect.clear()
             self.KernelCameraSelect.blockSignals(False)
+
             try:
                 for i, path in enumerate(self.paths):
                     QtWidgets.QApplication.processEvents()
@@ -1080,11 +1093,20 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     else:
                         item += " (Slave)"
 
-                    self.KernelLog.append("Found Camera: " + str(item))
+                    #self.KernelLog.append("Found Camera: " + str(item))
                     QtWidgets.QApplication.processEvents()
                     self.KernelCameraSelect.blockSignals(True)
                     self.KernelCameraSelect.addItem(item)
                     self.KernelCameraSelect.blockSignals(False)
+
+                for count, filt in enumerate(sorted(list(filter_dic.keys()))):
+                    item = filter_dic[filt]
+                    if count == 0:
+                        item += " (Master)"
+                    else:
+                        item += " (Slave)"
+
+                    self.KernelLog.append("Found Camera: " + str(item))
 
                 self.camera = self.paths[0]
 
@@ -1592,7 +1614,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                           "850",
                                           "880",
                                           "940",
-                                          "945"]
+                                          "945",
+                                          "NO FILTER"]
 
                 self.KernelFilterSelect.addItems(kernel_3_2_filter_list)
 
@@ -4976,8 +4999,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             infiles.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
             infiles.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
             counter = 0 
+            self.csv_array = []
+
 
             for input in infiles:
+                csv_name = input[3:6]
+
                 log_string = "Processing Image: {} of {}  {}\n".format(str((counter) + 1), str(len(infiles)), input.split(os.sep)[1])
                 self.PreProcessLog.append(log_string)
                 QtWidgets.QApplication.processEvents()
@@ -4986,6 +5013,14 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 outputfilename = outfolder + filename[1] + '.tif'
                 self.openMapir(infolder + input.split('.')[1] + "." + input.split('.')[2],  outputfilename, input, outfolder, counter)
                 counter += 1
+
+            #csv_filename = "{}.csv".format(csv_name)
+            #print(csv_filename)
+            #with open(csv_filename, 'w', newline='') as csv_file:
+            #    writer = csv.writer(csv_file)
+            #    for row in self.csv_array:
+            #        writer.writerow(row)
+
 
             incomplete_files = [file for file in os.listdir(outfolder) if "_TEMP" in file]
             for count, file in enumerate(incomplete_files):
@@ -5505,6 +5540,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         elif array_type == 14 and link_id in [0, 2, 4]:
             return True
 
+        elif array_type == 29 and link_id in [0, 1, 2, 3, 4]:
+            return True
+
         else:
             return False
 
@@ -5587,6 +5625,15 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                 img = cv2.imread(outphoto, -1)
 
+                #print(input.split("\\")[1])
+                #rint(self.conv.META_PAYLOAD["GNSS_HEIGHT_SEA_LEVEL"][1])
+                ts = self.conv.META_PAYLOAD["GNSS_TIME_SECS"][1]
+                #print(ts)
+                ns = self.conv.META_PAYLOAD["GNSS_TIME_NSECS"][1]
+                #print(ns)
+                ts = ts + (ns / 1000000000)
+                time = datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S.%f')
+                self.csv_array.append([input.split("\\")[1], self.conv.META_PAYLOAD["GNSS_HEIGHT_SEA_LEVEL"][1], time])
 
                 try:
                     if self.PreProcessCameraModel.currentText() == "Kernel 14.4":
@@ -5599,6 +5646,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         QtWidgets.QApplication.processEvents()
                         cv2.imwrite(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], img)
                         self.copySimple(outphoto, outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
+
 
                         color = cv2.cvtColor(img, cv2.COLOR_BAYER_GB2RGB).astype("float32")
                         color = self.blur(color)
@@ -5719,14 +5767,31 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             if self.check_if_rotate(self.conv.STD_PAYLOAD["LINK_ID"], self.conv.META_PAYLOAD["ARRAY_TYPE"][1]):
                                 img = cv2.flip(img, -1)
 
-                            cv2.imwrite(outphoto, img)
+                            if self.PreProcessJPGBox.isChecked():
+                                img = img / 65535.0
+                                img = img * 255.0
+                                img = img.astype("uint8")
+
+                                filename_arr = os.path.basename(outphoto).split('.')
+                                outputfilename = filename_arr[0] + '.jpg'
+                                cv2.imencode(".jpg", img)
+                                jpg_outphoto = os.path.join(os.path.dirname(outphoto), outputfilename)
+
+                                cv2.imwrite(jpg_outphoto, img)
+                                self.copyMAPIR(outphoto, jpg_outphoto)
+                                os.unlink(outphoto)
+
+                            else:
+                                cv2.imwrite(outphoto, img)
+                                self.copyMAPIR(outphoto, outphoto)
+
+                            QtWidgets.QApplication.processEvents()
+
                         except Exception as e:
                             exc_type, exc_obj,exc_tb = sys.exc_info()
                             self.PreProcessLog.append("No vignette correction data found")
                             QtWidgets.QApplication.processEvents()
 
-                        self.copyMAPIR(outphoto, outphoto)
-                        QtWidgets.QApplication.processEvents()
 
                 except Exception as e:
                     exc_type, exc_obj,exc_tb = sys.exc_info()
@@ -6052,9 +6117,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             finally:
                 if ypr is not None:
                     try:
-                        dto = datetime.datetime.fromtimestamp(self.conv.META_PAYLOAD["TIME_SECS"][1])
+                        dto = datetime.fromtimestamp(self.conv.META_PAYLOAD["TIME_SECS"][1])
                         m, s = divmod(self.conv.META_PAYLOAD["GNSS_TIME_SECS"][1], 60)
                         h, m = divmod(m, 60)
+
                         # dd, h = divmod(h, 24)
 
                         if self.PreProcessVignette.isChecked():

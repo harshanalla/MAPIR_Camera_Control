@@ -4508,7 +4508,7 @@ p, li { white-space: pre-wrap; }
             <item>
              <widget class="QLabel" name="version">
               <property name="text">
-               <string>Version: 01/10/19</string>
+               <string>Version: 04/10/19</string>
               </property>
              </widget>
             </item>
