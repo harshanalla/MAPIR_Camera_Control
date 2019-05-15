@@ -928,13 +928,39 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     JPGS = ["jpg", "JPG", "jpeg", "JPEG"]
     TIFS = ["tiff", "TIFF", "tif", "TIF"]
 
-    #PRINCIPALPOINT = "3.84387, 1.53139"
-    #PERSPECTIVEFOCALLENGTH = "8.444407"
-    #PERSPECTIVEDISTORTION = "-0.07569, 0.059957, -0.02031, -0.01246, 0.016932"
+    PIX4D_VALUES = {"3.37": {   "PRINCIPALPOINT":"3.84387, 1.53139",
+                                "PERSPECTIVEFOCALLENGTH":"3.37",
+                                "PERSPECTIVEDISTORTION":"0, 0, 0, 0, 0"},
 
-    PRINCIPALPOINT = "3.412091, 2.745396"
-    PERSPECTIVEFOCALLENGTH = "9.6706605"
-    PERSPECTIVEDISTORTION = "-0.107494, 0.0852713, 0.114084, 0.000263678, -0.000463052"
+                    "8.25": {   "PRINCIPALPOINT":"3.84387, 1.53139",
+                                "PERSPECTIVEFOCALLENGTH":"8.444407",
+                                "PERSPECTIVEDISTORTION":"-0.07569, 0.059957, -0.02031, -0.01246, 0.016932"},
+
+                    "3.5": {    "PRINCIPALPOINT":"3.524, 2.6604",
+                                "PERSPECTIVEFOCALLENGTH":"3.4097",
+                                "PERSPECTIVEDISTORTION":"0.058, -0.222, 0.017, 0, 0"},
+
+                    "5.5": {    "PRINCIPALPOINT":"3.412091, 2.745396",
+                                "PERSPECTIVEFOCALLENGTH":"5.5",
+                                "PERSPECTIVEDISTORTION":"0, 0, 0, 0, 0"},
+
+                    "9.6": {    "PRINCIPALPOINT":"3.412091, 2.745396",
+                                "PERSPECTIVEFOCALLENGTH":"9.6706605",
+                                "PERSPECTIVEDISTORTION":"-0.107494, 0.0852713, 0.114084, 0.000263678, -0.000463052"},
+
+                    "12.0": {   "PRINCIPALPOINT":"3.412091, 2.745396",
+                                "PERSPECTIVEFOCALLENGTH":"12.0",
+                                "PERSPECTIVEDISTORTION":"0, 0, 0, 0, 0"},
+
+                    "16.0": {   "PRINCIPALPOINT":"3.412091, 2.745396",
+                                "PERSPECTIVEFOCALLENGTH":"16.0",
+                                "PERSPECTIVEDISTORTION":"0, 0, 0, 0, 0"},
+
+                    "35.0": {   "PRINCIPALPOINT":"3.412091, 2.745396",
+                                "PERSPECTIVEFOCALLENGTH":"35.0",
+                                "PERSPECTIVEDISTORTION":"0, 0, 0, 0, 0"},
+
+    }
 
     CHECKED = 2 # QT creator syntax for checkState(); 2 signifies the box is checked, 0 is unchecked
     UNCHECKED = 0
@@ -6102,9 +6128,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                 fnumber = self.lensvals[0][1]
                 focallength = self.lensvals[0][0]
-                lensmodel = self.lensvals[0][0] + "mm"
 
+                lensmodel = self.lensvals[0][0] + "mm"
                 pixels_per_unit = "289855/1000" if model == "Kernel 3.2MP" else "714286/1000"
+
+                principal_point = self.PIX4D_VALUES[focallength]["PRINCIPALPOINT"]
+                perspective_focal_length = self.PIX4D_VALUES[focallength]["PERSPECTIVEFOCALLENGTH"]
+                perspective_distortion = self.PIX4D_VALUES[focallength]["PERSPECTIVEDISTORTION"]
 
             except Exception as e:
                 exc_type, exc_obj,exc_tb = sys.exc_info()
@@ -6159,17 +6189,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                  r'-bandname=' + bandname[0],
                                  r'-bandname=' + bandname[1],
                                  r'-bandname=' + bandname[2],
-                                 r'-PrincipalPoint=' + self.PRINCIPALPOINT,
-                                 #r'-PrincipalPoint=' + self.PRINCIPALPOINT[0],
-                                 #r'-PrincipalPoint=' + self.PRINCIPALPOINT[1],
-                                 r'-PerspectiveFocalLength=' + self.PERSPECTIVEFOCALLENGTH,
-                                 r'-PerspectiveDistortion=' + self.PERSPECTIVEDISTORTION,
-                                 #r'-PerspectiveDistortion=' + str(float(self.PERSPECTIVEDISTORTION[0])),
-                                 #r'-PerspectiveDistortion=' + str(float(self.PERSPECTIVEDISTORTION[1])),
-                                 #r'-PerspectiveDistortion=' + str(float(self.PERSPECTIVEDISTORTION[2])),
-                                 #r'-PerspectiveDistortion=' + str(float(self.PERSPECTIVEDISTORTION[3])),
-                                 #r'-PerspectiveDistortion=' + str(float(self.PERSPECTIVEDISTORTION[4])),
-
+                                 r'-PrincipalPoint=' + principal_point,
+                                 r'-PerspectiveFocalLength=' + perspective_focal_length,
+                                 r'-PerspectiveDistortion=' + perspective_distortion,
                                  r'-WavelengthFWHM=' + self.lensvals[3:6][0][2],
                                  r'-WavelengthFWHM=' + self.lensvals[3:6][1][2],
                                  r'-WavelengthFWHM=' + self.lensvals[3:6][2][2],
@@ -6223,9 +6245,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                  #r'-ifd0:blacklevel=0',
                                  # r'-BandName="{band1=' + str(self.BandNames[bandname][0]) + r'band2=' + str(self.BandNames[bandname][1]) + r'band3=' + str(self.BandNames[bandname][2]) + r'}"',
                                  r'-bandname=' + bandname[0],
-                                 r'-PrincipalPoint=' + self.PRINCIPALPOINT,
-                                 r'-PerspectiveFocalLength=' + self.PERSPECTIVEFOCALLENGTH,
-                                 r'-PerspectiveDistortion=' + self.PERSPECTIVEDISTORTION,
+                                 r'-PrincipalPoint=' + principal_point,
+                                 r'-PerspectiveFocalLength=' + perspective_focal_length,
+                                 r'-PerspectiveDistortion=' + perspective_distortion,
                                  r'-WavelengthFWHM=' + str(self.lensvals[3:6][0][2]),
                                  r'-GPSLatitude="' + str(self.conv.META_PAYLOAD["GNSS_LAT_HI"][1]) + r'"',
 
