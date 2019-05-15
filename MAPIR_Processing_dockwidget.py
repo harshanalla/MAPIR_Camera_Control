@@ -6203,15 +6203,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                  os.path.abspath(outphoto)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, startupinfo=si).stderr.decode("utf-8")
                         else:
 
-                            for count, item in enumerate(centralwavelength):
-                                if item == "":
-                                    if (count + 1) == len(centralwavelength):
-                                        CWL = item
-                                    continue
-                                else:
-                                    CWL = item
-
                             bandname = [band for band in bandname if band]
+                            CWL = [cwl for cwl in centralwavelength if cwl]
 
                             exifout = subprocess.run(
                                 [modpath + os.sep + r'exiftool.exe', r'-config', modpath + os.sep + r'mapir.config',
@@ -6225,7 +6218,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                  r'-Yaw=' + str(ypr[0]),
                                  r'-Pitch=' + str(ypr[1]),
                                  r'-Roll=' + str(ypr[2]),
-                                 r'-CentralWavelength=' + str(CWL if CWL == "" else float(CWL)),
+                                 r'-CentralWavelength=' + str(CWL[0] if CWL[0] == "" else float(CWL[0])),
                                  #r'-ifd0:blacklevelrepeatdim=' + str(1) + " " +  str(1),
                                  #r'-ifd0:blacklevel=0',
                                  # r'-BandName="{band1=' + str(self.BandNames[bandname][0]) + r'band2=' + str(self.BandNames[bandname][1]) + r'band3=' + str(self.BandNames[bandname][2]) + r'}"',
