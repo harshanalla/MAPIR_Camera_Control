@@ -3,6 +3,17 @@
 
 ## Current Version
 
+[May 15th, 2019](https://drive.google.com/file/d/1w6Q4Ngf2FHls4ni15PE1wN5XmfYYB7w5/view?usp=sharing)
+
+[May 15th, 2019 - With Kernel Vignette Correction Support](https://drive.google.com/file/d/1tsWHM3cT0bT9edo9cJ7nZXBqjKI1kNn2/view?usp=sharing)
+
+Change Log
+* Added exporting index image feature
+* Added new lenses for Kernel 3.2MP processing pipeline
+* Fixed bandname metadata bug
+* Other minor bug fixes
+
+## Old Versions
 [April 10th, 2019](https://drive.google.com/file/d/1r2jW86vwbqRdyLicFYfvLbBTOqMcPqU0/view?usp=sharing)
 
 [April 10th, 2019 - With Kernel Vignette Correction Support](https://drive.google.com/file/d/1TyxfoaPVguxnCWYHWBRQxjnfgdT11IZz/view?usp=sharing)
@@ -13,7 +24,6 @@ Change Log
 * Added JPG support for NIR bleed
 * Fixed 'Kernel 3.2 TIF to JPG' feature bug
 
-## Old Versions
 [January 10th, 2019](http://www.docs.peauproductions.com/MCC/MAPIR_Camera_Control_01102019.exe)
 
 [January 10th, 2019 - With Kernel Vignette Correction Support](https://drive.google.com/file/d/11C7ay-zvXV0RME888bwTPVbz0XvdAixQ/view?usp=sharing)
