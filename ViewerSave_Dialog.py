@@ -27,9 +27,14 @@ class SaveDialog(QtWidgets.QDialog, SAVE_CLASS):
     def on_SaveButton_released(self):
         try:
             ftosave = self.parent.KernelBrowserFile.text().split(r'/')[-1].split('.')
-
-            if self.SaveLutBox.isChecked() == True:
+            if self.SaveLutBox.isChecked() == True and self.parent.LUT_to_save is not None:
                 cv2.imwrite(self.ViewerSaveFile.text() + os.sep + ftosave[0] + '_LUT.' + ftosave[1], self.parent.LUT_to_save)
+
+            if self.SaveIndexBox.isChecked() == True and self.parent.index_to_save is not None:
+                self.parent.index_to_save = self.parent.index_to_save.astype("float32")
+                cv2.imwrite(self.ViewerSaveFile.text() + os.sep + ftosave[0] + '_NDVI.' + ftosave[1], self.parent.index_to_save)
+
+
         except Exception as e:
             print(e)
         self.close()

@@ -80,6 +80,7 @@ class Calculator(QtWidgets.QDialog, RASTER_CLASS):
             h, w = self.parent.display_image_original.shape[:2]
             bands = [self.parent.display_image_original[:, :, 0], self.parent.display_image_original[:, :, 1], self.parent.display_image_original[:, :, 2]]
             self.ndvi = self.parent.calculateIndex(bands[self.RasterX.currentIndex()], bands[self.RasterY.currentIndex()])
+            self.parent.index_to_save = copy.deepcopy(self.ndvi)
             self.parent.LUT_Min = copy.deepcopy(np.percentile(self.ndvi, 2))
             self.parent.LUT_Max = copy.deepcopy(np.percentile(self.ndvi, 98))
             midpoint = (self.parent.LUT_Max - self.parent.LUT_Min) / 2

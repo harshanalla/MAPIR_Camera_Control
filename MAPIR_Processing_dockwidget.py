@@ -928,9 +928,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     JPGS = ["jpg", "JPG", "jpeg", "JPEG"]
     TIFS = ["tiff", "TIFF", "tif", "TIF"]
 
-    PRINCIPALPOINT = "3.84387, 1.53139"
-    PERSPECTIVEFOCALLENGTH = "8.444407"
-    PERSPECTIVEDISTORTION = "-0.07569, 0.059957, -0.02031, -0.01246, 0.016932"
+    #PRINCIPALPOINT = "3.84387, 1.53139"
+    #PERSPECTIVEFOCALLENGTH = "8.444407"
+    #PERSPECTIVEDISTORTION = "-0.07569, 0.059957, -0.02031, -0.01246, 0.016932"
+
+    PRINCIPALPOINT = "3.412091, 2.745396"
+    PERSPECTIVEFOCALLENGTH = "9.6706605"
+    PERSPECTIVEDISTORTION = "-0.107494, 0.0852713, 0.114084, 0.000263678, -0.000463052"
 
     CHECKED = 2 # QT creator syntax for checkState(); 2 signifies the box is checked, 0 is unchecked
     UNCHECKED = 0
@@ -1218,6 +1222,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             # self.KernelViewer.installEventFilter(self.eFilter)
             if os.path.exists(self.KernelBrowserFile.text()):
                 self.display_image = cv2.imread(self.KernelBrowserFile.text(), -1)
+                self.index_to_save = self.display_image
                 # if self.display_image == None:
                 #     self.display_image = gdal.Open(self.KernelBrowserFile.text())
                 #     self.display_image = np.array(self.display_image.GetRasterBand(1).ReadAsArray())
@@ -1437,7 +1442,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             print("Line: " + str(exc_tb.tb_lineno))
 
     def on_ViewerSaveButton_released(self):
-
         if self.savewindow == None:
             self.savewindow = SaveDialog(self)
         self.savewindow.resize(385, 110)
@@ -1929,12 +1933,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                         for fold in folders:
                                             if os.path.exists(fold + str(self.pathnames[self.paths.index(cam)]) + ".kernelconfig"):
                                                 os.unlink(fold + str(self.pathnames[self.paths.index(cam)]) + ".kernelconfig")
-                                            treeroot.write(fold + str(self.pathnames[self.paths.index(cam)]) + ".kernelconfig")
+                                            #treeroot.write(fold + str(self.pathnames[self.paths.index(cam)]) + ".kernelconfig")
                                     else:
                                         if not os.path.exists(drv + r":" + os.sep + r"dcim" + os.sep + str(self.pathnames[self.paths.index(cam)])):
                                             os.mkdir(drv + r":" + os.sep + r"dcim" + os.sep + str(self.pathnames[self.paths.index(cam)]))
-                                        treeroot.write(
-                                            drv + r":" + os.sep + r"dcim" + os.sep + str(self.pathnames[self.paths.index(cam)]) + ".kernelconfig")
+                                        #treeroot.write(
+                                            #drv + r":" + os.sep + r"dcim" + os.sep + str(self.pathnames[self.paths.index(cam)]) + ".kernelconfig")
 
                                     keep_looping = False
 
@@ -2432,6 +2436,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.PreProcessColorBox.setChecked(False)
                 self.PreProcessColorBox.setEnabled(False)
 
+        elif self.PreProcessCameraModel.currentText() == "Kernel 3.2":
+            if self.PreProcessLens.currentText() == "3.5mm":
+                self.PreProcessVignette.setEnabled(False)
+
 
     def on_PreProcessFilter_currentIndexChanged(self):
         if (self.PreProcessCameraModel.currentText() == "Kernel 14.4" and self.PreProcessFilter.currentText() == "644 (RGB)"):
@@ -2453,10 +2461,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
         elif self.PreProcessCameraModel.currentText() == "Kernel 3.2":
             self.PreProcessMonoBandBox.setEnabled(False)
-            if self.PreProcessFilter.currentText() in ["405", "450", "490", "518",
+            if (self.PreProcessLens.currentText() == "9.6mm" and
+                self.PreProcessFilter.currentText() in ["405", "450", "490", "518",
                                                        "550", "590", "615", "632",
                                                        "685", "725", "780","808", 
-                                                       "850", "880","940"]:
+                                                       "850", "880","940"]):
 
                 self.PreProcessVignette.setEnabled(True)
             else:
@@ -2548,8 +2557,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
             self.PreProcessFilter.setEnabled(True)
             self.PreProcessLens.clear()
-            self.PreProcessLens.addItems(["9.6mm"])
-            self.PreProcessLens.setEnabled(False)
+            self.PreProcessLens.addItems(["9.6mm", "3.5mm"])
+            self.PreProcessLens.setEnabled(True)
 
 
         elif self.PreProcessCameraModel.currentText() == "Kernel 14.4":
@@ -5624,13 +5633,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     _, _, _, self.lensvals = self.conv.openRaw(inphoto, outphoto, darkscale=False)
 
                 img = cv2.imread(outphoto, -1)
-
-                #print(input.split("\\")[1])
-                #rint(self.conv.META_PAYLOAD["GNSS_HEIGHT_SEA_LEVEL"][1])
                 ts = self.conv.META_PAYLOAD["GNSS_TIME_SECS"][1]
-                #print(ts)
                 ns = self.conv.META_PAYLOAD["GNSS_TIME_NSECS"][1]
-                #print(ns)
                 ts = ts + (ns / 1000000000)
                 time = datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S.%f')
                 self.csv_array.append([input.split("\\")[1], self.conv.META_PAYLOAD["GNSS_HEIGHT_SEA_LEVEL"][1], time])
@@ -6207,6 +6211,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 else:
                                     CWL = item
 
+                            bandname = [band for band in bandname if band]
+
                             exifout = subprocess.run(
                                 [modpath + os.sep + r'exiftool.exe', r'-config', modpath + os.sep + r'mapir.config',
                                  '-m', r'-overwrite_original', r'-tagsFromFile',
@@ -6224,6 +6230,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                  #r'-ifd0:blacklevel=0',
                                  # r'-BandName="{band1=' + str(self.BandNames[bandname][0]) + r'band2=' + str(self.BandNames[bandname][1]) + r'band3=' + str(self.BandNames[bandname][2]) + r'}"',
                                  r'-bandname=' + bandname[0],
+                                 r'-PrincipalPoint=' + self.PRINCIPALPOINT,
+                                 r'-PerspectiveFocalLength=' + self.PERSPECTIVEFOCALLENGTH,
+                                 r'-PerspectiveDistortion=' + self.PERSPECTIVEDISTORTION,
                                  r'-WavelengthFWHM=' + str(self.lensvals[3:6][0][2]),
                                  r'-GPSLatitude="' + str(self.conv.META_PAYLOAD["GNSS_LAT_HI"][1]) + r'"',
 
