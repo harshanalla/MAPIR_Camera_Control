@@ -1621,7 +1621,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.KernelLensSelect.addItems(["3.37mm", "8.25mm"])
 
                 self.KernelFilterSelect.clear()
-                self.KernelFilterSelect.addItems(["RGB", "UVR", "NGB", "RGN", "NO FILTER"])
+                self.KernelFilterSelect.addItems(["RGB", "UVR", "NGB", "RGN", "OCN", "NO FILTER"])
 
             else:
                 self.KernelLensSelect.clear()
@@ -2591,7 +2591,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.PreProcessDarkBox.setEnabled(True)
             self.PreProcessFilter.clear()
             self.PreProcessFilter.addItems(
-                ["550/660/850", "475/550/850", "644 (RGB)", "850"])
+                ["550/660/850", "475/550/850", "644 (RGB)", "850", "OCN"])
             self.PreProcessFilter.setEnabled(True)
             self.PreProcessLens.clear()
             self.PreProcessLens.addItems(["3.37mm", "8.25mm"])
@@ -2601,7 +2601,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.PreProcessFilter.clear()
             self.PreProcessFilter.addItems(["RGB", "OCN", "RGN", "NGB", "RE", "NIR"])
             self.PreProcessFilter.setEnabled(True)
-            self.PreProcessLens.clear()
+            self.PreProcessLens.clear() 
             self.PreProcessLens.addItems(["3.37mm (Survey3W)", "8.25mm (Survey3N)"])
             self.PreProcessLens.setEnabled(True)
             self.PreProcessDarkBox.setEnabled(True)
@@ -2689,7 +2689,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         elif self.CalibrationCameraModel.currentText() == "Kernel 14.4":
             self.CalibrationFilter.clear()
             self.CalibrationFilter.addItems(
-                ["550/660/850", "475/550/850", "644 (RGB)", "850"])
+                ["550/660/850", "475/550/850", "644 (RGB)", "850", "OCN"])
             self.CalibrationFilter.setEnabled(True)
             self.CalibrationLens.clear()
             self.CalibrationLens.setEnabled(False)
@@ -2767,7 +2767,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         elif self.CalibrationCameraModel_2.currentText() == "Kernel 14.4":
             self.CalibrationFilter_2.clear()
             self.CalibrationFilter_2.addItems(
-                ["550/660/850", "475/550/850", "644 (RGB)", "850"])
+                ["550/660/850", "475/550/850", "644 (RGB)", "850", "OCN"])
             self.CalibrationFilter_2.setEnabled(True)
             self.CalibrationLens_2.clear()
             self.CalibrationLens_2.setEnabled(False)
@@ -2845,7 +2845,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         elif self.CalibrationCameraModel_3.currentText() == "Kernel 14.4":
             self.CalibrationFilter_3.clear()
             self.CalibrationFilter_3.addItems(
-                ["550/660/850", "475/550/850", "644 (RGB)", "850"])
+                ["550/660/850", "475/550/850", "644 (RGB)", "850", "OCN"])
             self.CalibrationFilter_3.setEnabled(True)
             self.CalibrationLens_3.clear()
             self.CalibrationLens_3.setEnabled(False)
@@ -2923,7 +2923,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         elif self.CalibrationCameraModel_4.currentText() == "Kernel 14.4":
             self.CalibrationFilter_4.clear()
             self.CalibrationFilter_4.addItems(
-                ["550/660/850", "475/550/850", "644 (RGB)", "850"])
+                ["550/660/850", "475/550/850", "644 (RGB)", "850", "OCN"])
             self.CalibrationFilter_4.setEnabled(True)
             self.CalibrationLens_4.clear()
             self.CalibrationLens_4.setEnabled(False)
@@ -3001,7 +3001,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         elif self.CalibrationCameraModel_5.currentText() == "Kernel 14.4":
             self.CalibrationFilter_5.clear()
             self.CalibrationFilter_5.addItems(
-                ["550/660/850", "475/550/850", "644 (RGB)", "850"])
+                ["550/660/850", "475/550/850", "644 (RGB)", "850", "OCN"])
             self.CalibrationFilter_5.setEnabled(True)
             self.CalibrationLens_5.clear()
             self.CalibrationLens_5.setEnabled(False)
@@ -3079,7 +3079,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         elif self.CalibrationCameraModel_6.currentText() == "Kernel 14.4":
             self.CalibrationFilter_6.clear()
             self.CalibrationFilter_6.addItems(
-                ["550/660/850", "475/550/850", "644 (RGB)", "850"])
+                ["550/660/850", "475/550/850", "644 (RGB)", "850", "OCN"])
             self.CalibrationFilter_6.setEnabled(True)
             self.CalibrationLens_6.clear()
             self.CalibrationLens_6.setEnabled(False)
@@ -4727,7 +4727,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     ygreen = self.refvalues[self.ref]["475/550/850"][1]
                     yblue = self.refvalues[self.ref]["475/550/850"][2]
 
-                elif (camera_model == "Survey3" and fil == "OCN"):
+                elif (camera_model == "Survey3" and fil == "OCN") or (camera_model == "Kernel 14.4" and fil == "OCN"):
 
                     yred = self.refvalues[self.ref]["490/615/808"][0]
                     ygreen = self.refvalues[self.ref]["490/615/808"][1]
