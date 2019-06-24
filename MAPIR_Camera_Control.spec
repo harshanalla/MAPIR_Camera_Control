@@ -4,6 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['MAPIR_Camera_Control.py'],
+             pathex=['C:\\Users\\Software\\Documents\\GitHub\\MAPIR_Camera_Control'],
              binaries=[('FreeImage.dll', '.'), ('FreeImagePlus.dll', '.'), ('opencv_aruco320.dll', '.'), ('opencv_aruco320d.dll', '.'), ('opencv_calib3d320.dll', '.'),
              ('opencv_calib3d320.dll', '.'),
              ('opencv_core320.dll', '.'),
