@@ -1729,7 +1729,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.KernelPanel.append("\n")
             # self.KernelPanel.append("Serial Number: " + self.getSerialNumber())
 
-             buf = [0] * 512
+            buf = [0] * 512
             buf[0] = self.SET_REGISTER_BLOCK_READ_REPORT
             buf[1] = eRegister.RG_CAMERA_ID.value
             buf[2] = 6
