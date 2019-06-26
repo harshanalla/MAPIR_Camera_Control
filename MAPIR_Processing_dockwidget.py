@@ -1563,6 +1563,25 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.KernelViewer.setFocus()
             QtWidgets.QApplication.processEvents()
 
+    # def convertUnsignedToSignedFloat(self, unsignedValue):
+    #   isNegative = (unsignedValue>>15)&1
+    #   if isNegative:
+    #       return (0x7FFF&unsignedValue) -  2**15
+    #   else:
+    #       return unsignedValue
+
+    def convertIMURegisterValue(self, sign, highByte, lowByte):
+        unsignedValue = (256*highByte + lowByte)
+        if sign == 1:
+            unsignedValue *= -1
+        return unsignedValue
+
+    def getIMURegisterString(self, label, sign, highByte, lowByte):
+        return label + str(self.convertIMURegisterValue(self.getRegister(sign), self.getRegister(highByte), self.getRegister(lowByte))) + '°'
+
+    def appendIMURegisterValueToKernelPanel(self, label, signEnum, highByteEnum, lowByteEnum):
+        self.KernelPanel.append(self.getIMURegisterString(label, signEnum.value, highByteEnum.value, lowByteEnum.value))
+
     def KernelUpdate(self):
         try:
             self.KernelExposureMode.blockSignals(True)
@@ -1704,6 +1723,22 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             buf[1] = eRegister.RG_CAMERA_LINK_ID.value
             arid = self.writeToKernel(buf)[2]
             self.KernelPanel.append("Array ID: " + str(arid))
+
+            self.KernelPanel.append('Camera IMU Roll Low: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_L.value)))
+            self.KernelPanel.append('Camera IMU Roll High: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_H.value)))
+            self.KernelPanel.append('Camera IMU Pitch Low: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_L.value)))
+            self.KernelPanel.append('Camera IMU Pitch High: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_H.value)))
+            self.KernelPanel.append('Camera IMU Yaw Low: ' + str(self.getRegister(eRegister.RG_ACC_YAW_L.value)))
+            self.KernelPanel.append('Camera IMU Yaw High: ' + str(self.getRegister(eRegister.RG_ACC_YAW_H.value)))
+            self.KernelPanel.append('RG_ACC_TEST_ENDIAN_L: ' + str(self.getRegister(eRegister.RG_ACC_TEST_ENDIAN_L.value)))
+            self.KernelPanel.append('RG_ACC_TEST_ENDIAN_H: ' + str(self.getRegister(eRegister.RG_ACC_TEST_ENDIAN_H.value)))
+
+            self.appendIMURegisterValueToKernelPanel('Camera IMU Roll: ', eRegister.RG_ACC_ROLL_SIGN, eRegister.RG_ACC_ROLL_H, eRegister.RG_ACC_ROLL_L)
+            self.appendIMURegisterValueToKernelPanel('Camera IMU Pitch: ', eRegister.RG_ACC_PITCH_SIGN, eRegister.RG_ACC_PITCH_H, eRegister.RG_ACC_PITCH_L)
+            self.appendIMURegisterValueToKernelPanel('Camera IMU Yaw: ', eRegister.RG_ACC_YAW_SIGN, eRegister.RG_ACC_YAW_H, eRegister.RG_ACC_YAW_L)
+            self.KernelPanel.append("\n")
+            self.KernelPanel.append("Serial Number: " + self.getSerialNumber())
+            self.KernelPanel.append("Camera Firmware: 1." + str(self.getRegister(eRegister.RG_FIRMWARE_ID.value)))
 
             self.KernelExposureMode.blockSignals(False)
             # self.KernelShutterSpeed.blockSignals(False)
