@@ -1,7 +1,7 @@
 '''This function adjusts the IMU data of the camera to match the image captured by the sensor.'''
 import sys
 
-def AdjustYPR(atype = 0, arid = 0, imu=[0.0,0.0,0.0]):
+def AdjustYPR(atype=0, arid=0, imu=[0.0, 0.0, 0.0]):
     if atype == 101:
         orientation = arid % 2
         #imu[1] = -imu[1]
@@ -44,19 +44,18 @@ def AdjustYPR(atype = 0, arid = 0, imu=[0.0,0.0,0.0]):
 
     return imu
 
-''' 
-These numbers (CURVE_NUMBERS_MASTER) represent the rotations of the 100 series of kernel arrays. 
-They are negative because they use the master camera as their reference point.
-'''
-CURVE_NUMBERS_MASTER ={
+
+# These numbers (CURVE_NUMBERS_MASTER) represent the rotations of the 100 series of kernel arrays.
+# They are negative because they use the master camera as their reference point.
+
+CURVE_NUMBERS_MASTER = {
     "YAW": -2.5,
     "PITCH": -13.5,
     "ROLL": -17.3
 }
-''' 
-This function adds the numbers above to adjust imu for curved arrays.
-'''
-def CurveAdjustment(atype = 100, arid = 0, imu = [0.0,0.0,0.0]):
+
+# This function adds the numbers above to adjust imu for curved arrays.
+def CurveAdjustment(atype=100, arid=0, imu=[0.0, 0.0, 0.0]):
     try:
         if atype == 100:
             if arid == 0 or arid == 3:
@@ -93,6 +92,5 @@ def CurveAdjustment(atype = 100, arid = 0, imu = [0.0,0.0,0.0]):
 
     except Exception as e:
         print(e)
-        exc_type, exc_obj,exc_tb = sys.exc_info()
+        exc_type, exc_obj, exc_tb = sys.exc_info()
         print("Line: " + str(exc_tb.tb_lineno))
-
