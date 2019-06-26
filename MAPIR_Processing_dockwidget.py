@@ -1737,7 +1737,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.appendIMURegisterValueToKernelPanel('Camera IMU Pitch: ', eRegister.RG_ACC_PITCH_SIGN, eRegister.RG_ACC_PITCH_H, eRegister.RG_ACC_PITCH_L)
             self.appendIMURegisterValueToKernelPanel('Camera IMU Yaw: ', eRegister.RG_ACC_YAW_SIGN, eRegister.RG_ACC_YAW_H, eRegister.RG_ACC_YAW_L)
             self.KernelPanel.append("\n")
-            self.KernelPanel.append("Serial Number: " + self.getSerialNumber())
+            # self.KernelPanel.append("Serial Number: " + self.getSerialNumber())
             self.KernelPanel.append("Camera Firmware: 1." + str(self.getRegister(eRegister.RG_FIRMWARE_ID.value)))
 
             self.KernelExposureMode.blockSignals(False)
