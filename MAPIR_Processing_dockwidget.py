@@ -1700,7 +1700,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.KernelPanel.append("Shutter: " + str(self.SHUTTER_SPEED_LOOKUP.get(self.getRegister(eRegister.RG_SHUTTER.value), "N/A")) + " sec")
             self.KernelPanel.append("ISO: " + str(self.getRegister(eRegister.RG_ISO.value)) + "00")
 
-           
+
 
             buf = [0] * 512
             buf[0] = self.SET_REGISTER_READ_REPORT
@@ -1714,18 +1714,21 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             arid = self.writeToKernel(buf)[2]
             self.KernelPanel.append("Array ID: " + str(arid))
 
-            # self.KernelPanel.append('Camera IMU Roll Low: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_L.value)))
-            # self.KernelPanel.append('Camera IMU Roll High: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_H.value)))
-            # self.KernelPanel.append('Camera IMU Pitch Low: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_L.value)))
-            # self.KernelPanel.append('Camera IMU Pitch High: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_H.value)))
-            # self.KernelPanel.append('Camera IMU Yaw Low: ' + str(self.getRegister(eRegister.RG_ACC_YAW_L.value)))
-            # self.KernelPanel.append('Camera IMU Yaw High: ' + str(self.getRegister(eRegister.RG_ACC_YAW_H.value)))
-            # self.KernelPanel.append('RG_ACC_TEST_ENDIAN_L: ' + str(self.getRegister(eRegister.RG_ACC_TEST_ENDIAN_L.value)))
-            # self.KernelPanel.append('RG_ACC_TEST_ENDIAN_H: ' + str(self.getRegister(eRegister.RG_ACC_TEST_ENDIAN_H.value)))
-
+            self.KernelPanel.append('Camera IMU Roll Low: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_L.value)))
+            self.KernelPanel.append('Camera IMU Roll High: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_H.value)))
+            self.KernelPanel.append('Camera IMU Roll Sign: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_SIGN.value)))
             self.appendIMURegisterValueToKernelPanel('Camera IMU Roll: ', eRegister.RG_ACC_ROLL_SIGN, eRegister.RG_ACC_ROLL_H, eRegister.RG_ACC_ROLL_L)
+            self.KernelPanel.append('Camera IMU Pitch Low: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_L.value)))
+            self.KernelPanel.append('Camera IMU Pitch High: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_H.value)))
+            self.KernelPanel.append('Camera IMU Pitch Sign: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_SIGN.value)))
             self.appendIMURegisterValueToKernelPanel('Camera IMU Pitch: ', eRegister.RG_ACC_PITCH_SIGN, eRegister.RG_ACC_PITCH_H, eRegister.RG_ACC_PITCH_L)
+            self.KernelPanel.append('Camera IMU Yaw Low: ' + str(self.getRegister(eRegister.RG_ACC_YAW_L.value)))
+            self.KernelPanel.append('Camera IMU Yaw High: ' + str(self.getRegister(eRegister.RG_ACC_YAW_H.value)))
+            self.KernelPanel.append('Camera IMU Yaw Sign: ' + str(self.getRegister(eRegister.RG_ACC_YAW_SIGN.value)))
             self.appendIMURegisterValueToKernelPanel('Camera IMU Yaw: ', eRegister.RG_ACC_YAW_SIGN, eRegister.RG_ACC_YAW_H, eRegister.RG_ACC_YAW_L)
+            self.KernelPanel.append('RG_ACC_TEST_ENDIAN_L: ' + str(self.getRegister(eRegister.RG_ACC_TEST_ENDIAN_L.value)))
+            self.KernelPanel.append('RG_ACC_TEST_ENDIAN_H: ' + str(self.getRegister(eRegister.RG_ACC_TEST_ENDIAN_H.value)))
+
             self.KernelPanel.append("\n")
             # self.KernelPanel.append("Serial Number: " + self.getSerialNumber())
 
@@ -6004,9 +6007,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             ypr = data[0][1].split()
             # ypr = [0.0] * 3
 
-            ypr[0] = abs(float(ypr[0]) % 360.0)
-            ypr[1] = abs((float(ypr[1]) + 180.0) % 360.0)
-            ypr[2] = abs((float(-ypr[2])) % 360.0)
+            # ypr[0] = abs(float(ypr[0]) % 360.0) #Yaw
+            # ypr[1] = abs((float(ypr[1]) + 180.0) % 360.0) #Pitch
+            # ypr[2] = abs((float(-ypr[2])) % 360.0) #Roll
 
 
             w = int(data[1][1])
@@ -6120,7 +6123,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 # ypr[2] = ((float(self.conv.META_PAYLOAD["ATT_Q2"][1]) + 180.0) % 360.0)
 
                 ypr[0] = abs(float(self.conv.META_PAYLOAD["ATT_Q0"][1]))
-                ypr[1] = abs(float(self.conv.META_PAYLOAD["ATT_Q1"][1])) 
+                ypr[1] = abs(float(self.conv.META_PAYLOAD["ATT_Q1"][1]))
                 ypr[2] = abs(float(self.conv.META_PAYLOAD["ATT_Q2"][1]))
 
                 #ypr[0] = abs(float(self.conv.META_PAYLOAD["ATT_Q0"][1]) % 360.0)
@@ -6134,22 +6137,22 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     ypr = AdjustYPR(int(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]), int(self.conv.META_PAYLOAD["ARRAY_ID"][1]),ypr)
                     ypr = CurveAdjustment(int(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]), int(self.conv.META_PAYLOAD["ARRAY_ID"][1]),ypr)
 
-                '''
-                if self.conv.STD_PAYLOAD["LINK_ID"] == 0:
-                    ypr[0] -= 45
-                    ypr[0] -= 180
+                # '''
+                # if self.conv.STD_PAYLOAD["LINK_ID"] == 0:
+                #     ypr[0] -= 45
+                #     ypr[0] -= 180
 
-                elif self.conv.STD_PAYLOAD["LINK_ID"] == 1:
-                    ypr[0] -= 45
+                # elif self.conv.STD_PAYLOAD["LINK_ID"] == 1:
+                #     ypr[0] -= 45
 
-                elif self.conv.STD_PAYLOAD["LINK_ID"] == 2:
-                    ypr[0] += 45
+                # elif self.conv.STD_PAYLOAD["LINK_ID"] == 2:
+                #     ypr[0] += 45
 
-                elif self.conv.STD_PAYLOAD["LINK_ID"] == 3:
-                    ypr[0] -= 45'''
+                # elif self.conv.STD_PAYLOAD["LINK_ID"] == 3:
+                #     ypr[0] -= 45'''
 
-                ypr = [x % 360 if x > 360 else x for x in ypr]
-                ypr = [x % 360 if x < 0 else x for x in ypr]
+                # ypr = [x % 360 if x > 360 else x for x in ypr]
+                # ypr = [x % 360 if x < 0 else x for x in ypr]
 
                 w = int(data[0][1])
                 h = int(data[1][1])

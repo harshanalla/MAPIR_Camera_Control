@@ -3,9 +3,9 @@
 
 ## Current Version
 
-[May 26th, 2019](https://drive.google.com/file/d/1wztutOIxxDUORYoqkOSvcFQnPs9N58zm/view?usp=sharing)
+[June 26th, 2019](https://drive.google.com/file/d/1wztutOIxxDUORYoqkOSvcFQnPs9N58zm/view?usp=sharing)
 
-[May 26th, 2019 - With Kernel Vignette Correction Support](https://drive.google.com/file/d/1YbBaNEdvoHfexK04fwmmh0M4ohtBWWdn/view?usp=sharing)
+[June 26th, 2019 - With Kernel Vignette Correction Support](https://drive.google.com/file/d/1YbBaNEdvoHfexK04fwmmh0M4ohtBWWdn/view?usp=sharing)
 
 Change Log
 * Added imu values to kernel panel
