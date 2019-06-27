@@ -65,6 +65,7 @@ import KernelConfig
 from MAPIR_Converter import *
 from Exposure import *
 from ArrayTypes import AdjustYPR, CurveAdjustment
+from imu_reg_conversion import convert_imu_register_value
 
 modpath = os.path.dirname(os.path.realpath(__file__))
 
@@ -1563,21 +1564,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.KernelViewer.setFocus()
             QtWidgets.QApplication.processEvents()
 
-    # def convertUnsignedToSignedFloat(self, unsignedValue):
-    #   isNegative = (unsignedValue>>15)&1
-    #   if isNegative:
-    #       return (0x7FFF&unsignedValue) -  2**15
-    #   else:
-    #       return unsignedValue
-
-    def convertIMURegisterValue(self, sign, highByte, lowByte):
-        unsignedValue = (256*highByte + lowByte)
-        if sign == 1:
-            unsignedValue *= -1
-        return unsignedValue
-
     def getIMURegisterString(self, label, sign, highByte, lowByte):
-        return label + str(self.convertIMURegisterValue(self.getRegister(sign), self.getRegister(highByte), self.getRegister(lowByte))) + '°'
+        return label + str(convert_imu_register_value(self.getRegister(sign), self.getRegister(highByte), self.getRegister(lowByte))) + '°'
 
     def appendIMURegisterValueToKernelPanel(self, label, signEnum, highByteEnum, lowByteEnum):
         self.KernelPanel.append(self.getIMURegisterString(label, signEnum.value, highByteEnum.value, lowByteEnum.value))
