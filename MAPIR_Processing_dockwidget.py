@@ -1,25 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- MAPIR_ProcessingDockWidget
-                                 A QGIS plugin
- Widget for processing images captured by MAPIR cameras
-                             -------------------
-        begin                : 2016-09-26
-        git sha              : $Format:%H$
-        copyright            : (C) 2016 by Peau Productions
-        email                : ethan@peauproductions.com
- ***************************************************************************/
 
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-"""
 
 import os
 import warnings
@@ -81,25 +60,26 @@ if sys.platform == "win32":
     si = subprocess.STARTUPINFO()
     si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
+def get_ui_file_path(ui_filename):
+    return uic.loadUiType(os.path.join(os.path.dirname(__file__), ui_filename))
+
+def get_ui_class(ui_filename):
+    return get_ui_file_path(ui_filename)
+
+
+
 # if sys.platform == "win32":
 #       import exiftool
 #       exiftool.executable = modpath + os.sep + "exiftool.exe"
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_base.ui'))
-MODAL_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_modal.ui'))
-CAN_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_CAN.ui'))
-TIME_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_time.ui'))
-# DEL_CLASS, _ = uic.loadUiType(os.path.join(
-#     os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_delete.ui'))
-TRANSFER_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_transfer.ui'))
-ADVANCED_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_Advanced.ui'))
-MATRIX_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_matrix.ui'))
+
+FORM_CLASS, _ = get_ui_class('MAPIR_Processing_dockwidget_base.ui')
+MODAL_CLASS, _ = get_ui_class('MAPIR_Processing_dockwidget_modal.ui')
+CAN_CLASS, _ = get_ui_class('MAPIR_Processing_dockwidget_CAN.ui')
+TIME_CLASS, _ = get_ui_class('MAPIR_Processing_dockwidget_time.ui')
+# DEL_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_delete.ui'))
+TRANSFER_CLASS, _ = get_ui_class('MAPIR_Processing_dockwidget_transfer.ui')
+ADVANCED_CLASS, _ = get_ui_class('MAPIR_Processing_dockwidget_Advanced.ui')
+MATRIX_CLASS, _ = get_ui_class('MAPIR_Processing_dockwidget_matrix.ui')
 
 class DebayerMatrix(QtWidgets.QDialog, MATRIX_CLASS):
     parent = None
@@ -451,7 +431,7 @@ class KernelTime(QtWidgets.QDialog, TIME_CLASS):
     SET_CAMERA = 13
 
     def __init__(self, parent=None):
-        """Constructor."""
+        # Constructor
         super(KernelTime, self).__init__(parent=parent)
         self.parent = parent
 
@@ -1480,10 +1460,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.LUTwindow = Applicator(self)
         self.LUTwindow.resize(385, 160)
         self.LUTwindow.show()
-   
+
 
         QtWidgets.QApplication.processEvents()
-    def on_ViewerCalcButton_released(self):        
+    def on_ViewerCalcButton_released(self):
         if self.LUTwindow == None:
             self.calcwindow = Calculator(self)
 
@@ -2554,7 +2534,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
             if self.PreProcessFilter.currentText() != "RGB":
                 self.PreProcessColorBox.setEnabled(False)
-       
+
         else:
             self.PreProcessColorBox.setChecked(False)
             self.PreProcessColorBox.setEnabled(False)
@@ -5359,7 +5339,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         freq_array = np.asarray((unique, counts)).T
 
         total_pixels = color.size
-  
+
         sum_pixels = 0
 
         for pixel in freq_array[::-1]:
@@ -5408,7 +5388,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 filename = file.split(".")[0]
                 mapir_file = filename + ".mapir"
                 mapir_file_path = os.path.join(infolder, mapir_file)
-      
+
                 cv2.imwrite(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], img)
                 self.copySimple(outphoto, outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
 
@@ -5584,7 +5564,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def remove_lines(self, img, h, w):
         diff_perc = .50
         bad_rows = []
-        
+
         for row in range(h):
             cols_start = list(range(0, 0 + (5 * 9), 5))
             cols_end = list(range(w - (5 * 9), w, 5))
@@ -5603,7 +5583,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     pixel_below = 0
 
                 else:
-                    pixel_below = img.item(row+2, col) 
+                    pixel_below = img.item(row+2, col)
                     pixel_above = img.item(row-2, col)
 
                 if (pixel_above / img.item(row, col)) < diff_perc and (pixel_below / img.item(row, col)) < diff_perc:
@@ -5848,13 +5828,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 fil_str = fil_names[0] + "-" + fil_names[1] + "-" + fil_names[2]
 
                             dark_frame_value = self.get_dark_frame_value(fil_str)
-                            
+
                             with open(modpath + os.sep + r"vig_" + fil_str + "_" + lens_str + "_" + "1" + r".txt", "rb") as vigfilered:
                                 v_array = np.ndarray((h, w), np.dtype("float32"), np.fromfile(vigfilered, np.dtype("float32")))
                                 red = red / v_array
                                 red[red > 65535.0] = 65535.0
                                 red[red < 0.0] = 0.0
-                            
+
                                 red -= dark_frame_value
 
                             with open(modpath + os.sep + r"vig_" + fil_str + "_" + lens_str + "_" + "2" + r".txt", "rb") as vigfilegreen:
@@ -5942,8 +5922,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         # self.PreP.shaperocessLog.append("Skipped Debayering")
                         QtWidgets.QApplication.processEvents()
 
-                        
-
                 except Exception as e:
                     exc_type, exc_obj,exc_tb = sys.exc_info()
                     print(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
@@ -5973,9 +5951,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             ypr = data[0][1].split()
             # ypr = [0.0] * 3
 
-            ypr[0] = abs(float(ypr[0]) % 360.0)
-            ypr[1] = abs((float(ypr[1]) + 180.0) % 360.0)
-            ypr[2] = abs((float(-ypr[2])) % 360.0)
+            ypr[0] = abs(float(ypr[0]) % 360.0) #Yaw
+            ypr[1] = abs((float(ypr[1]) + 180.0) % 360.0) #Pitch
+            ypr[2] = abs((float(-ypr[2])) % 360.0) #Roll
 
 
             w = int(data[1][1])
@@ -6103,19 +6081,18 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     ypr = AdjustYPR(int(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]), int(self.conv.META_PAYLOAD["ARRAY_ID"][1]),ypr)
                     ypr = CurveAdjustment(int(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]), int(self.conv.META_PAYLOAD["ARRAY_ID"][1]),ypr)
 
-                '''
-                if self.conv.STD_PAYLOAD["LINK_ID"] == 0:
-                    ypr[0] -= 45
-                    ypr[0] -= 180
+                # if self.conv.STD_PAYLOAD["LINK_ID"] == 0:
+                #     ypr[0] -= 45
+                #     ypr[0] -= 180
 
-                elif self.conv.STD_PAYLOAD["LINK_ID"] == 1:
-                    ypr[0] -= 45
+                # elif self.conv.STD_PAYLOAD["LINK_ID"] == 1:
+                #     ypr[0] -= 45
 
-                elif self.conv.STD_PAYLOAD["LINK_ID"] == 2:
-                    ypr[0] += 45
+                # elif self.conv.STD_PAYLOAD["LINK_ID"] == 2:
+                #     ypr[0] += 45
 
-                elif self.conv.STD_PAYLOAD["LINK_ID"] == 3:
-                    ypr[0] -= 45'''
+                # elif self.conv.STD_PAYLOAD["LINK_ID"] == 3:
+                #     ypr[0] -= 45
 
                 ypr = [x % 360 if x > 360 else x for x in ypr]
                 ypr = [x % 360 if x < 0 else x for x in ypr]
