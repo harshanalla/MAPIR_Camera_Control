@@ -6110,9 +6110,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 # ypr[1] = -float(self.conv.META_PAYLOAD["ATT_Q1"][1])
                 # ypr[2] = ((float(self.conv.META_PAYLOAD["ATT_Q2"][1]) + 180.0) % 360.0)
 
-                ypr[0] = abs(float(self.conv.META_PAYLOAD["ATT_Q0"][1]))
-                ypr[1] = abs(float(self.conv.META_PAYLOAD["ATT_Q1"][1]))
-                ypr[2] = abs(float(self.conv.META_PAYLOAD["ATT_Q2"][1]))
+                ypr[0] = float(self.conv.META_PAYLOAD["ATT_Q0"][1])
+                ypr[1] = float(self.conv.META_PAYLOAD["ATT_Q1"][1])
+                ypr[2] = float(self.conv.META_PAYLOAD["ATT_Q2"][1])
 
                 #ypr[0] = abs(float(self.conv.META_PAYLOAD["ATT_Q0"][1]) % 360.0)
                 #ypr[1] = abs((float(self.conv.META_PAYLOAD["ATT_Q1"][1]) + 180.0) % 360.0)
