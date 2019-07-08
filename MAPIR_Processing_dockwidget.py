@@ -4469,7 +4469,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     with open(r'.' + os.sep + r'calib.txt', 'r+') as f:
                         f.truncate()
 
-            #Finding coordinates for Version 2         
+            #Finding coordinates for Version 2
             if version == "V2":
                 self.CalibrationLog.append("Looking for QR target \n")
                 if len(list) > 0:
@@ -4497,7 +4497,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     cl1 = clahe2.apply(im)
                 denoised = cv2.fastNlMeansDenoising(cl1, None, 14, 7, 21)
                 threshcounter = 17
-                
+
                 while threshcounter <= 255:
                     ret, thresh = cv2.threshold(denoised, threshcounter, 255, 0)
 
@@ -6107,10 +6107,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 #
                 ypr = [0.0] * 3
 
-                ypr[0] = float(self.conv.META_PAYLOAD["ATT_Q0"][1]
-                ypr[1] = float(self.conv.META_PAYLOAD["ATT_Q1"][1]
+                ypr[0] = float(self.conv.META_PAYLOAD["ATT_Q0"][1])
+                ypr[1] = float(self.conv.META_PAYLOAD["ATT_Q1"][1])
                 # ypr[1] = (float(self.conv.META_PAYLOAD["ATT_Q1"][1]) + 180.0) % 360.0)
-                ypr[2] = float(self.conv.META_PAYLOAD["ATT_Q2"][1]
+                ypr[2] = float(self.conv.META_PAYLOAD["ATT_Q2"][1])
                 # ypr[2] = (float(self.conv.META_PAYLOAD["ATT_Q2"][1]) + 180.0) % 360.0)
 
                 self.conv.META_PAYLOAD["ARRAY_ID"][1] = self.conv.STD_PAYLOAD["LINK_ID"]
