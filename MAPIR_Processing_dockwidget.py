@@ -53,6 +53,8 @@ import time
 import json
 import math
 import webbrowser
+# import calibration
+import Calibration
 
 from MAPIR_Enums import *
 from Calculator import *
@@ -64,7 +66,9 @@ import xml.etree.ElementTree as ET
 import KernelConfig
 from MAPIR_Converter import *
 from Exposure import *
+from Geometry import *
 from ArrayTypes import AdjustYPR, CurveAdjustment
+# from Calibration import *
 from imu_reg_conversion import convert_imu_register_value
 
 modpath = os.path.dirname(os.path.realpath(__file__))
@@ -4380,7 +4384,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         cv2.circle(line_image,target2, 15, (255,0,0), -1)
         cv2.circle(line_image,target3, 15, (255,255,0), -1)
         cv2.circle(line_image,target4, 15, (255,0,255), -1)
-        
         cv2.imwrite(image_line, line_image)
 
     def get_LOBF_values(self, x, y):
@@ -4407,16 +4410,40 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         elif image.split(".")[1] in self.TIFS:
             return "TIF"
 
+    def is_calibration_target_version_2(self):
+        return self.CalibrationTargetSelect.currentIndex() == 0
+
+    def is_calibration_target_version_1(self):
+        return self.CalibrationTargetSelect.currentIndex() == 1
+
+    # def get_coordinates_for_v2_calibration_target(self, list):
+    #     self.ref = self.refindex[1]
+    #     temp = np.fromstring(str(list), dtype=int, sep=',')
+    #     return [[temp[0],temp[1]],[temp[2],temp[3]],[temp[6],temp[7]],[temp[4],temp[5]]]
+
+    # def set_coordinates_for_v2_calibration_target(self, list):
+    #     if len(list) > 0:
+    #         self.coords = self.get_coordinates_for_v2_calibration_target(list)
+
+    # def find_fiducial(self, image):
+        # subprocess.call([modpath + os.sep + r'FiducialFinder.exe', image], startupinfo=si)
+
+    # def calibration_file_exists(self):
+    #     return os.path.exists(r'.' + os.sep + r'calib.txt')
+
+    # def truncate_calibration_file(self):
+    #     with open(r'.' + os.sep + r'calib.txt', 'r+') as f:
+    #         f.truncate()
+
+    # def get_image_corners(self, image):
+    #     # with open(r'.' + os.sep + r'calib.txt', 'r+') as cornerfile:
+    #     #     return cornerfile.read()
+    #         return Calibration.get_image_corners(image)
+
 ####Function for finding the QR target and calculating the calibration coeficients\
     def findQR(self, image, ind):
         try:
             self.ref = ""
-
-            if self.CalibrationTargetSelect.currentIndex() == 0:
-                version = "V2"
-
-            elif self.CalibrationTargetSelect.currentIndex() == 1:
-                version = "V1"
 
             camera_model = ind[0].currentText()
             fil = ind[1].currentText()
@@ -4428,60 +4455,52 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             elif not self.check_if_RGB(camera_model, fil, lens) and len(cv2.imread(image, -1).shape) > 2:
                 raise IndexError("Mono filter was selected but input folders contain RGB images")
 
-            #Fiducial Finder only needs to be run for Version 2, calib.txt will only be written for Version 2
-            if version == "V2":
+            self.CalibrationLog.append("Looking for QR target \n")
+            if self.is_calibration_target_version_2():
+
                 meta_im = image.split(".")[0] + "_temp_meta." + image.split(".")[1]
                 cv2.imwrite(meta_im, cv2.imread(image, -1))
                 self.copyExif(image, meta_im)
 
-                subprocess.call([modpath + os.sep + r'FiducialFinder.exe', image], startupinfo=si)
+                # self.find_fiducial(image)
                 im_orig = cv2.imread(image, -1)
-
-                list = None
                 im = cv2.imread(image, 0)
-                listcounter = 2
 
-                if os.path.exists(r'.' + os.sep + r'calib.txt'):
-                    # cv2.imwrite(image.split('.')[-2] + "_original." + image.split('.')[-1], cv2.imread(image, -1))
-                    while (list is None or len(list) <= 0) and listcounter < 10:
-                        with open(r'.' + os.sep + r'calib.txt', 'r+') as cornerfile:
-                            list = cornerfile.read()
-                            print("list: ", list, type(list))
+                coords = Calibration.get_image_corners(image)
+                self.ref = self.refindex[1]
+                self.coords = coords
+                # listcounter = 2
 
-                        im = im * listcounter
-                        listcounter += 1
-                        cv2.imwrite(image, im)
-                        subprocess.call([modpath + os.sep + r'FiducialFinder.exe', image], startupinfo=si)
+                # if self.calibration_file_exists():
+                    # while (list is None or len(list) <= 0) and listcounter < 10:
 
-                        try:
-                            list = list.split('[')[1].split(']')[0]
+                        # im = im * listcounter
+                        # listcounter += 1
+                        # cv2.imwrite(image, im)
+                        # self.find_fiducial(image)
 
-                        except Exception as e:
-                            exc_type, exc_obj, exc_tb = sys.exc_info()
-                            print("Error: ", e)
-                            print("Line: " + str(exc_tb.tb_lineno))
+                        # try:
+                        #     list = list.split('[')[1].split(']')[0]
 
-                    cv2.imwrite(image, im_orig)
-                    self.copyExif(meta_im, image)
-                    os.remove(meta_im)
+                        # except Exception as e:
+                        #     exc_type, exc_obj, exc_tb = sys.exc_info()
+                        #     print("Error: ", e)
+                        #     print("Line: " + str(exc_tb.tb_lineno))
 
-                    # os.unlink(image.split('.')[-2] + "_original." + image.split('.')[-1])
-                    with open(r'.' + os.sep + r'calib.txt', 'r+') as f:
-                        f.truncate()
+                cv2.imwrite(image, im_orig)
+                self.copyExif(meta_im, image)
+                os.remove(meta_im)
 
-            #Finding coordinates for Version 2
-            if version == "V2":
-                self.CalibrationLog.append("Looking for QR target \n")
-                if len(list) > 0:
-                    self.ref = self.refindex[1]
-                    # self.CalibrationLog.append(list)
-                    temp = np.fromstring(str(list), dtype=int, sep=',')
-                    self.coords = [[temp[0],temp[1]],[temp[2],temp[3]],[temp[6],temp[7]],[temp[4],temp[5]]]
-                    print(self.coords)
+                    # self.truncate_calibration_file()
+
+
+
+
+            # if self.is_calibration_target_version_2():
+            #     self.set_coordinates_for_v2_calibration_target(list)
 
             #Finding coordinates for Version 1
             else:
-                self.CalibrationLog.append("Looking for QR target \n")
                 self.ref = self.refindex[0]
 
                 if self.check_if_RGB(camera_model, fil, lens): #if RGB Camera
@@ -4512,7 +4531,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         for i in hierarchy[0]:
                             self.traverseHierarchy(hierarchy, contours, count, im, 0)
                             count += 1
-    
+
                     if len(self.coords) == 3:
                         break
                     else:
@@ -4522,17 +4541,18 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     self.CalibrationLog.append("Could not find MAPIR ground target.")
                     QtWidgets.QApplication.processEvents()
                     return
-     
-            line1 = np.sqrt(np.power((self.coords[0][0] - self.coords[1][0]), 2) + np.power((self.coords[0][1] - self.coords[1][1]),
-                                                                                  2))  # Getting the distance between each centroid
-            line2 = np.sqrt(np.power((self.coords[1][0] - self.coords[2][0]), 2) + np.power((self.coords[1][1] - self.coords[2][1]), 2))
-            line3 = np.sqrt(np.power((self.coords[2][0] - self.coords[0][0]), 2) + np.power((self.coords[2][1] - self.coords[0][1]), 2))
 
-            hypotenuse = line1 if line1 > line2 else line2
-            hypotenuse = line3 if line3 > hypotenuse else hypotenuse
+            # distance between centroids
+            line1 = Geometry.get_distance_between_two_points(self.coords[0], self.coords[1])
+            line2 = Geometry.get_distance_between_two_points(self.coords[1], self.coords[2])
+            line3 = Geometry.get_distance_between_two_points(self.coords[2], self.coords[0])
+
+            # hypotenuse = Geometry.get_hypotenuse(self.coords[0:3])
+
+            hypotenuse = max([line1, line2, line3])
 
             #Finding Version 2 Target
-            if version == "V2":
+            if self.is_calibration_target_version_2():
                 slope = (self.coords[2][1] - self.coords[1][1]) / (self.coords[2][0] - self.coords[1][0])
                 dist = self.coords[0][1] - (slope * self.coords[0][0]) + ((slope * self.coords[2][0]) - self.coords[2][1])
                 dist /= np.sqrt(np.power(slope, 2) + 1)
@@ -4542,7 +4562,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                 slope_center_right = (center[1] - right[1]) / (center[0] - right[0])
                 angle = abs(math.degrees(math.atan(slope_center_right)))
-
             else:
                 if hypotenuse == line1:
 
@@ -4589,8 +4608,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         bottom = self.coords[0]
                         right = self.coords[2]
 
-            if version == "V2":
-                if len(list) > 0:
+            if self.is_calibration_target_version_2():
+                # if len(list) > 0:
+                if len(self.coords) > 0:
                     guidelength = np.sqrt(np.power((center[0] - bottom[0]), 2) + np.power((center[1] - bottom[1]), 2))
                     pixelinch = guidelength / self.CORNER_TO_CORNER
 
@@ -4607,8 +4627,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
             newlen = np.sqrt(vx * vx + vy * vy)
 
-            if version == "V2":
-                if len(list) > 0:
+            if self.is_calibration_target_version_2():
+                # if len(list) > 0:
+                if len(self.coords) > 0:
                     targ1x = (rad * (vx / newlen)) + self.coords[0][0]
                     targ1y = (rad * (vy / newlen)) + self.coords[0][1]
                     targ2x = (rad * (vx / newlen)) + self.coords[1][0]
@@ -4647,7 +4668,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             # kernel = np.ones((2, 2), np.uint16)
             # im2 = cv2.erode(im2, kernel, iterations=1)
             # im2 = cv2.dilate(im2, kernel, iterations=1)
-            
+
             if camera_model == "Survey2" and fil == "Red + NIR (NDVI)":
                 blue = im2[:, :, 0]
                 green = im2[:, :, 1]
@@ -4710,8 +4731,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 yred = []
                 yblue = []
                 ygreen = []
-                if version == "V2":
-                    if len(list) > 0:
+                if self.is_calibration_target_version_2():
+                    if len(self.coords) > 0:
                         targ4values = im2[(target4[1] - int((pixelinch * 0.75) / 2)):(target4[1] + int((pixelinch * 0.75) / 2)),
                                       (target4[0] - int((pixelinch * 0.75) / 2)):(target4[0] + int((pixelinch * 0.75) / 2))]
                         t4redmean = np.mean(targ4values[:, :, 2])
@@ -4735,14 +4756,14 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     xred = [t1redmean, t2redmean, t3redmean]
                     xgreen = [t1greenmean, t2greenmean, t3greenmean]
                     xblue = [t1bluemean, t2bluemean, t3bluemean]
-    
-                if ((camera_model == "Survey3" and fil == "RGN") or (camera_model == "DJI Phantom 4 Pro") 
+
+                if ((camera_model == "Survey3" and fil == "RGN") or (camera_model == "DJI Phantom 4 Pro")
                         or (camera_model == "Kernel 14.4" and fil =="550/660/850")):
                     yred = self.refvalues[self.ref]["550/660/850"][0]
                     ygreen = self.refvalues[self.ref]["550/660/850"][1]
                     yblue = self.refvalues[self.ref]["550/660/850"][2]
 
-                elif ((camera_model == "Survey3" and fil == "NGB") 
+                elif ((camera_model == "Survey3" and fil == "NGB")
                     or (camera_model == "Kernel 14.4" and fil == "475/550/850")):
 
                     yred = self.refvalues[self.ref]["475/550/850"][0]
@@ -4760,7 +4781,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     ygreen = self.refvalues[self.ref]["660/850"][1]
                     yblue = self.refvalues[self.ref]["660/850"][2]
 
-                if self.get_filetype(image) == "JPG":   
+                if self.get_filetype(image) == "JPG":
                     xred = [x / 255 for x in xred]
                     xgreen = [x / 255 for x in xgreen]
                     xblue = [x / 255 for x in xblue]
@@ -4801,8 +4822,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     self.multiplication_values["green"]["intercept"] = 0
 
 
-                if version == "V2":
-                    if len(list) > 0:
+                if self.is_calibration_target_version_2():
+                    if len(self.coords) > 0:
                         self.CalibrationLog.append("Found QR Target Model 2, please proceed with calibration.")
                     else:
                         self.CalibrationLog.append("Could not find Calibration Target.")
@@ -4810,8 +4831,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     self.CalibrationLog.append("Found QR Target Model 1, please proceed with calibration.")
 
             else:
-                if version == "V2":
-                    if len(list) > 0:
+                if self.is_calibration_target_version_2():
+                    if len(self.coords) > 0:
                         targ1values = im2[(target1[1] - int((pixelinch * 0.75) / 2)):(target1[1] + int((pixelinch * 0.75) / 2)),
                                       (target1[0] - int((pixelinch * 0.75) / 2)):(target1[0] + int((pixelinch * 0.75) / 2))]
                         targ2values = im2[(target2[1] - int((pixelinch * 0.75) / 2)):(target2[1] + int((pixelinch * 0.75) / 2)),
@@ -4850,14 +4871,14 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 else:
                     targ1values = im2[(target1[1] - int((pixelinch * 0.75) / 2)):(target1[1] + int((pixelinch * 0.75) / 2)),
                                   (target1[0] - int((pixelinch * 0.75) / 2)):(target1[0] + int((pixelinch * 0.75) / 2))]
-            
+
                     targ2values = im2[(target2[1] - int((pixelinch * 0.75) / 2)):(target2[1] + int((pixelinch * 0.75) / 2)),
                                   (target2[0] - int((pixelinch * 0.75) / 2)):(target2[0] + int((pixelinch * 0.75) / 2))]
 
                     targ3values = im2[(target3[1] - int((pixelinch * 0.75) / 2)):(target3[1] + int((pixelinch * 0.75) / 2)),
                                   (target3[0] - int((pixelinch * 0.75) / 2)):(target3[0] + int((pixelinch * 0.75) / 2))]
 
-       
+
                     if (len(im2.shape) > 2) and fil in ["RE", "NIR", "Red"]:
                         t1mean = np.mean(targ1values[:,:,2])
                         t2mean = np.mean(targ2values[:,:,2])
@@ -4937,7 +4958,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                 if self.get_filetype(image) == "JPG":
                     x = [i / 255 for i in x]
-        
+
                 elif self.get_filetype(image) == "TIF":
                     x = [i / 65535 for i in x]
 
@@ -4950,7 +4971,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.multiplication_values["mono"]["intercept"] = intercept
 
                 if version == "V2":
-                    if len(list) > 0:
+                    if len(self.coords) > 0:
                         self.CalibrationLog.append("Found QR Target Model 2, please proceed with calibration.")
                     else:
                         self.CalibrationLog.append("Could not find Calibration Target.")
@@ -4985,7 +5006,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
         if not ((camera_model in ["Survey2", "Survey3"]) and (filt in ["RE", "NIR", "Red", "Blue", "Green"])):
             self.PreProcessLog.append("WARNING: Outputting mono band for filter {} is not supported for Calibration Tab \n".format(filt))
-    
+
     def preProcessHelper(self, infolder, outfolder, customerdata=True):
         if self.PreProcessMonoBandBox.isChecked():
             self.output_mono_band_validation()
