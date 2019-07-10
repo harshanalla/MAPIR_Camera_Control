@@ -27,7 +27,7 @@ def get_image_corners(target_img):
 		aruco_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 	aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_250)
-	corners, ids, rejectedImgPoints = aruco.detectMarkers(aruco_img, aruco_dict)
+	corners, ids, rejected_img_points = aruco.detectMarkers(aruco_img, aruco_dict)
 
 	# draw_detected_targets(target_img, corners, ids)
 
