@@ -53,8 +53,8 @@ import time
 import json
 import math
 import webbrowser
-# import calibration
 import Calibration
+from camera_specs import CameraSpecs
 
 from MAPIR_Enums import *
 from Calculator import *
@@ -2580,11 +2580,35 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
             if self.PreProcessFilter.currentText() != "RGB":
                 self.PreProcessColorBox.setEnabled(False)
-       
+
         else:
             self.PreProcessColorBox.setChecked(False)
             self.PreProcessColorBox.setEnabled(False)
         QtWidgets.QApplication.processEvents()
+
+    def update_pre_process_filter(self, filter_names, enabled):
+        self.update_pre_process_element(self.PreProcessFilter, filter_names, enabled)
+
+    def update_pre_process_lens(self, lens_names, enabled):
+        self.update_pre_process_element(self.PreProcessLens, lens_names, enabled)
+
+    def update_pre_process_element(self, pre_process_el, items_to_add, enabled):
+        pre_process_el.clear()
+        pre_process_el.addItems(items_to_add)
+        pre_process_el.setEnabled(enabled)
+
+    def update_pre_process_options_for_camera_model(self, model_name):
+        pre_process_settings = CameraSpecs.specs[model_name]["pre_process"]
+        self.update_pre_process_filter(
+            pre_process_settings["filters"],
+            pre_process_settings["enable_filter_select"]
+        )
+        self.update_pre_process_lens(
+            pre_process_settings["lenses"],
+            pre_process_settings["enable_lens_select"]
+        )
+        if pre_process_settings["enable_dark_box"] == True:
+            self.PreProcessDarkBox.setEnabled(True)
 
     def on_PreProcessCameraModel_currentIndexChanged(self):
         self.PreProcessVignette.setChecked(False)
@@ -2599,76 +2623,41 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         self.PreProcessMonoBandBox.setEnabled(True)
 
         if self.PreProcessCameraModel.currentText() == "Kernel 3.2":
-            self.PreProcessDarkBox.setEnabled(True)
-            self.PreProcessFilter.clear()
-            self.PreProcessFilter.addItems(["405", "450", "490", "518",
-                                            "550", "590", "615", "632",
-                                            "650", "685", "725", "780",
-                                            "808", "850", "880", "940",
-                                            "945", "NO FILTER"])
-
-            self.PreProcessFilter.setEnabled(True)
-            self.PreProcessLens.clear()
-            self.PreProcessLens.addItems(["9.6mm", "3.5mm"])
-            self.PreProcessLens.setEnabled(True)
-
+            self.update_pre_process_options_for_camera_model("Kernel 3.2")
 
         elif self.PreProcessCameraModel.currentText() == "Kernel 14.4":
-            self.PreProcessDarkBox.setEnabled(True)
-            self.PreProcessFilter.clear()
-            self.PreProcessFilter.addItems(
-                ["550/660/850", "475/550/850", "644 (RGB)", "850", "OCN"])
-            self.PreProcessFilter.setEnabled(True)
-            self.PreProcessLens.clear()
-            self.PreProcessLens.addItems(["3.37mm", "8.25mm"])
-            self.PreProcessLens.setEnabled(True)
+            self.update_pre_process_options_for_camera_model("Kernel 14.4")
 
         elif self.PreProcessCameraModel.currentText() == "Survey3":
-            self.PreProcessFilter.clear()
-            self.PreProcessFilter.addItems(["RGB", "OCN", "RGN", "NGB", "RE", "NIR"])
-            self.PreProcessFilter.setEnabled(True)
-            self.PreProcessLens.clear() 
-            self.PreProcessLens.addItems(["3.37mm (Survey3W)", "8.25mm (Survey3N)"])
-            self.PreProcessLens.setEnabled(True)
+            self.update_pre_process_filter(["RGB", "OCN", "RGN", "NGB", "RE", "NIR"], enabled=True)
+            self.update_pre_process_lens(["3.37mm (Survey3W)", "8.25mm (Survey3N)"], enabled=True)
             self.PreProcessDarkBox.setEnabled(True)
 
         elif self.PreProcessCameraModel.currentText() == "Survey2":
-            self.PreProcessFilter.clear()
-            self.PreProcessFilter.addItems(["Red + NIR (NDVI)", "NIR", "Red", "Green", "Blue", "RGB"])
-            self.PreProcessFilter.setEnabled(True)
-            self.PreProcessLens.clear()
-            self.PreProcessLens.addItems(["3.97mm"])
-            self.PreProcessLens.setEnabled(False)
+            self.update_pre_process_filter(["Red + NIR (NDVI)", "NIR", "Red", "Green", "Blue", "RGB"], enabled=True)
+            self.update_pre_process_lens(["3.97mm"], enabled=False)
             self.PreProcessDarkBox.setEnabled(True)
 
         elif self.PreProcessCameraModel.currentText() == "Survey1":
-            self.PreProcessFilter.clear()
-            self.PreProcessFilter.addItems(["Blue + NIR (NDVI)"])
-            self.PreProcessFilter.setEnabled(False)
+            self.update_pre_process_filter(["Blue + NIR (NDVI)"], enabled=False)
             self.PreProcessLens.clear()
             self.PreProcessLens.addItems(["3.97mm"])
             self.PreProcessLens.setEnabled(False)
 
         elif self.PreProcessCameraModel.currentText() == "DJI Phantom 4":
-            self.PreProcessFilter.clear()
-            self.PreProcessFilter.addItems(["Red + NIR (NDVI)"])
-            self.PreProcessFilter.setEnabled(False)
+            self.update_pre_process_filter(["Red + NIR (NDVI)"], enabled=False)
             self.PreProcessLens.clear()
             self.PreProcessLens.addItems(["3.97mm"])
             self.PreProcessLens.setEnabled(False)
 
         elif self.PreProcessCameraModel.currentText() == "DJI Phantom 4 Pro":
-            self.PreProcessFilter.clear()
-            self.PreProcessFilter.addItems(["RGN"])
-            self.PreProcessFilter.setEnabled(False)
+            self.update_pre_process_filter(["RGN"], enabled=False)
             self.PreProcessLens.clear()
             self.PreProcessLens.addItems(["3.97mm"])
             self.PreProcessLens.setEnabled(False)
 
         elif self.PreProcessCameraModel.currentText() in ["DJI Phantom 3a", "DJI Phantom 3p", "DJI X3"]:
-            self.PreProcessFilter.clear()
-            self.PreProcessFilter.addItems(["Red + NIR (NDVI)"])
-            self.PreProcessFilter.setEnabled(False)
+            self.update_pre_process_filter(["Red + NIR (NDVI)"], enabled=False)
             self.PreProcessLens.clear()
             self.PreProcessLens.addItems(["3.97mm"])
             self.PreProcessLens.setEnabled(False)
@@ -3617,15 +3606,15 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 self.seed_pass = True
 
                             else:
-            
+
                                 try:
                                 #compare current image min-max with global min-max (non-calibrated)
                                     self.pixel_min_max["redmax"] = max(red.max(), self.pixel_min_max["redmax"])
                                     self.pixel_min_max["redmin"] = min(red.min(), self.pixel_min_max["redmin"])
-                                    
+
                                     self.pixel_min_max["greenmax"] = max(green.max(), self.pixel_min_max["greenmax"])
                                     self.pixel_min_max["greenmin"] = min(green.min(), self.pixel_min_max["greenmin"])
-                                    
+
 
                                     self.pixel_min_max["bluemax"] = max(blue.max(), self.pixel_min_max["bluemax"])
                                     self.pixel_min_max["bluemin"] = min(blue.min(), self.pixel_min_max["bluemin"])
@@ -4416,30 +4405,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def is_calibration_target_version_1(self):
         return self.CalibrationTargetSelect.currentIndex() == 1
 
-    # def get_coordinates_for_v2_calibration_target(self, list):
-    #     self.ref = self.refindex[1]
-    #     temp = np.fromstring(str(list), dtype=int, sep=',')
-    #     return [[temp[0],temp[1]],[temp[2],temp[3]],[temp[6],temp[7]],[temp[4],temp[5]]]
-
-    # def set_coordinates_for_v2_calibration_target(self, list):
-    #     if len(list) > 0:
-    #         self.coords = self.get_coordinates_for_v2_calibration_target(list)
-
-    # def find_fiducial(self, image):
-        # subprocess.call([modpath + os.sep + r'FiducialFinder.exe', image], startupinfo=si)
-
-    # def calibration_file_exists(self):
-    #     return os.path.exists(r'.' + os.sep + r'calib.txt')
-
-    # def truncate_calibration_file(self):
-    #     with open(r'.' + os.sep + r'calib.txt', 'r+') as f:
-    #         f.truncate()
-
-    # def get_image_corners(self, image):
-    #     # with open(r'.' + os.sep + r'calib.txt', 'r+') as cornerfile:
-    #     #     return cornerfile.read()
-    #         return Calibration.get_image_corners(image)
-
 ####Function for finding the QR target and calculating the calibration coeficients\
     def findQR(self, image, ind):
         try:
@@ -4469,35 +4434,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 coords = Calibration.get_image_corners(image)
                 self.ref = self.refindex[1]
                 self.coords = coords
-                # listcounter = 2
-
-                # if self.calibration_file_exists():
-                    # while (list is None or len(list) <= 0) and listcounter < 10:
-
-                        # im = im * listcounter
-                        # listcounter += 1
-                        # cv2.imwrite(image, im)
-                        # self.find_fiducial(image)
-
-                        # try:
-                        #     list = list.split('[')[1].split(']')[0]
-
-                        # except Exception as e:
-                        #     exc_type, exc_obj, exc_tb = sys.exc_info()
-                        #     print("Error: ", e)
-                        #     print("Line: " + str(exc_tb.tb_lineno))
 
                 cv2.imwrite(image, im_orig)
                 self.copyExif(meta_im, image)
                 os.remove(meta_im)
-
-                    # self.truncate_calibration_file()
-
-
-
-
-            # if self.is_calibration_target_version_2():
-            #     self.set_coordinates_for_v2_calibration_target(list)
 
             #Finding coordinates for Version 1
             else:
