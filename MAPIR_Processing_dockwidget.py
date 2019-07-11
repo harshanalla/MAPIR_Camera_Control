@@ -68,8 +68,8 @@ from MAPIR_Converter import *
 from Exposure import *
 from Geometry import *
 from ArrayTypes import AdjustYPR, CurveAdjustment
-# from Calibration import *
 from imu_reg_conversion import convert_imu_register_value
+from ExifUtils import *
 
 modpath = os.path.dirname(os.path.realpath(__file__))
 
@@ -4028,10 +4028,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.CalibrationLog.append("Making JPG")
                 QtWidgets.QApplication.processEvents()
                 cv2.imencode(".jpg", refimg)
-                cv2.imwrite(output_directory + photo.split('.')[1] + "_CALIBRATED.JPG", refimg,
+                outpath = output_directory + photo.split('.')[1] + "_CALIBRATED.JPG"
+                cv2.imwrite(outpath, refimg,
                             [int(cv2.IMWRITE_JPEG_QUALITY), 100])
 
-                self.copyExif(photo, output_directory + photo.split('.')[1] + "_CALIBRATED.JPG")
+                self.copyExif(photo, outpath)
 
             else:
                 newimg = output_directory + photo.split('.')[1] + "_CALIBRATED." + photo.split('.')[2]
@@ -5932,6 +5933,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 stdin=subprocess.PIPE, startupinfo=si).stdout.decode("utf-8")
 
             data = [line.strip().split(':') for line in data.split('\r\n') if line.strip()]
+
+            # parse yaw pitch roll from metadata
             ypr = data[0][1].split()
             # ypr = [0.0] * 3
 
@@ -6018,17 +6021,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             print(exifout)
 
     def copySimple(self, inphoto, outphoto):
-        exifout = subprocess.run(
-            [modpath + os.sep + r'exiftool.exe',  # r'-config', modpath + os.sep + r'mapir.config',
-             r'-overwrite_original_in_place', r'-tagsFromFile',
-             os.path.abspath(inphoto),
-             r'-all:all<all:all',
-             os.path.abspath(outphoto)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE,
-            startupinfo=si).stderr.decode("utf-8")
-        data = subprocess.run(
-                    args=[modpath + os.sep + r'exiftool.exe', '-m', r'-ifd0:imagewidth', r'-ifd0:imageheight', os.path.abspath(inphoto)],
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                    stdin=subprocess.PIPE, startupinfo=si).stdout.decode("utf-8")
+        ExifUtils.copy_simple(inphoto, outphoto)
 
     def copyMAPIR(self, inphoto, outphoto):
         if sys.platform == "win32":

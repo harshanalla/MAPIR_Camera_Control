@@ -3,6 +3,10 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import PyQt5.uic as uic
 import cv2
 import numpy as np
+
+from ExifUtils import *
+
+
 SAVE_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_Viewer_Save.ui'))
 
@@ -25,14 +29,29 @@ class SaveDialog(QtWidgets.QDialog, SAVE_CLASS):
             self.SaveButton.setEnabled(True)
 
     def on_SaveButton_released(self):
+    # TODO: Save exif metadata when lut and index files are saved
         try:
-            ftosave = self.parent.KernelBrowserFile.text().split(r'/')[-1].split('.')
-            if self.SaveLutBox.isChecked() == True and self.parent.LUT_to_save is not None:
-                cv2.imwrite(self.ViewerSaveFile.text() + os.sep + ftosave[0] + '_LUT.' + ftosave[1], self.parent.LUT_to_save)
+            in_file_path = self.parent.KernelBrowserFile.text()
+            in_filename_arr = in_file_path.split(r'/')[-1].split('.')
+            in_filename_base = in_filename_arr[0]
+            in_filename_ext = in_filename_arr[1]
 
-            if self.SaveIndexBox.isChecked() == True and self.parent.index_to_save is not None:
+            if self.SaveLutBox.isChecked() and self.parent.LUT_to_save is not None:
+                lut_out_path = self.ViewerSaveFile.text() + os.sep + in_filename_base + '_LUT.' + in_filename_ext
+                cv2.imwrite(
+                    lut_out_path,
+                    self.parent.LUT_to_save
+                )
+                ExifUtils.copy_simple(in_file_path, lut_out_path)
+
+            if self.SaveIndexBox.isChecked() and self.parent.index_to_save is not None:
                 self.parent.index_to_save = self.parent.index_to_save.astype("float32")
-                cv2.imwrite(self.ViewerSaveFile.text() + os.sep + ftosave[0] + '_NDVI.' + ftosave[1], self.parent.index_to_save)
+                index_out_path = self.ViewerSaveFile.text() + os.sep + in_filename_base + '_NDVI.' + in_filename_ext
+                cv2.imwrite(
+                    index_out_path,
+                    self.parent.index_to_save
+                )
+                ExifUtils.copy_simple(in_file_path, index_out_path)
 
 
         except Exception as e:
