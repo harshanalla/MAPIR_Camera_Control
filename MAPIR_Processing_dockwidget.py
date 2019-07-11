@@ -1706,20 +1706,36 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             arid = self.writeToKernel(buf)[2]
             self.KernelPanel.append("Array ID: " + str(arid))
 
-            self.KernelPanel.append('Camera IMU Roll Low: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_L.value)))
-            self.KernelPanel.append('Camera IMU Roll High: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_H.value)))
-            self.KernelPanel.append('Camera IMU Roll Sign: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_SIGN.value)))
+            self.KernelPanel.append('Accelerometer X Axis Low:' + str(self.getRegister(eRegister.RG_ACC_AX_L.value)))
+            self.KernelPanel.append('Accelerometer X Axis High:' + str(self.getRegister(eRegister.RG_ACC_AX_H.value)))
+            self.KernelPanel.append('Accelerometer X Axis Sign:' + str(self.getRegister(eRegister.RG_ACC_AX_SIGN.value)))
+            self.appendIMURegisterValueToKernelPanel('Accelerometer X Axis:', eRegister.RG_ACC_AX_SIGN, eRegister.RG_ACC_AX_H, eRegister.RG_ACC_AX_L)
+
+            self.KernelPanel.append('Accelerometer Y Axis Low:' + str(self.getRegister(eRegister.RG_ACC_AY_L.value)))
+            self.KernelPanel.append('Accelerometer Y Axis High:' + str(self.getRegister(eRegister.RG_ACC_AY_H.value)))
+            self.KernelPanel.append('Accelerometer Y Axis Sign:' + str(self.getRegister(eRegister.RG_ACC_AY_SIGN.value)))
+            self.appendIMURegisterValueToKernelPanel('Accelerometer Y Axis:', eRegister.RG_ACC_AY_SIGN, eRegister.RG_ACC_AY_H, eRegister.RG_ACC_AY_L)
+
+            self.KernelPanel.append('Accelerometer Z Axis Low:' + str(self.getRegister(eRegister.RG_ACC_AZ_L.value)))
+            self.KernelPanel.append('Accelerometer Z Axis High:' + str(self.getRegister(eRegister.RG_ACC_AZ_H.value)))
+            self.KernelPanel.append('Accelerometer Z Axis Sign:' + str(self.getRegister(eRegister.RG_ACC_AZ_SIGN.value)))
+            self.appendIMURegisterValueToKernelPanel('Accelerometer Z Axis:', eRegister.RG_ACC_AZ_SIGN, eRegister.RG_ACC_AZ_H, eRegister.RG_ACC_AZ_L)
+
+
+            # self.KernelPanel.append('Camera IMU Roll Low: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_L.value)))
+            # self.KernelPanel.append('Camera IMU Roll High: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_H.value)))
+            # self.KernelPanel.append('Camera IMU Roll Sign: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_SIGN.value)))
             self.appendIMURegisterValueToKernelPanel('Camera IMU Roll: ', eRegister.RG_ACC_ROLL_SIGN, eRegister.RG_ACC_ROLL_H, eRegister.RG_ACC_ROLL_L)
-            self.KernelPanel.append('Camera IMU Pitch Low: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_L.value)))
-            self.KernelPanel.append('Camera IMU Pitch High: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_H.value)))
-            self.KernelPanel.append('Camera IMU Pitch Sign: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_SIGN.value)))
+            # self.KernelPanel.append('Camera IMU Pitch Low: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_L.value)))
+            # self.KernelPanel.append('Camera IMU Pitch High: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_H.value)))
+            # self.KernelPanel.append('Camera IMU Pitch Sign: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_SIGN.value)))
             self.appendIMURegisterValueToKernelPanel('Camera IMU Pitch: ', eRegister.RG_ACC_PITCH_SIGN, eRegister.RG_ACC_PITCH_H, eRegister.RG_ACC_PITCH_L)
-            self.KernelPanel.append('Camera IMU Yaw Low: ' + str(self.getRegister(eRegister.RG_ACC_YAW_L.value)))
-            self.KernelPanel.append('Camera IMU Yaw High: ' + str(self.getRegister(eRegister.RG_ACC_YAW_H.value)))
-            self.KernelPanel.append('Camera IMU Yaw Sign: ' + str(self.getRegister(eRegister.RG_ACC_YAW_SIGN.value)))
+            # self.KernelPanel.append('Camera IMU Yaw Low: ' + str(self.getRegister(eRegister.RG_ACC_YAW_L.value)))
+            # self.KernelPanel.append('Camera IMU Yaw High: ' + str(self.getRegister(eRegister.RG_ACC_YAW_H.value)))
+            # self.KernelPanel.append('Camera IMU Yaw Sign: ' + str(self.getRegister(eRegister.RG_ACC_YAW_SIGN.value)))
             self.appendIMURegisterValueToKernelPanel('Camera IMU Yaw: ', eRegister.RG_ACC_YAW_SIGN, eRegister.RG_ACC_YAW_H, eRegister.RG_ACC_YAW_L)
-            self.KernelPanel.append('RG_ACC_TEST_ENDIAN_L: ' + str(self.getRegister(eRegister.RG_ACC_TEST_ENDIAN_L.value)))
-            self.KernelPanel.append('RG_ACC_TEST_ENDIAN_H: ' + str(self.getRegister(eRegister.RG_ACC_TEST_ENDIAN_H.value)))
+            # self.KernelPanel.append('RG_ACC_TEST_ENDIAN_L: ' + str(self.getRegister(eRegister.RG_ACC_TEST_ENDIAN_L.value)))
+            # self.KernelPanel.append('RG_ACC_TEST_ENDIAN_H: ' + str(self.getRegister(eRegister.RG_ACC_TEST_ENDIAN_H.value)))
 
             self.KernelPanel.append("\n")
             # self.KernelPanel.append("Serial Number: " + self.getSerialNumber())
@@ -2587,28 +2603,34 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         QtWidgets.QApplication.processEvents()
 
     def update_pre_process_filter(self, filter_names, enabled):
-        self.update_pre_process_element(self.PreProcessFilter, filter_names, enabled)
+        self.update_select_dropdown_component(self.PreProcessFilter, filter_names, enabled)
 
     def update_pre_process_lens(self, lens_names, enabled):
-        self.update_pre_process_element(self.PreProcessLens, lens_names, enabled)
+        self.update_select_dropdown_component(self.PreProcessLens, lens_names, enabled)
 
-    def update_pre_process_element(self, pre_process_el, items_to_add, enabled):
-        pre_process_el.clear()
-        pre_process_el.addItems(items_to_add)
-        pre_process_el.setEnabled(enabled)
+    def update_select_dropdown_component(self, component, items_to_add, enabled):
+        component.clear()
+        component.addItems(items_to_add)
+        component.setEnabled(enabled)
 
     def update_pre_process_options_for_camera_model(self, model_name):
-        pre_process_settings = CameraSpecs.specs[model_name]["pre_process"]
-        self.update_pre_process_filter(
-            pre_process_settings["filters"],
-            pre_process_settings["enable_filter_select"]
-        )
-        self.update_pre_process_lens(
-            pre_process_settings["lenses"],
-            pre_process_settings["enable_lens_select"]
-        )
-        if pre_process_settings["enable_dark_box"] == True:
-            self.PreProcessDarkBox.setEnabled(True)
+        if CameraSpecs.specs[model_name]["pre_process"]:
+            pre_process_settings = CameraSpecs.specs[model_name]["pre_process"]
+            self.update_pre_process_filter(
+                pre_process_settings["filters"],
+                pre_process_settings["enable_filter_select"]
+            )
+            self.update_pre_process_lens(
+                pre_process_settings["lenses"],
+                pre_process_settings["enable_lens_select"]
+            )
+            if pre_process_settings["enable_dark_box"] == True:
+                self.PreProcessDarkBox.setEnabled(True)
+        else:
+            self.PreProcessFilter.clear()
+            self.PreProcessFilter.setEnabled(False)
+            self.PreProcessLens.clear()
+            self.PreProcessLens.setEnabled(False)
 
     def on_PreProcessCameraModel_currentIndexChanged(self):
         self.PreProcessVignette.setChecked(False)
@@ -2622,51 +2644,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         self.Band_Dropdown.setEnabled(False)
         self.PreProcessMonoBandBox.setEnabled(True)
 
-        if self.PreProcessCameraModel.currentText() == "Kernel 3.2":
-            self.update_pre_process_options_for_camera_model("Kernel 3.2")
+        self.update_pre_process_options_for_camera_model(self.PreProcessCameraModel.currentText())
 
-        elif self.PreProcessCameraModel.currentText() == "Kernel 14.4":
-            self.update_pre_process_options_for_camera_model("Kernel 14.4")
-
-        elif self.PreProcessCameraModel.currentText() == "Survey3":
-            self.update_pre_process_filter(["RGB", "OCN", "RGN", "NGB", "RE", "NIR"], enabled=True)
-            self.update_pre_process_lens(["3.37mm (Survey3W)", "8.25mm (Survey3N)"], enabled=True)
-            self.PreProcessDarkBox.setEnabled(True)
-
-        elif self.PreProcessCameraModel.currentText() == "Survey2":
-            self.update_pre_process_filter(["Red + NIR (NDVI)", "NIR", "Red", "Green", "Blue", "RGB"], enabled=True)
-            self.update_pre_process_lens(["3.97mm"], enabled=False)
-            self.PreProcessDarkBox.setEnabled(True)
-
-        elif self.PreProcessCameraModel.currentText() == "Survey1":
-            self.update_pre_process_filter(["Blue + NIR (NDVI)"], enabled=False)
-            self.PreProcessLens.clear()
-            self.PreProcessLens.addItems(["3.97mm"])
-            self.PreProcessLens.setEnabled(False)
-
-        elif self.PreProcessCameraModel.currentText() == "DJI Phantom 4":
-            self.update_pre_process_filter(["Red + NIR (NDVI)"], enabled=False)
-            self.PreProcessLens.clear()
-            self.PreProcessLens.addItems(["3.97mm"])
-            self.PreProcessLens.setEnabled(False)
-
-        elif self.PreProcessCameraModel.currentText() == "DJI Phantom 4 Pro":
-            self.update_pre_process_filter(["RGN"], enabled=False)
-            self.PreProcessLens.clear()
-            self.PreProcessLens.addItems(["3.97mm"])
-            self.PreProcessLens.setEnabled(False)
-
-        elif self.PreProcessCameraModel.currentText() in ["DJI Phantom 3a", "DJI Phantom 3p", "DJI X3"]:
-            self.update_pre_process_filter(["Red + NIR (NDVI)"], enabled=False)
-            self.PreProcessLens.clear()
-            self.PreProcessLens.addItems(["3.97mm"])
-            self.PreProcessLens.setEnabled(False)
-
-        else:
-            self.PreProcessLens.clear()
-            self.PreProcessFilter.setEnabled(False)
-            self.PreProcessLens.clear()
-            self.PreProcessLens.setEnabled(False)
 
     def on_PreProcessMonoBandBox_toggled(self):
         if self.PreProcessMonoBandBox.checkState() == 2:
