@@ -3237,10 +3237,16 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def on_CalibrationQRButton_6_released(self):
         self.set_component_text_from_instring(self.CalibrationQRFile_6)
 
+    def append_select_a_camera_message_to_calibration_log():
+        self.CalibrationLog.append("Attention! Please select a camera model.\n")
+
+    def append_please_select_a_target_image_message_to_calibration_log():
+        self.CalibrationLog.append("Attention! Please select a target image.\n")
+
     def on_CalibrationGenButton_released(self):
         try:
             if self.CalibrationCameraModel.currentIndex() == -1:
-                self.CalibrationLog.append("Attention! Please select a camera model.\n")
+                self.append_select_a_camera_message_to_calibration_log()
 
             elif len(self.CalibrationQRFile.text()) > 0:
                 self.findQR(self.CalibrationQRFile.text(), [self.CalibrationCameraModel, self.CalibrationFilter, self.CalibrationLens])
@@ -3251,7 +3257,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
             else:
                 #self.useqr = False
-                self.CalibrationLog.append("Attention! Please select a target image.\n")
+                self.append_please_select_a_target_image_message_to_calibration_log()
 
         except Exception as e:
             exc_type, exc_obj,exc_tb = sys.exc_info()
@@ -3260,7 +3266,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def on_CalibrationGenButton_2_released(self):
         try:
             if self.CalibrationCameraModel_2.currentIndex() == -1:
-                self.CalibrationLog.append("Attention! Please select a camera model.\n")
+                self.append_select_a_camera_message_to_calibration_log()
             elif len(self.CalibrationQRFile_2.text()) > 0:
 
                 self.findQR(self.CalibrationQRFile_2.text(), [self.CalibrationCameraModel_2, self.CalibrationFilter_2, self.CalibrationLens_2])
@@ -3268,63 +3274,63 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.qr_coeffs[2] = copy.deepcopy(self.multiplication_values["mono"])
                 self.useqr = True
             else:
-                self.CalibrationLog.append("Attention! Please select a target image.\n")
+                self.append_please_select_a_target_image_message_to_calibration_log()
         except Exception as e:
             exc_type, exc_obj,exc_tb = sys.exc_info()
             self.CalibrationLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
     def on_CalibrationGenButton_3_released(self):
         try:
             if self.CalibrationCameraModel_3.currentIndex() == -1:
-                self.CalibrationLog.append("Attention! Please select a camera model.\n")
+                self.append_select_a_camera_message_to_calibration_log()
             elif len(self.CalibrationQRFile_3.text()) > 0:
                 self.findQR(self.CalibrationQRFile_3.text(), [self.CalibrationCameraModel_3, self.CalibrationFilter_3, self.CalibrationLens_3])
                 self.qrcoeffs3 = copy.deepcopy(self.multiplication_values["mono"])
                 self.qr_coeffs[3] = copy.deepcopy(self.multiplication_values["mono"])
                 self.useqr = True
             else:
-                self.CalibrationLog.append("Attention! Please select a target image.\n")
+                self.append_please_select_a_target_image_message_to_calibration_log()
         except Exception as e:
             exc_type, exc_obj,exc_tb = sys.exc_info()
             self.CalibrationLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
     def on_CalibrationGenButton_4_released(self):
         try:
             if self.CalibrationCameraModel_4.currentIndex() == -1:
-                self.CalibrationLog.append("Attention! Please select a camera model.\n")
+                self.append_select_a_camera_message_to_calibration_log()
             elif len(self.CalibrationQRFile_4.text()) > 0:
                 self.qrcoeffs4 = self.findQR(self.CalibrationQRFile_4.text(), [self.CalibrationCameraModel_4, self.CalibrationFilter_4, self.CalibrationLens_4])
                 self.qrcoeffs4 = copy.deepcopy(self.multiplication_values["mono"])
                 self.qr_coeffs[4] = copy.deepcopy(self.multiplication_values["mono"])
                 self.useqr = True
             else:
-                self.CalibrationLog.append("Attention! Please select a target image.\n")
+                self.append_please_select_a_target_image_message_to_calibration_log()
         except Exception as e:
             exc_type, exc_obj,exc_tb = sys.exc_info()
             self.CalibrationLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
     def on_CalibrationGenButton_5_released(self):
         try:
             if self.CalibrationCameraModel_5.currentIndex() == -1:
-                self.CalibrationLog.append("Attention! Please select a camera model.\n")
+                self.append_select_a_camera_message_to_calibration_log()
             elif len(self.CalibrationQRFile_5.text()) > 0:
                 self.qrcoeffs5 = self.findQR(self.CalibrationQRFile_5.text(), [self.CalibrationCameraModel_5, self.CalibrationFilter_5, self.CalibrationLens_5])
                 self.qrcoeffs5 = copy.deepcopy(self.multiplication_values["mono"])
                 self.qr_coeffs[5] = copy.deepcopy(self.multiplication_values["mono"])
                 self.useqr = True
             else:
-                self.CalibrationLog.append("Attention! Please select a target image.\n")
+                self.append_please_select_a_target_image_message_to_calibration_log()
         except Exception as e:
             exc_type, exc_obj,exc_tb = sys.exc_info()
             self.CalibrationLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
     def on_CalibrationGenButton_6_released(self):
         try:
             if self.CalibrationCameraModel_6.currentIndex() == -1:
-                self.CalibrationLog.append("Attention! Please select a camera model.\n")
+                self.append_select_a_camera_message_to_calibration_log()
             elif len(self.CalibrationQRFile_6.text()) > 0:
                 self.qrcoeffs6 = self.findQR(self.CalibrationQRFile_6.text(), [self.CalibrationCameraModel_6, self.CalibrationFilter_6, self.CalibrationLens_6])
                 self.qrcoeffs6 = copy.deepcopy(self.multiplication_values["mono"])
                 self.qr_coeffs[6] = copy.deepcopy(self.multiplication_values["mono"])
                 self.useqr = True
             else:
-                self.CalibrationLog.append("Attention! Please select a target image.\n")
+                self.append_please_select_a_target_image_message_to_calibration_log()
         except Exception as e:
             exc_type, exc_obj,exc_tb = sys.exc_info()
             self.CalibrationLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
