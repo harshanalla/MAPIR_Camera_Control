@@ -68,7 +68,7 @@ from MAPIR_Converter import *
 from Exposure import *
 from Geometry import *
 from ArrayTypes import AdjustYPR, CurveAdjustment
-from imu_reg_conversion import convert_imu_register_value
+from reg_value_conversion import *
 from ExifUtils import *
 
 modpath = os.path.dirname(os.path.realpath(__file__))
@@ -1574,6 +1574,55 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def appendIMURegisterValueToKernelPanel(self, label, signEnum, highByteEnum, lowByteEnum):
         self.KernelPanel.append(self.getIMURegisterString(label, signEnum.value, highByteEnum.value, lowByteEnum.value))
 
+    def get_acceleration_value_string(self, label, reg_values):
+        return label + str(convert_acceleration_reg_values_to_float(reg_values))
+
+    def append_acceleration_value_to_kernel_panel(self, label, reg_values):
+        self.KernelPanel.append(self.get_acceleration_value_string(label, reg_values))
+
+    # def append_acceleration_value_binary_to_kernel_panel(self, label, reg_values):
+    #     self.KernelPanel.append(label + str(convert_acceleration_reg_values_to_binary(reg_values)))
+
+    def log_acceleration_values_to_kernel_panel(self):
+        self.append_acceleration_value_to_kernel_panel(
+            'Accelerometer X Axis Float: ', [
+                self.getRegister(eRegister.RG_ACC_AX_0.value),
+                self.getRegister(eRegister.RG_ACC_AX_1.value),
+                self.getRegister(eRegister.RG_ACC_AX_2.value),
+                self.getRegister(eRegister.RG_ACC_AX_3.value),
+            ])
+        self.append_acceleration_value_to_kernel_panel(
+            'Accelerometer Y Axis Float: ', [
+                self.getRegister(eRegister.RG_ACC_AY_0.value),
+                self.getRegister(eRegister.RG_ACC_AY_1.value),
+                self.getRegister(eRegister.RG_ACC_AY_2.value),
+                self.getRegister(eRegister.RG_ACC_AY_3.value),
+            ])
+        self.append_acceleration_value_to_kernel_panel(
+            'Accelerometer Z Axis Float: ', [
+                self.getRegister(eRegister.RG_ACC_AZ_0.value),
+                self.getRegister(eRegister.RG_ACC_AZ_1.value),
+                self.getRegister(eRegister.RG_ACC_AZ_2.value),
+                self.getRegister(eRegister.RG_ACC_AZ_3.value),
+            ])
+
+
+    def log_yaw_pitch_roll_to_kernel_panel(self):
+        # self.KernelPanel.append('Camera IMU Roll Low: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_L.value)))
+        # self.KernelPanel.append('Camera IMU Roll High: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_H.value)))
+        # self.KernelPanel.append('Camera IMU Roll Sign: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_SIGN.value)))
+        self.appendIMURegisterValueToKernelPanel('Camera IMU Roll: ', eRegister.RG_ACC_ROLL_SIGN, eRegister.RG_ACC_ROLL_H, eRegister.RG_ACC_ROLL_L)
+        # self.KernelPanel.append('Camera IMU Pitch Low: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_L.value)))
+        # self.KernelPanel.append('Camera IMU Pitch High: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_H.value)))
+        # self.KernelPanel.append('Camera IMU Pitch Sign: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_SIGN.value)))
+        self.appendIMURegisterValueToKernelPanel('Camera IMU Pitch: ', eRegister.RG_ACC_PITCH_SIGN, eRegister.RG_ACC_PITCH_H, eRegister.RG_ACC_PITCH_L)
+        # self.KernelPanel.append('Camera IMU Yaw Low: ' + str(self.getRegister(eRegister.RG_ACC_YAW_L.value)))
+        # self.KernelPanel.append('Camera IMU Yaw High: ' + str(self.getRegister(eRegister.RG_ACC_YAW_H.value)))
+        # self.KernelPanel.append('Camera IMU Yaw Sign: ' + str(self.getRegister(eRegister.RG_ACC_YAW_SIGN.value)))
+        self.appendIMURegisterValueToKernelPanel('Camera IMU Yaw: ', eRegister.RG_ACC_YAW_SIGN, eRegister.RG_ACC_YAW_H, eRegister.RG_ACC_YAW_L)
+        # self.KernelPanel.append('RG_ACC_TEST_ENDIAN_L: ' + str(self.getRegister(eRegister.RG_ACC_TEST_ENDIAN_L.value)))
+        # self.KernelPanel.append('RG_ACC_TEST_ENDIAN_H: ' + str(self.getRegister(eRegister.RG_ACC_TEST_ENDIAN_H.value)))
+
     def KernelUpdate(self):
         try:
             self.KernelExposureMode.blockSignals(True)
@@ -1706,36 +1755,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             arid = self.writeToKernel(buf)[2]
             self.KernelPanel.append("Array ID: " + str(arid))
 
-            self.KernelPanel.append('Accelerometer X Axis Low:' + str(self.getRegister(eRegister.RG_ACC_AX_L.value)))
-            self.KernelPanel.append('Accelerometer X Axis High:' + str(self.getRegister(eRegister.RG_ACC_AX_H.value)))
-            self.KernelPanel.append('Accelerometer X Axis Sign:' + str(self.getRegister(eRegister.RG_ACC_AX_SIGN.value)))
-            self.appendIMURegisterValueToKernelPanel('Accelerometer X Axis:', eRegister.RG_ACC_AX_SIGN, eRegister.RG_ACC_AX_H, eRegister.RG_ACC_AX_L)
-
-            self.KernelPanel.append('Accelerometer Y Axis Low:' + str(self.getRegister(eRegister.RG_ACC_AY_L.value)))
-            self.KernelPanel.append('Accelerometer Y Axis High:' + str(self.getRegister(eRegister.RG_ACC_AY_H.value)))
-            self.KernelPanel.append('Accelerometer Y Axis Sign:' + str(self.getRegister(eRegister.RG_ACC_AY_SIGN.value)))
-            self.appendIMURegisterValueToKernelPanel('Accelerometer Y Axis:', eRegister.RG_ACC_AY_SIGN, eRegister.RG_ACC_AY_H, eRegister.RG_ACC_AY_L)
-
-            self.KernelPanel.append('Accelerometer Z Axis Low:' + str(self.getRegister(eRegister.RG_ACC_AZ_L.value)))
-            self.KernelPanel.append('Accelerometer Z Axis High:' + str(self.getRegister(eRegister.RG_ACC_AZ_H.value)))
-            self.KernelPanel.append('Accelerometer Z Axis Sign:' + str(self.getRegister(eRegister.RG_ACC_AZ_SIGN.value)))
-            self.appendIMURegisterValueToKernelPanel('Accelerometer Z Axis:', eRegister.RG_ACC_AZ_SIGN, eRegister.RG_ACC_AZ_H, eRegister.RG_ACC_AZ_L)
-
-
-            # self.KernelPanel.append('Camera IMU Roll Low: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_L.value)))
-            # self.KernelPanel.append('Camera IMU Roll High: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_H.value)))
-            # self.KernelPanel.append('Camera IMU Roll Sign: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_SIGN.value)))
-            self.appendIMURegisterValueToKernelPanel('Camera IMU Roll: ', eRegister.RG_ACC_ROLL_SIGN, eRegister.RG_ACC_ROLL_H, eRegister.RG_ACC_ROLL_L)
-            # self.KernelPanel.append('Camera IMU Pitch Low: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_L.value)))
-            # self.KernelPanel.append('Camera IMU Pitch High: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_H.value)))
-            # self.KernelPanel.append('Camera IMU Pitch Sign: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_SIGN.value)))
-            self.appendIMURegisterValueToKernelPanel('Camera IMU Pitch: ', eRegister.RG_ACC_PITCH_SIGN, eRegister.RG_ACC_PITCH_H, eRegister.RG_ACC_PITCH_L)
-            # self.KernelPanel.append('Camera IMU Yaw Low: ' + str(self.getRegister(eRegister.RG_ACC_YAW_L.value)))
-            # self.KernelPanel.append('Camera IMU Yaw High: ' + str(self.getRegister(eRegister.RG_ACC_YAW_H.value)))
-            # self.KernelPanel.append('Camera IMU Yaw Sign: ' + str(self.getRegister(eRegister.RG_ACC_YAW_SIGN.value)))
-            self.appendIMURegisterValueToKernelPanel('Camera IMU Yaw: ', eRegister.RG_ACC_YAW_SIGN, eRegister.RG_ACC_YAW_H, eRegister.RG_ACC_YAW_L)
-            # self.KernelPanel.append('RG_ACC_TEST_ENDIAN_L: ' + str(self.getRegister(eRegister.RG_ACC_TEST_ENDIAN_L.value)))
-            # self.KernelPanel.append('RG_ACC_TEST_ENDIAN_H: ' + str(self.getRegister(eRegister.RG_ACC_TEST_ENDIAN_H.value)))
+            self.log_acceleration_values_to_kernel_panel()
+            self.log_yaw_pitch_roll_to_kernel_panel()
 
             self.KernelPanel.append("\n")
             # self.KernelPanel.append("Serial Number: " + self.getSerialNumber())
@@ -1769,59 +1790,35 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         # self.KernelGain.blockSignals(False)
         # self.KernelSetPoint.blockSignals(False)
     def on_KernelFolderButton_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.KernelTransferFolder.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.KernelTransferFolder.text())
+        self.set_component_text_from_instring(self.KernelTransferFolder)
 
     cancel_auto = False
     def on_KernelAutoCancel_released(self):
         self.cancel_auto = True
 
+    def set_component_text_from_instring(self, component):
+        with open(modpath + os.sep + "instring.txt", "r+") as instring:
+            component.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
+            instring.truncate(0)
+            instring.seek(0)
+            instring.write(component.text())
+
     def on_KernelBandButton1_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.KernelBand1.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.KernelBand1.text())
+        self.set_component_text_from_instring(self.KernelBand1)
     def on_KernelBandButton2_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.KernelBand2.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.KernelBand2.text())
+        self.set_component_text_from_instring(self.KernelBand2)
     def on_KernelBandButton3_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.KernelBand3.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.KernelBand3.text())
+        self.set_component_text_from_instring(self.KernelBand3)
     def on_KernelBandButton4_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.KernelBand4.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.KernelBand4.text())
+        self.set_component_text_from_instring(self.KernelBand4)
     def on_KernelBandButton5_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.KernelBand5.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.KernelBand5.text())
+        self.set_component_text_from_instring(self.KernelBand5)
     def on_KernelBandButton6_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.KernelBand6.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.KernelBand6.text())
+        self.set_component_text_from_instring(self.KernelBand6)
 
     def on_KernelRenameOutputButton_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.KernelRenameOutputFolder.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.KernelRenameOutputFolder.text())
+        self.set_component_text_from_instring(self.KernelRenameOutputFolder)
+
     def on_KernelRenameButton_released(self):
         try:
             folder1 = []
@@ -3150,11 +3147,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             instring.write(self.PreProcessInFolder.text())
 
     def on_PreProcessOutButton_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.PreProcessOutFolder.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.PreProcessOutFolder.text())
+        self.set_component_text_from_instring(self.PreProcessOutFolder)
 
     def on_VignetteFileSelectButton_released(self):
         with open(modpath + os.sep + "instring.txt", "r+") as instring:
@@ -3209,88 +3202,40 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 # Calibration Steps: Start
 
     def on_CalibrationInButton_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.CalibrationInFolder.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.CalibrationInFolder.text())
+        self.set_component_text_from_instring(self.CalibrationInFolder)
 
     def on_CalibrationInButton_2_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.CalibrationInFolder_2.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.CalibrationInFolder_2.text())
+        self.set_component_text_from_instring(self.CalibrationInFolder_2)
 
     def on_CalibrationInButton_3_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.CalibrationInFolder_3.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.CalibrationInFolder_3.text())
+        self.set_component_text_from_instring(self.CalibrationInFolder_3)
 
     def on_CalibrationInButton_4_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.CalibrationInFolder_4.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.CalibrationInFolder_4.text())
+        self.set_component_text_from_instring(self.CalibrationInFolder_4)
 
     def on_CalibrationInButton_5_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.CalibrationInFolder_5.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.CalibrationInFolder_5.text())
-    def on_CalibrationInButton_6_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.CalibrationInFolder_6.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.CalibrationInFolder_6.text())
+        self.set_component_text_from_instring(self.CalibrationInFolder_5)
 
+    def on_CalibrationInButton_6_released(self):
+        self.set_component_text_from_instring(self.CalibrationInFolder_6)
 
     def on_CalibrationQRButton_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.CalibrationQRFile.setText(QtWidgets.QFileDialog.getOpenFileName(directory=instring.read())[0])
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.CalibrationQRFile.text())
+        self.set_component_text_from_instring(self.CalibrationQRFile)
 
     def on_CalibrationQRButton_2_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.CalibrationQRFile_2.setText(QtWidgets.QFileDialog.getOpenFileName(directory=instring.read())[0])
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.CalibrationQRFile_2.text())
+        self.set_component_text_from_instring(self.CalibrationQRFile_2)
 
     def on_CalibrationQRButton_3_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.CalibrationQRFile_3.setText(QtWidgets.QFileDialog.getOpenFileName(directory=instring.read())[0])
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.CalibrationQRFile_3.text())
+        self.set_component_text_from_instring(self.CalibrationQRFile_3)
 
     def on_CalibrationQRButton_4_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.CalibrationQRFile_4.setText(QtWidgets.QFileDialog.getOpenFileName(directory=instring.read())[0])
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.CalibrationQRFile_4.text())
+        self.set_component_text_from_instring(self.CalibrationQRFile_4)
 
     def on_CalibrationQRButton_5_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.CalibrationQRFile_5.setText(QtWidgets.QFileDialog.getOpenFileName(directory=instring.read())[0])
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.CalibrationQRFile_5.text())
+        self.set_component_text_from_instring(self.CalibrationQRFile_5)
 
     def on_CalibrationQRButton_6_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.CalibrationQRFile_6.setText(QtWidgets.QFileDialog.getOpenFileName(directory=instring.read())[0])
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.CalibrationQRFile_6.text())
+        self.set_component_text_from_instring(self.CalibrationQRFile_6)
 
     def on_CalibrationGenButton_released(self):
         try:
@@ -6270,11 +6215,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             instring.write(self.AnalyzeInput.text())
 
     def on_AnalyzeOutButton_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.AnalyzeOutput.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.AnalyzeOutput.text())
+        self.set_component_text_from_instring(self.AnalyzeOutput)
+
     def on_AnalyzeButton_released(self):
         self.kcr = KernelConfig.KernelConfig(self.AnalyzeInput.text())
         for file in self.kcr.getItems():
@@ -6350,17 +6292,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         subprocess.call(cmralign)
 
     # def on_DarkCurrentInputButton_released(self):
-    #     with open(modpath + os.sep + "instring.txt", "r+") as instring:
-    #         self.DarkCurrentInput.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
-    #         instring.truncate(0)
-    #         instring.seek(0)
-    #         instring.write(self.DarkCurrentInput.text())
+    #   self.set_component_text_from_instring(self.DarkCurrentInput)
+
     # def on_DarkCurrentOutputButton_released(self):
-    #     with open(modpath + os.sep + "instring.txt", "r+") as instring:
-    #         self.DarkCurrentOutput.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
-    #         instring.truncate(0)
-    #         instring.seek(0)
-    #         instring.write(self.DarkCurrentOutput.text())
+    #   self.set_component_text_from_instring(self.DarkCurrentOutput)
+
     # def on_DarkCurrentGoButton_released(self):
     #     folder1 = []
     #     folder1.extend(glob.glob(self.DarkCurrentInput.text() + os.sep + "*.tif?"))
