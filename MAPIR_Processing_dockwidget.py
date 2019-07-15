@@ -1241,11 +1241,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         self.VigWindow.show()
 
     def on_KernelBrowserButton_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.KernelBrowserFile.setText(QtWidgets.QFileDialog.getOpenFileName(directory=instring.read())[0])
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.KernelBrowserFile.text())
+        self.present_file_select_dialog(self.KernelBrowserFile)
+        # with open(modpath + os.sep + "instring.txt", "r+") as instring:
+        #     self.KernelBrowserFile.setText(QtWidgets.QFileDialog.getOpenFileName(directory=instring.read())[0])
+        #     instring.truncate(0)
+        #     instring.seek(0)
+        #     instring.write(self.KernelBrowserFile.text())
         try:
             # self.KernelViewer.verticalScrollBar().blockSignals(True)
             # self.KernelViewer.horizontalScrollBar().blockSignals(True)
@@ -1805,7 +1806,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
     def present_file_select_dialog(self, component):
         with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            component.setText(QtWidgets.QFileDialog.getOpenFileName(directory=instring.read()))
+            component.setText(QtWidgets.QFileDialog.getOpenFileName(directory=instring.read())[0])
             instring.truncate(0)
             instring.seek(0)
             instring.write(component.text())
@@ -3143,11 +3144,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         self.present_folder_select_dialog(self.PreProcessOutFolder)
 
     def on_VignetteFileSelectButton_released(self):
-        with open(modpath + os.sep + "instring.txt", "r+") as instring:
-            self.VignetteFileSelect.setText(QtWidgets.QFileDialog.getOpenFileName(directory=instring.read())[0])
-            instring.truncate(0)
-            instring.seek(0)
-            instring.write(self.VignetteFileSelect.text())
+        self.present_file_select_dialog(self.VignetteFileSelect)
+        # with open(modpath + os.sep + "instring.txt", "r+") as instring:
+        #     self.VignetteFileSelect.setText(QtWidgets.QFileDialog.getOpenFileName(directory=instring.read())[0])
+        #     instring.truncate(0)
+        #     instring.seek(0)
+        #     instring.write(self.VignetteFileSelect.text())
 
     def on_PreProcessButton_released(self):
         if self.PreProcessCameraModel.currentIndex() == -1:
