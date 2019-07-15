@@ -1790,34 +1790,41 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         # self.KernelGain.blockSignals(False)
         # self.KernelSetPoint.blockSignals(False)
     def on_KernelFolderButton_released(self):
-        self.set_component_text_from_instring(self.KernelTransferFolder)
+        self.present_folder_select_dialog(self.KernelTransferFolder)
 
     cancel_auto = False
     def on_KernelAutoCancel_released(self):
         self.cancel_auto = True
 
-    def set_component_text_from_instring(self, component):
+    def present_folder_select_dialog(self, component):
         with open(modpath + os.sep + "instring.txt", "r+") as instring:
             component.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
             instring.truncate(0)
             instring.seek(0)
             instring.write(component.text())
 
+    def present_file_select_dialog(self, component):
+        with open(modpath + os.sep + "instring.txt", "r+") as instring:
+            component.setText(QtWidgets.QFileDialog.getOpenFileName(directory=instring.read()))
+            instring.truncate(0)
+            instring.seek(0)
+            instring.write(component.text())
+
     def on_KernelBandButton1_released(self):
-        self.set_component_text_from_instring(self.KernelBand1)
+        self.present_folder_select_dialog(self.KernelBand1)
     def on_KernelBandButton2_released(self):
-        self.set_component_text_from_instring(self.KernelBand2)
+        self.present_folder_select_dialog(self.KernelBand2)
     def on_KernelBandButton3_released(self):
-        self.set_component_text_from_instring(self.KernelBand3)
+        self.present_folder_select_dialog(self.KernelBand3)
     def on_KernelBandButton4_released(self):
-        self.set_component_text_from_instring(self.KernelBand4)
+        self.present_folder_select_dialog(self.KernelBand4)
     def on_KernelBandButton5_released(self):
-        self.set_component_text_from_instring(self.KernelBand5)
+        self.present_folder_select_dialog(self.KernelBand5)
     def on_KernelBandButton6_released(self):
-        self.set_component_text_from_instring(self.KernelBand6)
+        self.present_folder_select_dialog(self.KernelBand6)
 
     def on_KernelRenameOutputButton_released(self):
-        self.set_component_text_from_instring(self.KernelRenameOutputFolder)
+        self.present_folder_select_dialog(self.KernelRenameOutputFolder)
 
     @staticmethod
     def get_filenames_to_be_changed(kernel_band_dir_names):
@@ -3133,7 +3140,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             instring.write(self.PreProcessInFolder.text())
 
     def on_PreProcessOutButton_released(self):
-        self.set_component_text_from_instring(self.PreProcessOutFolder)
+        self.present_folder_select_dialog(self.PreProcessOutFolder)
 
     def on_VignetteFileSelectButton_released(self):
         with open(modpath + os.sep + "instring.txt", "r+") as instring:
@@ -3188,7 +3195,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 # Calibration Steps: Start
 
     def on_CalibrationInButton_released(self):
-        self.set_component_text_from_instring(self.CalibrationInFolder)
+        self.present_folder_select_dialog(self.CalibrationInFolder)
         # with open(modpath + os.sep + "instring.txt", "r+") as instring:
         #     self.CalibrationInFolder.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
         #     instring.truncate(0)
@@ -3196,37 +3203,37 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         #     instring.write(self.CalibrationInFolder.text())
 
     def on_CalibrationInButton_2_released(self):
-        self.set_component_text_from_instring(self.CalibrationInFolder_2)
+        self.present_folder_select_dialog(self.CalibrationInFolder_2)
 
     def on_CalibrationInButton_3_released(self):
-        self.set_component_text_from_instring(self.CalibrationInFolder_3)
+        self.present_folder_select_dialog(self.CalibrationInFolder_3)
 
     def on_CalibrationInButton_4_released(self):
-        self.set_component_text_from_instring(self.CalibrationInFolder_4)
+        self.present_folder_select_dialog(self.CalibrationInFolder_4)
 
     def on_CalibrationInButton_5_released(self):
-        self.set_component_text_from_instring(self.CalibrationInFolder_5)
+        self.present_folder_select_dialog(self.CalibrationInFolder_5)
 
     def on_CalibrationInButton_6_released(self):
-        self.set_component_text_from_instring(self.CalibrationInFolder_6)
+        self.present_folder_select_dialog(self.CalibrationInFolder_6)
 
     def on_CalibrationQRButton_released(self):
-        self.set_component_text_from_instring(self.CalibrationQRFile)
+        self.present_file_select_dialog(self.CalibrationQRFile)
 
     def on_CalibrationQRButton_2_released(self):
-        self.set_component_text_from_instring(self.CalibrationQRFile_2)
+        self.present_file_select_dialog(self.CalibrationQRFile_2)
 
     def on_CalibrationQRButton_3_released(self):
-        self.set_component_text_from_instring(self.CalibrationQRFile_3)
+        self.present_file_select_dialog(self.CalibrationQRFile_3)
 
     def on_CalibrationQRButton_4_released(self):
-        self.set_component_text_from_instring(self.CalibrationQRFile_4)
+        self.present_file_select_dialog(self.CalibrationQRFile_4)
 
     def on_CalibrationQRButton_5_released(self):
-        self.set_component_text_from_instring(self.CalibrationQRFile_5)
+        self.present_file_select_dialog(self.CalibrationQRFile_5)
 
     def on_CalibrationQRButton_6_released(self):
-        self.set_component_text_from_instring(self.CalibrationQRFile_6)
+        self.present_file_select_dialog(self.CalibrationQRFile_6)
 
     def append_select_a_camera_message_to_calibration_log(self):
         self.CalibrationLog.append("Attention! Please select a camera model.\n")
@@ -6178,7 +6185,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             instring.write(self.AnalyzeInput.text())
 
     def on_AnalyzeOutButton_released(self):
-        self.set_component_text_from_instring(self.AnalyzeOutput)
+        self.present_folder_select_dialog(self.AnalyzeOutput)
 
     def on_AnalyzeButton_released(self):
         self.kcr = KernelConfig.KernelConfig(self.AnalyzeInput.text())
@@ -6255,10 +6262,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         subprocess.call(cmralign)
 
     # def on_DarkCurrentInputButton_released(self):
-    #   self.set_component_text_from_instring(self.DarkCurrentInput)
+    #   self.present_folder_select_dialog(self.DarkCurrentInput)
 
     # def on_DarkCurrentOutputButton_released(self):
-    #   self.set_component_text_from_instring(self.DarkCurrentOutput)
+    #   self.present_folder_select_dialog(self.DarkCurrentOutput)
 
     # def on_DarkCurrentGoButton_released(self):
     #     folder1 = []
