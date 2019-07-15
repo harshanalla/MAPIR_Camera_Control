@@ -1,4 +1,4 @@
-from imu_reg_conversion import convert_imu_register_value
+from reg_value_conversion import convert_imu_register_value
 
 def test_convert_imu_register_value_negative_low():
     assert convert_imu_register_value(1, 0, 54) == -54

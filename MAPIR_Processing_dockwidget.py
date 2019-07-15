@@ -1819,48 +1819,34 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def on_KernelRenameOutputButton_released(self):
         self.set_component_text_from_instring(self.KernelRenameOutputFolder)
 
+    @staticmethod
+    def get_filenames_to_be_changed(kernel_band_dir_names):
+        all_folders = []
+        for i in range(6):
+            folder = []
+            if len(kernel_band_dir_names[i]) > 0:
+                folder.extend(glob.glob(kernel_band_dir_names[i] + os.sep + "*.tif?"))
+                folder.extend(glob.glob(kernel_band_dir_names[i] + os.sep + "*.jpg"))
+                folder.extend(glob.glob(kernel_band_dir_names[i] + os.sep + "*.jpeg"))
+            all_folders.append(folder)
+        return all_folders
+
     def on_KernelRenameButton_released(self):
         try:
-            folder1 = []
-            folder2 = []
-            folder3 = []
-            folder4 = []
-            folder5 = []
-            folder6 = []
-            if len(self.KernelBand1.text()) > 0:
-                folder1.extend(glob.glob(self.KernelBand1.text() + os.sep + "*.tif?"))
-                folder1.extend(glob.glob(self.KernelBand1.text() + os.sep + "*.jpg"))
-                folder1.extend(glob.glob(self.KernelBand1.text() + os.sep + "*.jpeg"))
-            if len(self.KernelBand2.text()) > 0:
-                folder2.extend(glob.glob(self.KernelBand2.text() + os.sep + "*.tif?"))
-                folder2.extend(glob.glob(self.KernelBand2.text() + os.sep + "*.jpg"))
-                folder2.extend(glob.glob(self.KernelBand2.text() + os.sep + "*.jpeg"))
-            if len(self.KernelBand3.text()) > 0:
-                folder3.extend(glob.glob(self.KernelBand3.text() + os.sep + "*.tif?"))
-                folder3.extend(glob.glob(self.KernelBand3.text() + os.sep + "*.jpg"))
-                folder3.extend(glob.glob(self.KernelBand3.text() + os.sep + "*.jpeg"))
-            if len(self.KernelBand4.text()) > 0:
-                folder4.extend(glob.glob(self.KernelBand4.text() + os.sep + "*.tif?"))
-                folder4.extend(glob.glob(self.KernelBand4.text() + os.sep + "*.jpg"))
-                folder4.extend(glob.glob(self.KernelBand4.text() + os.sep + "*.jpeg"))
-            if len(self.KernelBand5.text()) > 0:
-                folder5.extend(glob.glob(self.KernelBand5.text() + os.sep + "*.tif?"))
-                folder5.extend(glob.glob(self.KernelBand5.text() + os.sep + "*.jpg"))
-                folder5.extend(glob.glob(self.KernelBand5.text() + os.sep + "*.jpeg"))
-            if len(self.KernelBand6.text()) > 0:
-                folder6.extend(glob.glob(self.KernelBand6.text() + os.sep + "*.tif?"))
-                folder6.extend(glob.glob(self.KernelBand6.text() + os.sep + "*.jpg"))
-                folder6.extend(glob.glob(self.KernelBand6.text() + os.sep + "*.jpeg"))
-            folder1.sort()
-            folder2.sort()
-            folder3.sort()
-            folder4.sort()
-            folder5.sort()
-            folder6.sort()
+            kernel_band_dir_names = [
+                self.KernelBand1.text(),
+                self.KernelBand2.text(),
+                self.KernelBand3.text(),
+                self.KernelBand4.text(),
+                self.KernelBand5.text(),
+                self.KernelBand6.text(),
+            ]
+            all_folders = MAPIR_Processing.get_filenames_to_be_changed(kernel_band_dir_names)
+
             outfolder = self.KernelRenameOutputFolder.text()
             if not os.path.exists(outfolder):
                 os.mkdir(outfolder)
-            all_folders = [folder1, folder2, folder3, folder4, folder5, folder6]
+
             underscore = 1
             for folder in all_folders:
 
@@ -3237,10 +3223,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def on_CalibrationQRButton_6_released(self):
         self.set_component_text_from_instring(self.CalibrationQRFile_6)
 
-    def append_select_a_camera_message_to_calibration_log():
+    def append_select_a_camera_message_to_calibration_log(self):
         self.CalibrationLog.append("Attention! Please select a camera model.\n")
 
-    def append_please_select_a_target_image_message_to_calibration_log():
+    def append_please_select_a_target_image_message_to_calibration_log(self):
         self.CalibrationLog.append("Attention! Please select a target image.\n")
 
     def on_CalibrationGenButton_released(self):
@@ -3403,7 +3389,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             elif self.check_HCP_value():
                 self.CalibrationLog.append("Attention! Please select a Histogram Clipping Percentage value between 1-100.")
                 self.CalibrationLog.append("For example: for 20%, please enter 20\n")
-            
+
             elif len(self.CalibrationInFolder.text()) <= 0 \
                     and len(self.CalibrationInFolder_2.text()) <= 0 \
                     and len(self.CalibrationInFolder_3.text()) <= 0 \
@@ -3411,7 +3397,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     and len(self.CalibrationInFolder_5.text()) <= 0 \
                     and len(self.CalibrationInFolder_6.text()) <= 0:
                 self.CalibrationLog.append("Attention! Please select a calibration folder.\n")
-            
+
             else:
                 self.CalibrationLog.append("Analyzing Input Directory. Please wait... \n")
                 self.firstpass = True
@@ -3423,13 +3409,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 calfolder4 = self.CalibrationInFolder_4.text()
                 calfolder5 = self.CalibrationInFolder_5.text()
                 calfolder6 = self.CalibrationInFolder_6.text()
-                
+
                 self.pixel_min_max = {"redmax": 0.0, "redmin": 65535.0,
                                       "greenmax": 0.0, "greenmin": 65535.0,
                                       "bluemax": 0.0, "bluemin": 65535.0}
 
                 self.HC_max = {"redmax": 0.0,
-                               "greenmax": 0.0, 
+                               "greenmax": 0.0,
                                "bluemax": 0.0, }
 
                 self.HC_mono_max = 0
@@ -4337,37 +4323,38 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         return self.CalibrationTargetSelect.currentIndex() == 1
 
 ####Function for finding the QR target and calculating the calibration coeficients\
-    def findQR(self, image, ind):
+    def findQR(self, image_path, ind):
         try:
             self.ref = ""
 
             camera_model = ind[0].currentText()
             fil = ind[1].currentText()
             lens = ind[2].currentText()
+            image = cv2.imread(image_path, -1)
 
-            if self.check_if_RGB(camera_model, fil, lens) and len(cv2.imread(image, -1).shape) < 3:
+            if self.check_if_RGB(camera_model, fil, lens) and len(image.shape) < 3:
                 raise IndexError("RGB filter was selected but input folders contain MONO images")
 
-            elif not self.check_if_RGB(camera_model, fil, lens) and len(cv2.imread(image, -1).shape) > 2:
+            elif not self.check_if_RGB(camera_model, fil, lens) and len(image.shape) > 2:
                 raise IndexError("Mono filter was selected but input folders contain RGB images")
 
             self.CalibrationLog.append("Looking for QR target \n")
             if self.is_calibration_target_version_2():
 
-                meta_im = image.split(".")[0] + "_temp_meta." + image.split(".")[1]
-                cv2.imwrite(meta_im, cv2.imread(image, -1))
-                self.copyExif(image, meta_im)
+                meta_im = image_path.split(".")[0] + "_temp_meta." + image_path.split(".")[1]
+                cv2.imwrite(meta_im, cv2.imread(image_path, -1))
+                self.copyExif(image_path, meta_im)
 
-                # self.find_fiducial(image)
-                im_orig = cv2.imread(image, -1)
-                im = cv2.imread(image, 0)
+                # self.find_fiducial(image_path)
+                im_orig = cv2.imread(image_path, -1)
+                im = cv2.imread(image_path, 0)
 
-                coords = Calibration.get_image_corners(image)
+                coords = Calibration.get_image_path_corners(image_path)
                 self.ref = self.refindex[1]
                 self.coords = coords
 
-                cv2.imwrite(image, im_orig)
-                self.copyExif(meta_im, image)
+                cv2.imwrite(image_path, im_orig)
+                self.copyExif(meta_im, image_path)
                 os.remove(meta_im)
 
             #Finding coordinates for Version 1
@@ -4375,14 +4362,14 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.ref = self.refindex[0]
 
                 if self.check_if_RGB(camera_model, fil, lens): #if RGB Camera
-                    im = cv2.imread(image)
+                    im = cv2.imread(image_path)
                     grayscale = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
 
                     clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8)) #increasing contrast
                     cl1 = clahe.apply(grayscale)
                 else: #if mono camera
                     QtWidgets.QApplication.processEvents()
-                    im = cv2.imread(image, 0)
+                    im = cv2.imread(image_path, 0)
                     clahe2 = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
                     cl1 = clahe2.apply(im)
                 denoised = cv2.fastNlMeansDenoising(cl1, None, 14, 7, 21)
@@ -4534,7 +4521,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 target3 = (int(targ3x), int(targ3y))
                 target2 = (int((np.abs(target1[0] + target3[0])) / 2), int(np.abs((target1[1] + target3[1])) / 2))
 
-            im2 = cv2.imread(image, -1)
+            im2 = cv2.imread(image_path, -1)
 
             # kernel = np.ones((2, 2), np.uint16)
             # im2 = cv2.erode(im2, kernel, iterations=1)
@@ -4545,7 +4532,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 green = im2[:, :, 1]
                 red = im2[:, :, 2] - (im2[:, :, 0] * 0.80)
 
-                if "JPG" in os.path.splitext(image)[1]:
+                if "JPG" in os.path.splitext(image_path)[1]:
                     red[red > 255.0] = 255.0
                     red[red < 0.0] = 0.0
                     red = red.astype("uint8")
@@ -4617,7 +4604,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         xgreen = [t1greenmean, t2greenmean, t3greenmean, t4greenmean]
                         xblue = [t1bluemean, t2bluemean, t3bluemean, t4bluemean]
 
-                    #self.print_center_targs(image, targ1values, targ2values, targ3values, targ4values, target1, target2, target3, target4, angle)
+                    #self.print_center_targs(image_path, targ1values, targ2values, targ3values, targ4values, target1, target2, target3, target4, angle)
 
                 else:
                     yred = [0.87, 0.51, 0.23]
@@ -4652,12 +4639,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     ygreen = self.refvalues[self.ref]["660/850"][1]
                     yblue = self.refvalues[self.ref]["660/850"][2]
 
-                if self.get_filetype(image) == "JPG":
+                if self.get_filetype(image_path) == "JPG":
                     xred = [x / 255 for x in xred]
                     xgreen = [x / 255 for x in xgreen]
                     xblue = [x / 255 for x in xblue]
 
-                elif self.get_filetype(image) == "TIF":
+                elif self.get_filetype(image_path) == "TIF":
                     xred = [x / 65535 for x in xred]
                     xgreen = [x / 65535 for x in xgreen]
                     xblue = [x / 65535 for x in xblue]
@@ -4784,53 +4771,18 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 elif camera_model == "Survey2" and fil == "Blue":
                     y = self.refvalues[self.ref]["450"][2]
 
-                elif fil == "405":
-                    y = self.refvalues[self.ref]["Mono405"]
-
-                elif fil == "450":
-                    y = self.refvalues[self.ref]["Mono450"]
-
-                elif fil == "490":
-                    y = self.refvalues[self.ref]["Mono490"]
-
-                elif fil == "518":
-                    y = self.refvalues[self.ref]["Mono518"]
-
-                elif fil == "550":
-                    y = self.refvalues[self.ref]["Mono550"]
-
-                elif fil == "590":
-                    y = self.refvalues[self.ref]["Mono590"]
-
-                elif fil == "615":
-                    y = self.refvalues[self.ref]["Mono615"]
-
-                elif fil == "632":
-                    y = self.refvalues[self.ref]["Mono632"]
-
-                elif fil == "650":
-                    y = self.refvalues[self.ref]["Mono650"]
-
-                elif fil == "685":
-                    y = self.refvalues[self.ref]["Mono685"]
-
-                elif fil == "725":
-                    y = self.refvalues[self.ref]["Mono725"]
-
-                elif fil == "808":
-                    y = self.refvalues[self.ref]["Mono808"]
-
-                elif fil == "850":
-                    y = self.refvalues[self.ref]["Mono850"]
+                elif fil in ['405', '450', '490', '518', '550', '590', '615', '632', '650', '685', '725', '808', '850']:
+                    mono_fil = 'Mono' + fil
+                    y = self.refvalues[self.ref][mono_fil]
 
                 elif fil == "RE":
                     y = self.refvalues[self.ref]["725"]
 
 
-                if self.get_filetype(image) == "JPG":
+                if self.get_filetype(image_path) == "JPG":
                     x = [i / 255 for i in x]
 
-                elif self.get_filetype(image) == "TIF":
+                elif self.get_filetype(image_path) == "TIF":
                     x = [i / 65535 for i in x]
 
                 if self.bad_target_photo([x]):
