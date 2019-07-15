@@ -3189,6 +3189,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
     def on_CalibrationInButton_released(self):
         self.set_component_text_from_instring(self.CalibrationInFolder)
+        # with open(modpath + os.sep + "instring.txt", "r+") as instring:
+        #     self.CalibrationInFolder.setText(QtWidgets.QFileDialog.getExistingDirectory(directory=instring.read()))
+        #     instring.truncate(0)
+        #     instring.seek(0)
+        #     instring.write(self.CalibrationInFolder.text())
 
     def on_CalibrationInButton_2_released(self):
         self.set_component_text_from_instring(self.CalibrationInFolder_2)
