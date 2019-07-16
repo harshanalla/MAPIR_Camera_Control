@@ -3997,19 +3997,15 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
     def calibrate_channel(self, channel, slope, intercept):
         return channel * slope + intercept
-    
+
     def histogram_clip_channel(self, channel, global_clip_max):
         channel[channel > global_clip_max] = global_clip_max
 
-    def histogram_clip_image(self, red, green, blue, max_pixel):
-            global_HC_max = max([self.HC_max["bluemax"], self.HC_max["redmax"], self.HC_max["greenmax"]])
+    def histogram_clip_image(self, red, green, blue, global_HC_max):
+        self.histogram_clip_channel(red, global_HC_max)
+        self.histogram_clip_channel(green, global_HC_max)
+        self.histogram_clip_channel(blue, global_HC_max)
 
-            self.histogram_clip_channel(red, global_HC_max)
-            self.histogram_clip_channel(green, global_HC_max)
-            self.histogram_clip_channel(blue, global_HC_max)
-
-            max_pixel = global_HC_max
-    
     def convert_calibrated_floats_to_JPG(self, red, green, blue):
         red *= 255
         green *= 255
@@ -4022,6 +4018,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         red = red.astype("uint8")
         green = green.astype("uint8")
         blue = blue.astype("uint8")
+
+        return red, green, blue
 
     def convert_calibrated_floats_to_TIFF(self, red, green, blue):
         red *= 65535
@@ -4038,6 +4036,42 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         green = green.astype("uint16")
         blue = blue.astype("uint16")
         # alpha = alpha.astype("uint16")
+
+        return red, green, blue
+
+    def save_geo_data_to_tiff(self, in_image_path, out_image_path):
+
+        srin = gdal.Open(in_image)
+        inproj = srin.GetProjection()
+        transform = srin.GetGeoTransform()
+        gcpcount = srin.GetGCPs()
+        gcp_projection = srin.GetGCPProjection()
+
+        srout = gdal.Open(out_image_path, gdal.GA_Update)
+        srout.SetProjection(inproj)
+        srout.SetGeoTransform(transform)
+        srout.SetGCPs(gcpcount, gcp_projection)
+
+        # warp_in = output_directory + in_image
+        # warp_out = output_directory + out_image_path.split('.')[1] + "_TRANSPARENT." + out_image_path.split('.')[2]
+
+        # warp_options = gdal.WarpOptions(
+        #     srcnodata=0,
+        #     dstnodata=0
+        #     # format='GTiff',
+        #     # dtsalpha=True
+        #     # outputType=gdal.GDT_Int16,
+        # )
+
+        # warped = gdal.Warp(
+        #     warp_in,
+        #     warp_out,
+        #     warp_options
+        # )
+
+        # warped = None
+        srout = None
+        srin = None
 
     def CalibratePhotos(self, photo, coeffs, minmaxes, output_directory, ind):
         refimg = cv2.imread(photo, -1)
@@ -4063,14 +4097,16 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         green = self.calibrate_channel(green, coeffs["green"]["slope"], coeffs["green"]["intercept"])
         blue = self.calibrate_channel(blue, coeffs["blue"]["slope"], coeffs["blue"]["intercept"])
 
-        maxpixel, minpixel = get_global_max_and_min_calibrated_pixel_values(self, camera_model, filt, minmaxes)
+        maxpixel, minpixel = self.get_global_max_and_min_calibrated_pixel_values(camera_model, filt, minmaxes)
 
 
         ### Scale calibrated values back down to a useable range (Adding 1 to avoid 0 value pixels, as they will cause a
         #### divide by zero case when creating an index image
 
         if self.histogramClipBox.checkState() == self.CHECKED:
-            self.histogram_clip_image(red, green, blue, maxpixel)
+            global_HC_max = max([self.HC_max["bluemax"], self.HC_max["redmax"], self.HC_max["greenmax"]])
+            self.histogram_clip_image(red, green, blue, global_HC_max)
+            max_pixel = global_HC_max
 
         red = ((red - minpixel) / (maxpixel - minpixel))
         green = ((green - minpixel) / (maxpixel - minpixel))
@@ -4079,9 +4115,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         if self.IndexBox.checkState() == self.UNCHECKED:
             #Float to JPG
             if photo.split('.')[2].upper() == "JPG" or photo.split('.')[2].upper() == "JPEG" or self.Tiff2JpgBox.checkState() > 0:
-                self.convert_calibrated_floats_to_JPG(red, green, blue)
+                red, green, blue = self.convert_calibrated_floats_to_JPG(red, green, blue)
             else: #Float to Tiff
-                self.convert_calibrated_floats_to_TIFF(red, green, blue)
+                red, green, blue = self.convert_calibrated_floats_to_TIFF(red, green, blue)
 
             refimg = cv2.merge((blue, green, red))
 
@@ -4141,38 +4177,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 if 'tif' in photo.split('.')[2].lower():
                     cv2.imencode(".tif", refimg)
                     cv2.imwrite(newimg, refimg)
-
-                    srin = gdal.Open(photo)
-                    inproj = srin.GetProjection()
-                    transform = srin.GetGeoTransform()
-                    gcpcount = srin.GetGCPs()
-                    gcp_projection = srin.GetGCPProjection()
-
-                    srout = gdal.Open(newimg, gdal.GA_Update)
-                    srout.SetProjection(inproj)
-                    srout.SetGeoTransform(transform)
-                    srout.SetGCPs(gcpcount, gcp_projection)
-
-                    # warp_in = output_directory + photo
-                    # warp_out = output_directory + newimg.split('.')[1] + "_TRANSPARENT." + newimg.split('.')[2]
-
-                    # warp_options = gdal.WarpOptions(
-                    #     srcnodata=0,
-                    #     dstnodata=0
-                    #     # format='GTiff',
-                    #     # dtsalpha=True
-                    #     # outputType=gdal.GDT_Int16,
-                    # )
-
-                    # warped = gdal.Warp(
-                    #     warp_in,
-                    #     warp_out,
-                    #     warp_options
-                    # )
-
-                    # warped = None
-                    srout = None
-                    srin = None
+                    self.save_geo_data_to_tiff(photo, newimg)
                 else:
                     cv2.imwrite(newimg, refimg, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
                 self.copyExif(photo, newimg)
@@ -4242,7 +4247,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             x = x[:-1]
             y = y[:-1]
 
-        return x, y  
+        return x, y
 
     def print_center_targs(self, image, targ1values, targ2values, targ3values, targ4values, target1, target2, target3, target4, angle):
         t1_str = image.split(".")[0] + "_t1." + image.split(".")[1]
