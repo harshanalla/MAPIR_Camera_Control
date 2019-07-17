@@ -3281,7 +3281,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         freq_array = np.asarray((unique, counts)).T
 
         total_pixels = color.size
-  
+
         sum_pixels = 0
         for pixel in freq_array[::-1]:
             sum_pixels += pixel[1]
@@ -3906,47 +3906,22 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.copyExif(photo, outpath)
 
             else:
-                newimg = output_directory + photo.split('.')[1] + "_CALIBRATED." + photo.split('.')[2]
-                if 'tif' in photo.split('.')[2].lower():
-                    cv2.imencode(".tif", refimg)
-                    cv2.imwrite(newimg, refimg)
-
-                    srin = gdal.Open(photo)
-                    inproj = srin.GetProjection()
-                    transform = srin.GetGeoTransform()
-                    gcpcount = srin.GetGCPs()
-                    gcp_projection = srin.GetGCPProjection()
-
-                    srout = gdal.Open(newimg, gdal.GA_Update)
-                    srout.SetProjection(inproj)
-                    srout.SetGeoTransform(transform)
-                    srout.SetGCPs(gcpcount, gcp_projection)
-
-                    warp_out = output_directory + newimg.split('.')[1] + "_TRANSPARENT." + newimg.split('.')[2]
-
-                    warp_options = gdal.WarpOptions(
-                        srcnodata=0,
-                        format='GTiff',
-                        dtsalpha=True
-                        # outputType=gdal.GDT_Int16,
-                    )
-
-                    warped = gdal.Warp(
-                        warp_out,
-                        srout,
-                        warp_options
-                    )
-
-                    srout = None
-                    srin = None
-                else:
-                    cv2.imwrite(newimg, refimg, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
-                self.copyExif(photo, newimg)
+                self.save_calibrated_image_without_conversion(photo, refimg, output_directory)
 
         except Exception as e:
             exc_type, exc_obj,exc_tb = sys.exc_info()
             print(e)
             print("Line: " + str(exc_tb.tb_lineno))
+
+    def save_calibrated_image_without_conversion(self, in_image_path, calibrated_image, out_dir):
+        out_image_path = out_dir + in_image_path.split('.')[1] + "_CALIBRATED." + in_image_path.split('.')[2]
+        if 'tif' in in_image_path.split('.')[2].lower():
+            cv2.imencode(".tif", calibrated_image)
+            cv2.imwrite(out_image_path, calibrated_image)
+            self.save_geo_data_to_tiff(in_image_path, out_image_path)
+        else:
+            cv2.imwrite(out_image_path, calibrated_image, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
+        self.copyExif(in_image_path, out_image_path)
 
 
     def calculate_mode(self, freq_array):
@@ -4006,42 +3981,31 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         self.histogram_clip_channel(green, global_HC_max)
         self.histogram_clip_channel(blue, global_HC_max)
 
-    def convert_calibrated_floats_to_JPG(self, red, green, blue):
-        red *= 255
-        green *= 255
-        blue *= 255
+    def convert_calibrated_floats_to_bit_depth(self, red, green, blue, alpha, bit_depth):
+        red *= 2**bit_depth-1
+        green *= 2**bit_depth-1
+        blue *= 2**bit_depth-1
 
         red = red.astype(int)
         green = green.astype(int)
         blue = blue.astype(int)
 
-        red = red.astype("uint8")
-        green = green.astype("uint8")
-        blue = blue.astype("uint8")
+        dtype = "uint" + str(bit_depth)
 
-        return red, green, blue
+        red = red.astype(dtype)
+        green = green.astype(dtype)
+        blue = blue.astype(dtype)
 
-    def convert_calibrated_floats_to_TIFF(self, red, green, blue):
-        red *= 65535
-        green *= 65535
-        blue *= 65535
+        if alpha.any():
+            alpha *= 2**bit_depth
+            alpha = alpha.astype(int)
+            alpha = alpha.astype(dtype)
 
-        red = red.astype(int)
-        green = green.astype(int)
-        blue = blue.astype(int)
-        # alpha = alpha.astype(int)
-
-        ### Merge the channels back into a single image
-        red = red.astype("uint16")
-        green = green.astype("uint16")
-        blue = blue.astype("uint16")
-        # alpha = alpha.astype("uint16")
-
-        return red, green, blue
+        return red, green, blue, alpha
 
     def save_geo_data_to_tiff(self, in_image_path, out_image_path):
 
-        srin = gdal.Open(in_image)
+        srin = gdal.Open(in_image_path)
         inproj = srin.GetProjection()
         transform = srin.GetGeoTransform()
         gcpcount = srin.GetGCPs()
@@ -4052,24 +4016,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         srout.SetGeoTransform(transform)
         srout.SetGCPs(gcpcount, gcp_projection)
 
-        # warp_in = output_directory + in_image
-        # warp_out = output_directory + out_image_path.split('.')[1] + "_TRANSPARENT." + out_image_path.split('.')[2]
-
-        # warp_options = gdal.WarpOptions(
-        #     srcnodata=0,
-        #     dstnodata=0
-        #     # format='GTiff',
-        #     # dtsalpha=True
-        #     # outputType=gdal.GDT_Int16,
-        # )
-
-        # warped = gdal.Warp(
-        #     warp_in,
-        #     warp_out,
-        #     warp_options
-        # )
-
-        # warped = None
         srout = None
         srin = None
 
@@ -4106,20 +4052,24 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         if self.histogramClipBox.checkState() == self.CHECKED:
             global_HC_max = max([self.HC_max["bluemax"], self.HC_max["redmax"], self.HC_max["greenmax"]])
             self.histogram_clip_image(red, green, blue, global_HC_max)
-            max_pixel = global_HC_max
+            maxpixel = global_HC_max
 
         red = ((red - minpixel) / (maxpixel - minpixel))
         green = ((green - minpixel) / (maxpixel - minpixel))
         blue = ((blue - minpixel) / (maxpixel - minpixel))
 
+        original_alpha_depth = alpha.max() - alpha.min()
+        alpha = alpha / original_alpha_depth
+
         if self.IndexBox.checkState() == self.UNCHECKED:
-            #Float to JPG
-            if photo.split('.')[2].upper() == "JPG" or photo.split('.')[2].upper() == "JPEG" or self.Tiff2JpgBox.checkState() > 0:
-                red, green, blue = self.convert_calibrated_floats_to_JPG(red, green, blue)
-            else: #Float to Tiff
-                red, green, blue = self.convert_calibrated_floats_to_TIFF(red, green, blue)
+            if refimg.dtype == 'uint8':
+                red, green, blue, alpha = self.convert_calibrated_floats_to_bit_depth(red, green, blue, alpha, 8)
+            elif refimg.dtype == 'uint16':
+                red, green, blue, alpha = self.convert_calibrated_floats_to_bit_depth(red, green, blue, alpha, 16)
 
             refimg = cv2.merge((blue, green, red))
+            refimg = np.dstack([refimg, alpha])
+
 
         else: #Float to Index
             red = red.astype("float32")
@@ -4173,14 +4123,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.copyExif(photo, newimg_b)
 
             else:
-                newimg = output_directory + photo.split('.')[1] + "_CALIBRATED." + photo.split('.')[2]
-                if 'tif' in photo.split('.')[2].lower():
-                    cv2.imencode(".tif", refimg)
-                    cv2.imwrite(newimg, refimg)
-                    self.save_geo_data_to_tiff(photo, newimg)
-                else:
-                    cv2.imwrite(newimg, refimg, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
-                self.copyExif(photo, newimg)
+                self.save_calibrated_image_without_conversion(photo, refimg, output_directory)
 
     def calculateIndex(self, visible, nir):
         try:
@@ -4327,21 +4270,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.CalibrationLog.append("Looking for QR target \n")
             if self.is_calibration_target_version_2():
 
-                meta_im = image_path.split(".")[0] + "_temp_meta." + image_path.split(".")[1]
-                cv2.imwrite(meta_im, cv2.imread(image_path, -1))
-                self.copyExif(image_path, meta_im)
-
-                # self.find_fiducial(image_path)
-                im_orig = cv2.imread(image_path, -1)
-                im = cv2.imread(image_path, 0)
-
-                coords = Calibration.get_image_corners(image_path)
                 self.ref = self.refindex[1]
-                self.coords = coords
-
-                cv2.imwrite(image_path, im_orig)
-                self.copyExif(meta_im, image_path)
-                os.remove(meta_im)
+                self.coords = Calibration.get_image_corners(image_path)
 
             #Finding coordinates for Version 1
             else:
