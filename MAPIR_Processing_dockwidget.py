@@ -40,6 +40,7 @@ import string
 import win32api
 import PIL
 import bitstring
+import collections
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 import PyQt5.uic as uic
@@ -78,6 +79,7 @@ if not os.path.exists(modpath + os.sep + "instring.txt"):
     istr.close()
 
 from osgeo import gdal
+import gdal as gdal2
 
 import glob
 
@@ -3981,7 +3983,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         self.histogram_clip_channel(green, global_HC_max)
         self.histogram_clip_channel(blue, global_HC_max)
 
-    def convert_calibrated_floats_to_bit_depth(self, red, green, blue, alpha, bit_depth):
+    def convert_calibrated_floats_to_bit_depth(self, bit_depth, red, green, blue, alpha=None):
+
         red *= 2**bit_depth-1
         green *= 2**bit_depth-1
         blue *= 2**bit_depth-1
@@ -3996,28 +3999,71 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         green = green.astype(dtype)
         blue = blue.astype(dtype)
 
+        if alpha is None:
+            alpha = []
         if alpha.any():
-            alpha *= 2**bit_depth
+            alpha *= 2**bit_depth-1
+            # self.print_2d_list_frequencies(13228, alpha)
             alpha = alpha.astype(int)
+            # self.print_2d_list_frequencies(13228, alpha)
             alpha = alpha.astype(dtype)
+            # self.print_2d_list_frequencies(13228, alpha)
 
         return red, green, blue, alpha
 
-    def save_geo_data_to_tiff(self, in_image_path, out_image_path):
+    def save_geo_data_to_tiff(self, in_ds_path, calibrated_data):
 
-        srin = gdal.Open(in_image_path)
-        inproj = srin.GetProjection()
-        transform = srin.GetGeoTransform()
-        gcpcount = srin.GetGCPs()
-        gcp_projection = srin.GetGCPProjection()
+        in_ds = gdal.Open(in_ds_path)
+        projection = in_ds.GetProjection()
+        orig_gt = in_ds.GetGeoTransform()
 
-        srout = gdal.Open(out_image_path, gdal.GA_Update)
-        srout.SetProjection(inproj)
-        srout.SetGeoTransform(transform)
-        srout.SetGCPs(gcpcount, gcp_projection)
+        calibrated = gdal.Open(calibrated_data)
 
-        srout = None
-        srin = None
+        # crb0 = calibrated.GetRasterBand(0).ReadAsArray()
+        crb1 = calibrated.GetRasterBand(1).ReadAsArray()
+        crb2 = calibrated.GetRasterBand(2).ReadAsArray()
+        crb3 = calibrated.GetRasterBand(3).ReadAsArray()
+        crb4 = calibrated.GetRasterBand(4).ReadAsArray()
+
+        [cols, rows] = crb1.shape
+
+        driver = gdal.GetDriverByName("GTiff")
+        # out_filename = '.' + in_ds_path.split('.')[1] + '_geotiff.tif'
+        out_filename = './geotiff.tif'
+        num_bands = 4
+        out_ds = driver.Create(out_filename, rows, cols, num_bands, gdal.GDT_UInt16, ['COMPRESS=LZW', 'PHOTOMETRIC=RGB', 'ALPHA=YES'])
+        out_ds.SetGeoTransform(orig_gt)
+        out_ds.SetProjection(projection)
+
+        out_ds.GetRasterBand(1).WriteArray(crb1)
+        out_ds.GetRasterBand(1).SetNoDataValue(-10000)
+        out_ds.GetRasterBand(2).WriteArray(crb2)
+        out_ds.GetRasterBand(2).SetNoDataValue(-10000)
+        out_ds.GetRasterBand(3).WriteArray(crb3)
+        out_ds.GetRasterBand(3).SetNoDataValue(-10000)
+        out_ds.GetRasterBand(4).WriteArray(crb4)
+        out_ds.GetRasterBand(4).SetNoDataValue(-10000)
+
+        out_ds.SetGCPs(in_ds.GetGCPs(), in_ds.GetGCPProjection())
+        out_ds.FlushCache()
+
+        # calibrated_data = gdal.Open(out_ds_path, gdal.GA_Update)
+        # calibrated_data.SetGeoTransform(orig_gt)
+        # calibrated_data.SetProjection(projection)
+        # calibrated_data.SetGCPs(in_ds.GetGCPs(), in_ds.GetGCPProjection())
+
+        in_ds = None
+        calibrated_data = None
+        out_ds = None
+
+    def print_2d_list_frequencies(self, size, list):
+        frequencies = collections.Counter([])
+        for i in range(size):
+            row = list[i]
+            row_freqs = collections.Counter(row)
+            frequencies += row_freqs
+            # print('Row ' + str(i) + ': ' + str(row_freqs))
+        print(frequencies)
 
     def CalibratePhotos(self, photo, coeffs, minmaxes, output_directory, ind):
         refimg = cv2.imread(photo, -1)
@@ -4058,17 +4104,27 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         green = ((green - minpixel) / (maxpixel - minpixel))
         blue = ((blue - minpixel) / (maxpixel - minpixel))
 
+        # self.print_2d_list_frequencies(13228, alpha)
+
         original_alpha_depth = alpha.max() - alpha.min()
         alpha = alpha / original_alpha_depth
 
-        if self.IndexBox.checkState() == self.UNCHECKED:
-            if refimg.dtype == 'uint8':
-                red, green, blue, alpha = self.convert_calibrated_floats_to_bit_depth(red, green, blue, alpha, 8)
-            elif refimg.dtype == 'uint16':
-                red, green, blue, alpha = self.convert_calibrated_floats_to_bit_depth(red, green, blue, alpha, 16)
+        # self.print_2d_list_frequencies(13228, alpha)
 
-            refimg = cv2.merge((blue, green, red))
-            refimg = np.dstack([refimg, alpha])
+        if self.IndexBox.checkState() == self.UNCHECKED:
+        #     if refimg.dtype == 'uint8':
+        #         red, green, blue, alpha = self.convert_calibrated_floats_to_bit_depth(8, red, green, blue, alpha)
+        #     elif refimg.dtype == 'uint16':
+        #         red, green, blue, alpha = self.convert_calibrated_floats_to_bit_depth(16, red, green, blue, alpha)
+            red, green, blue, alpha = self.convert_calibrated_floats_to_bit_depth(16, red, green, blue, alpha)
+            # self.print_2d_list_frequencies(13228, alpha)
+
+            refimg = cv2.merge((blue, green, red, alpha))
+            # rgba = cv2.cvtColor(refimg, cv2.COLOR_RGB2RGBA)
+            # rgba[:, :, 3] = alpha
+            # refimg = rgba
+
+            # refimg = np.dstack([refimg, alpha])
 
 
         else: #Float to Index
@@ -4195,19 +4251,15 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def print_center_targs(self, image, targ1values, targ2values, targ3values, targ4values, target1, target2, target3, target4, angle):
         t1_str = image.split(".")[0] + "_t1." + image.split(".")[1]
         t1_image = targ1values
-        #cv2.imwrite(t1_str, t1_image)
 
         t2_str = image.split(".")[0] + "_t2." + image.split(".")[1]
         t2_image = targ2values
-        #cv2.imwrite(t2_str, t2_image)
 
         t3_str = image.split(".")[0] + "_t3." + image.split(".")[1]
         t3_image = targ3values
-        #cv2.imwrite(t3_str, t3_image)
 
         t4_str = image.split(".")[0] + "_t4." + image.split(".")[1]
         t4_image = targ4values
-        #cv2.imwrite(t4_str, t4_image)
 
         if angle > self.ANGLE_SHIFT_QR:
             image_line = image.split(".")[0] + "_circles_shift." + image.split(".")[1]
@@ -4477,19 +4529,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     print(e)
                     print("Line: " + str(exc_tb.tb_lineno))
 
-                #                 (self.refvalues[self.ref]["RGN"][2][0] - self.refvalues[self.ref]["Red"][0] ) / \
-                #                (self.refvalues[self.ref]["RGN"][2][0] + self.refvalues[self.ref]["Red"][0] )
-                #
-                # ideal_ndvi_2 = (self.refvalues[self.ref]["RGN"][2][1] - self.refvalues[self.ref]["Red"][1] ) / \
-                #                (self.refvalues[self.ref]["RGN"][2][1] + self.refvalues[self.ref]["Red"][1] )
-                #
-                #
-                # ideal_ndvi_3 = (self.refvalues[self.ref]["RGN"][2][2] - self.refvalues[self.ref]["Red"][2]) / \
-                #                (self.refvalues[self.ref]["RGN"][2][2] + self.refvalues[self.ref]["Red"][2])
-                #
-                # ideal_ndvi_4 = (self.refvalues[self.ref]["RGN"][2][3] - self.refvalues[self.ref]["Red"][3]) / \
-                #                (self.refvalues[self.ref]["RGN"][2][3] + self.refvalues[self.ref]["Red"][3])
-
                 t1redmean = np.mean(targ1values[:, :, 2])
                 t1greenmean = np.mean(targ1values[:, :, 1])
                 t1bluemean = np.mean(targ1values[:, :, 0])
@@ -4616,6 +4655,19 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         targ4values = im2[(target4[1] - int((pixelinch * 0.75) / 2)):(target4[1] + int((pixelinch * 0.75) / 2)),
                                       (target4[0] - int((pixelinch * 0.75) / 2)):(target4[0] + int((pixelinch * 0.75) / 2))]
 
+                        # if (len(im2.shape) > 2):
+                        #     if fil in ["RE", "NIR", "Red"]:
+                        #         channel_index = 2
+                        #     elif fil in ["Green"]:
+                        #         channel_index = 1
+                        #     elif fil in ["Blue"]:
+                        #         channel_index = 0
+
+                        #     t1mean = np.mean(targ1values[:,:,channel_index])
+                        #     t2mean = np.mean(targ2values[:,:,channel_index])
+                        #     t3mean = np.mean(targ3values[:,:,channel_index])
+                        #     t4mean = np.mean(targ4values[:,:,channel_index])
+
                         if (len(im2.shape) > 2) and fil in ["RE", "NIR", "Red"]:
                             t1mean = np.mean(targ1values[:,:,2])
                             t2mean = np.mean(targ2values[:,:,2])
@@ -4643,14 +4695,20 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         y = [0.87, 0.51, 0.23, 0.0]
                         x = [t1mean, t2mean, t3mean, t4mean]
                 else:
-                    targ1values = im2[(target1[1] - int((pixelinch * 0.75) / 2)):(target1[1] + int((pixelinch * 0.75) / 2)),
-                                  (target1[0] - int((pixelinch * 0.75) / 2)):(target1[0] + int((pixelinch * 0.75) / 2))]
+                    targ1values = im2[
+                        (target1[1] - int((pixelinch * 0.75) / 2)):(target1[1] + int((pixelinch * 0.75) / 2)),
+                        (target1[0] - int((pixelinch * 0.75) / 2)):(target1[0] + int((pixelinch * 0.75) / 2))
+                    ]
 
-                    targ2values = im2[(target2[1] - int((pixelinch * 0.75) / 2)):(target2[1] + int((pixelinch * 0.75) / 2)),
-                                  (target2[0] - int((pixelinch * 0.75) / 2)):(target2[0] + int((pixelinch * 0.75) / 2))]
+                    targ2values = im2[
+                        (target2[1] - int((pixelinch * 0.75) / 2)):(target2[1] + int((pixelinch * 0.75) / 2)),
+                        (target2[0] - int((pixelinch * 0.75) / 2)):(target2[0] + int((pixelinch * 0.75) / 2))
+                    ]
 
-                    targ3values = im2[(target3[1] - int((pixelinch * 0.75) / 2)):(target3[1] + int((pixelinch * 0.75) / 2)),
-                                  (target3[0] - int((pixelinch * 0.75) / 2)):(target3[0] + int((pixelinch * 0.75) / 2))]
+                    targ3values = im2[
+                        (target3[1] - int((pixelinch * 0.75) / 2)):(target3[1] + int((pixelinch * 0.75) / 2)),
+                        (target3[0] - int((pixelinch * 0.75) / 2)):(target3[0] + int((pixelinch * 0.75) / 2))
+                    ]
 
 
                     if (len(im2.shape) > 2) and fil in ["RE", "NIR", "Red"]:
@@ -4831,14 +4889,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.openMapir(infolder + input.split('.')[1] + "." + input.split('.')[2],  outputfilename, input, outfolder, counter)
                 counter += 1
 
-            #csv_filename = "{}.csv".format(csv_name)
-            #print(csv_filename)
-            #with open(csv_filename, 'w', newline='') as csv_file:
-            #    writer = csv.writer(csv_file)
-            #    for row in self.csv_array:
-            #        writer.writerow(row)
-
-
             incomplete_files = [file for file in os.listdir(outfolder) if "_TEMP" in file]
             for count, file in enumerate(incomplete_files):
                 QtWidgets.QApplication.processEvents()
@@ -4884,13 +4934,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         if self.PreProcessCameraModel.currentText() == "Survey3":
                             try:
                                 data = np.fromfile(input, dtype=np.uint8)
-                                # data2 = np.fromfile("F:\\DCIM\Photo\\2018_0507_142527_011.RAW", dtype=np.uint8)
                                 data = np.unpackbits(data)
-                                # data2 = np.unpackbits(data2)
                                 datsize = data.shape[0]
-                                # dat2size = data2.shape[0]
                                 data = data.reshape((int(datsize / 4), 4))
-
 
                                 temp = copy.deepcopy(data[0::2])
                                 temp2 = copy.deepcopy(data[1::2])
@@ -4899,7 +4945,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                                 udata = np.packbits(np.concatenate([data[0::3], np.array([0, 0, 0, 0] * 12000000, dtype=np.uint8).reshape(12000000,4),   data[2::3], data[1::3]], axis=1).reshape(192000000, 1)).tobytes()
                                 img = np.fromstring(udata, np.dtype('u2'), (4000 * 3000)).reshape((3000, 4000))
-                
+
                             except Exception as e:
                                 exc_type, exc_obj, exc_tb = sys.exc_info()
                                 # self.PreProcessLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
@@ -4923,7 +4969,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                     raise IndexError("Resolution of the image is {}. MCC only supports processing 12MP resolution. Please reset resolution to default settings.".format(img.shape[0]))
 
                                 img = img.reshape((3000, 4000))
-                     
+
                         try:
                             color = cv2.cvtColor(img, cv2.COLOR_BAYER_RG2RGB).astype("float32")
 
@@ -5141,7 +5187,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         freq_array = np.asarray((unique, counts)).T
 
         total_pixels = color.size
-  
+
         sum_pixels = 0
 
         for pixel in freq_array[::-1]:
@@ -5152,32 +5198,34 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
     def merge(self, red, blue, green, filetype):
         if filetype == "TIF":
-            red *= 65535
-            green *= 65535
-            blue *= 65535
+            red, green, blue, _ = self.convert_calibrated_floats_to_bit_depth(16, red, green, blue)
+            # red *= 65535
+            # green *= 65535
+            # blue *= 65535
 
-            red = red.astype(int)
-            green = green.astype(int)
-            blue = blue.astype(int)
+            # red = red.astype(int)
+            # green = green.astype(int)
+            # blue = blue.astype(int)
 
-            red = red.astype("uint16")
-            green = green.astype("uint16")
-            blue = blue.astype("uint16")
+            # red = red.astype("uint16")
+            # green = green.astype("uint16")
+            # blue = blue.astype("uint16")
 
             return cv2.merge((blue, green, red))
 
         elif filetype == "JPG":
-            red *= 255
-            green *= 255
-            blue *= 255
+            red, green, blue, _ = self.convert_calibrated_floats_to_bit_depth(8, red, green, blue)
+            # red *= 255
+            # green *= 255
+            # blue *= 255
 
-            red = red.astype(int)
-            green = green.astype(int)
-            blue = blue.astype(int)
+            # red = red.astype(int)
+            # green = green.astype(int)
+            # blue = blue.astype(int)
 
-            red = red.astype("uint8")
-            green = green.astype("uint8")
-            blue = blue.astype("uint8")
+            # red = red.astype("uint8")
+            # green = green.astype("uint8")
+            # blue = blue.astype("uint8")
 
             return cv2.merge((blue, green, red))
 
@@ -5190,7 +5238,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 filename = file.split(".")[0]
                 mapir_file = filename + ".mapir"
                 mapir_file_path = os.path.join(infolder, mapir_file)
-      
+
                 cv2.imwrite(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], img)
                 self.copySimple(outphoto, outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
 
