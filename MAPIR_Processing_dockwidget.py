@@ -3919,12 +3919,18 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def save_calibrated_image_without_conversion(self, in_image_path, calibrated_image, out_dir):
         out_image_path = out_dir + in_image_path.split('.')[1] + "_CALIBRATED." + in_image_path.split('.')[2]
         if 'tif' in in_image_path.split('.')[2].lower():
-            # out_geotiff_path = out_image_path + 'geotiff.tif'
-            # cv2.imencode(".tif", calibrated_image)
-            # cv2.imwrite(out_image_path, calibrated_image)
-            # self.save_geo_data_to_tiff(in_image_path, out_image_path)
-            # Geotiff.from_rgba(in_image_path, calibrated_image, out_image_path)
-            self.geotiff_from_rgba(in_image_path, calibrated_image, out_image_path)
+
+            tiff = gdal.Open(in_image_path, gdal.GA_ReadOnly)
+            tiff_has_no_projection_data = tiff.GetProjection() == ''
+            tiff = None
+
+            if tiff_has_no_projection_data:
+                cv2.imencode(".tif", calibrated_image)
+                cv2.imwrite(out_image_path, calibrated_image)
+                self.copyExif(in_image_path, out_image_path)
+            else:
+                # Geotiff.from_rgba(in_image_path, calibrated_image, out_image_path)
+                self.geotiff_with_metadata_from_rgba(in_image_path, calibrated_image, out_image_path)
 
         else:
             cv2.imwrite(out_image_path, calibrated_image, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
@@ -4016,7 +4022,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
         return red, green, blue, alpha
 
-    def geotiff_from_rgba(self, in_geotiff_path, image_data, out_geotiff_path):
+
+    def geotiff_with_metadata_from_rgba(self, in_geotiff_path, image_data, out_geotiff_path):
         out_geotiff = Geotiff.create_geotiff(image_data, out_geotiff_path)
         out_geotiff.FlushCache()
 
@@ -4098,28 +4105,14 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         green = ((green - minpixel) / (maxpixel - minpixel))
         blue = ((blue - minpixel) / (maxpixel - minpixel))
 
-        # self.print_2d_list_frequencies(13228, alpha)
-
         original_alpha_depth = alpha.max() - alpha.min()
         alpha = alpha / original_alpha_depth
 
         # self.print_2d_list_frequencies(13228, alpha)
 
         if self.IndexBox.checkState() == self.UNCHECKED:
-        #     if refimg.dtype == 'uint8':
-        #         red, green, blue, alpha = self.convert_calibrated_floats_to_bit_depth(8, red, green, blue, alpha)
-        #     elif refimg.dtype == 'uint16':
-        #         red, green, blue, alpha = self.convert_calibrated_floats_to_bit_depth(16, red, green, blue, alpha)
             red, green, blue, alpha = self.convert_calibrated_floats_to_bit_depth(16, red, green, blue, alpha)
-            # self.print_2d_list_frequencies(13228, alpha)
-
             refimg = cv2.merge((blue, green, red, alpha))
-            # rgba = cv2.cvtColor(refimg, cv2.COLOR_RGB2RGBA)
-            # rgba[:, :, 3] = alpha
-            # refimg = rgba
-
-            # refimg = np.dstack([refimg, alpha])
-
 
         else: #Float to Index
             red = red.astype("float32")
