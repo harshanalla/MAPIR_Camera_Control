@@ -20,6 +20,10 @@ class Geotiff:
 
     @staticmethod
     def write_bands_to_geotiff(geotiff, bands, nodata):
+        # geotiff.GetRasterBand(1).WriteArray(bands[0]) #red
+        # geotiff.GetRasterBand(2).WriteArray(bands[1]) #green
+        # geotiff.GetRasterBand(3).WriteArray(bands[2]) #blue
+        # geotiff.GetRasterBand(4).WriteArray(bands[3]) #alpha
         for i in range(len(bands)):
             geotiff.GetRasterBand(i+1).WriteArray(bands[i])
             geotiff.GetRasterBand(i+1).SetNoDataValue(nodata)
@@ -27,9 +31,9 @@ class Geotiff:
     @staticmethod
     def get_bands_from_image_data(image_data):
         return [
-            image_data[:, :, 0],
-            image_data[:, :, 1],
             image_data[:, :, 2],
+            image_data[:, :, 1],
+            image_data[:, :, 0],
             image_data[:, :, 3],
         ]
 

@@ -3237,7 +3237,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def any_calibration_camera_model_selected(self, calibration_camera_model):
         return calibration_camera_model.currentIndex() != -1
 
-    def any_calibration_image_selected(self, calibration_QR_file):
+    def any_calibration_target_image_selected(self, calibration_QR_file):
         return len(calibration_QR_file.text()) > 0
 
     def generate_calibration(self, calibration_camera_model, calibration_QR_file, calibration_filter, calibration_lens, qrcoeffs, qr_coeffs_index):
@@ -3245,7 +3245,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             if not self.any_calibration_camera_model_selected(calibration_camera_model):
                 self.append_select_a_camera_message_to_calibration_log()
 
-            elif self.any_calibration_image_selected(calibration_QR_file):
+            elif self.any_calibration_target_image_selected(calibration_QR_file):
                 self.findQR(calibration_QR_file.text(), [calibration_camera_model, calibration_filter, calibration_lens])
                 qrcoeffs = copy.deepcopy(self.multiplication_values["mono"])
                 self.qr_coeffs[qr_coeffs_index] = copy.deepcopy(self.multiplication_values["mono"])
@@ -3490,20 +3490,20 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                                 try:
                                 #compare current image min-max with global min-max (non-calibrated)
-                                    self.pixel_min_max["redmax"] = max(red.max(), self.pixel_min_max["redmax"])
-                                    self.pixel_min_max["redmin"] = min(red.min(), self.pixel_min_max["redmin"])
+                                    self.pixel_min_max["redmax"] = max([red.max(), self.pixel_min_max["redmax"]])
+                                    self.pixel_min_max["redmin"] = min([red.min(), self.pixel_min_max["redmin"]])
 
-                                    self.pixel_min_max["greenmax"] = max(green.max(), self.pixel_min_max["greenmax"])
-                                    self.pixel_min_max["greenmin"] = min(green.min(), self.pixel_min_max["greenmin"])
+                                    self.pixel_min_max["greenmax"] = max([green.max(), self.pixel_min_max["greenmax"]])
+                                    self.pixel_min_max["greenmin"] = min([green.min(), self.pixel_min_max["greenmin"]])
 
 
-                                    self.pixel_min_max["bluemax"] = max(blue.max(), self.pixel_min_max["bluemax"])
-                                    self.pixel_min_max["bluemin"] = min(blue.min(), self.pixel_min_max["bluemin"])
+                                    self.pixel_min_max["bluemax"] = max([blue.max(), self.pixel_min_max["bluemax"]])
+                                    self.pixel_min_max["bluemin"] = min([blue.min(), self.pixel_min_max["bluemin"]])
 
                                     if self.histogramClipBox.checkState() == self.CHECKED:
-                                        self.HC_max["redmax"] = max(self.get_HC_value(red), self.HC_max["redmax"])
-                                        self.HC_max["greenmax"] = max(self.get_HC_value(green), self.HC_max["greenmax"])
-                                        self.HC_max["bluemax"] = max(self.get_HC_value(blue), self.HC_max["bluemax"])
+                                        self.HC_max["redmax"] = max([self.get_HC_value(red), self.HC_max["redmax"]])
+                                        self.HC_max["greenmax"] = max([self.get_HC_value(green), self.HC_max["greenmax"]])
+                                        self.HC_max["bluemax"] = max([self.get_HC_value(blue), self.HC_max["bluemax"]])
 
 
                                 except Exception as e:
@@ -3687,11 +3687,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                                 try:
                                     #compare current image min-max with global min-max (non-calibrated)
-                                    self.monominmax["max"] = max(img.max(), self.monominmax["max"])
-                                    self.monominmax["min"] = min(img.min(), self.monominmax["min"])
+                                    self.monominmax["max"] = max([img.max(), self.monominmax["max"]])
+                                    self.monominmax["min"] = min([img.min(), self.monominmax["min"]])
 
                                     if self.histogramClipBox.checkState() == self.CHECKED:
-                                        self.HC_mono_max = max(self.get_HC_value(img), self.HC_mono_max)
+                                        self.HC_mono_max = max([self.get_HC_value(img), self.HC_mono_max])
 
                                 except Exception as e:
                                     exc_type, exc_obj,exc_tb = sys.exc_info()
@@ -4082,7 +4082,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         if camera_model == "Survey2" and filt == "Red + NIR (NDVI)":
             red = refimg[:, :, 2] - (refimg[:, :, 0] * 0.80)
 
-        if refimg.shape[2] > 3:
+        if refimg.shape[2] == 4:
             alpha = refimg[:, :, 3]
             refimg = copy.deepcopy(refimg[:, :, :3])
 
@@ -4105,14 +4105,18 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         green = ((green - minpixel) / (maxpixel - minpixel))
         blue = ((blue - minpixel) / (maxpixel - minpixel))
 
-        original_alpha_depth = alpha.max() - alpha.min()
-        alpha = alpha / original_alpha_depth
+        if alpha.any():
+            original_alpha_depth = alpha.max() - alpha.min()
+            alpha = alpha / original_alpha_depth
 
         # self.print_2d_list_frequencies(13228, alpha)
 
         if self.IndexBox.checkState() == self.UNCHECKED:
             red, green, blue, alpha = self.convert_calibrated_floats_to_bit_depth(16, red, green, blue, alpha)
-            refimg = cv2.merge((blue, green, red, alpha))
+            if alpha.any():
+                refimg = cv2.merge((blue, green, red, alpha))
+            else:
+                refimg = cv2.merge((blue, green, red))
 
         else: #Float to Index
             red = red.astype("float32")
@@ -4601,7 +4605,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 x_channels = [xred, xgreen, xblue]
 
                 if self.bad_target_photo(x_channels):
-                    self.CalibrationLog.append("WARNING: Provided calibration target photo is not generating good calibration values. For optimal calibration, please use another calibration target photo or check that white balance and exposure settings are set to defualt values. \n")
+                    self.CalibrationLog.append("WARNING: Provided calibration target photo is not generating good calibration values. For optimal calibration, please use another calibration target photo or check that white balance and exposure settings are set to default values. \n")
 
                 red_slope, red_intercept = self.get_LOBF_values(xred, yred)
                 green_slope, green_intercept = self.get_LOBF_values(xgreen, ygreen)
@@ -4833,13 +4837,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         self.min = img[:, :, 2].min() if img[:, :, 2].min() < self.min else self.min
 
                     else:
-                        self.HC_max["redmax"] = max(self.get_clipping_value(img[:, :, 2]), self.HC_max["redmax"])
-                        self.HC_max["greenmax"] = max(self.get_clipping_value(img[:, :, 1]), self.HC_max["greenmax"])
-                        self.HC_max["bluemax"] = max(self.get_clipping_value(img[:, :, 0]), self.HC_max["bluemax"])
+                        self.HC_max["redmax"] = max([self.get_clipping_value(img[:, :, 2]), self.HC_max["redmax"]])
+                        self.HC_max["greenmax"] = max([self.get_clipping_value(img[:, :, 1]), self.HC_max["greenmax"]])
+                        self.HC_max["bluemax"] = max([self.get_clipping_value(img[:, :, 0]), self.HC_max["bluemax"]])
 
-                        self.min = min(img[:, :, 0].min(), self.min)
-                        self.min = min(img[:, :, 1].min(), self.min)
-                        self.min = min(img[:, :, 2].min(), self.min)
+                        self.min = min([img[:, :, 0].min(), self.min])
+                        self.min = min([img[:, :, 1].min(), self.min])
+                        self.min = min([img[:, :, 2].min(), self.min])
 
                 counter += 1
 
@@ -5009,13 +5013,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 self.min = color[:, :, 2].min() if color[:, :, 2].min() < self.min else self.min
 
                             else:
-                                self.HC_max["redmax"] = max(self.get_clipping_value(color[:, :, 2]), self.HC_max["redmax"])
-                                self.HC_max["greenmax"] = max(self.get_clipping_value(color[:, :, 1]), self.HC_max["greenmax"])
-                                self.HC_max["bluemax"] = max(self.get_clipping_value(color[:, :, 0]), self.HC_max["bluemax"])
+                                self.HC_max["redmax"] = max([self.get_clipping_value(color[:, :, 2]), self.HC_max["redmax"]])
+                                self.HC_max["greenmax"] = max([self.get_clipping_value(color[:, :, 1]), self.HC_max["greenmax"]])
+                                self.HC_max["bluemax"] = max([self.get_clipping_value(color[:, :, 0]), self.HC_max["bluemax"]])
 
-                                self.min = min(color[:, :, 0].min(), self.min)
-                                self.min = min(color[:, :, 1].min(), self.min)
-                                self.min = min(color[:, :, 2].min(), self.min)
+                                self.min = min([color[:, :, 0].min(), self.min])
+                                self.min = min([color[:, :, 1].min(), self.min])
+                                self.min = min([color[:, :, 2].min(), self.min])
 
                         if self.PreProcessMonoBandBox.isChecked():
                             dropdown_value = self.Band_Dropdown.currentText()
@@ -5508,13 +5512,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 self.min = color[:, :, 2].min() if color[:, :, 2].min() < self.min else self.min
 
                             else:
-                                self.HC_max["redmax"] = max(self.get_clipping_value(color[:, :, 2]), self.HC_max["redmax"])
-                                self.HC_max["greenmax"] = max(self.get_clipping_value(color[:, :, 1]), self.HC_max["greenmax"])
-                                self.HC_max["bluemax"] = max(self.get_clipping_value(color[:, :, 0]), self.HC_max["bluemax"])
+                                self.HC_max["redmax"] = max([self.get_clipping_value(color[:, :, 2]), self.HC_max["redmax"]])
+                                self.HC_max["greenmax"] = max([self.get_clipping_value(color[:, :, 1]), self.HC_max["greenmax"]])
+                                self.HC_max["bluemax"] = max([self.get_clipping_value(color[:, :, 0]), self.HC_max["bluemax"]])
 
-                                self.min = min(color[:, :, 0].min(), self.min)
-                                self.min = min(color[:, :, 1].min(), self.min)
-                                self.min = min(color[:, :, 2].min(), self.min)
+                                self.min = min([color[:, :, 0].min(), self.min])
+                                self.min = min([color[:, :, 1].min(), self.min])
+                                self.min = min([color[:, :, 2].min(), self.min])
 
 
                         if self.PreProcessVignette.isChecked():
@@ -5588,8 +5592,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                     self.min = img.min()
 
                                 else:
-                                    self.HC_mono_max = max(self.get_clipping_value(img), self.HC_mono_max)
-                                    self.min = min(img.min(), self.min)
+                                    self.HC_mono_max = max([self.get_clipping_value(img), self.HC_mono_max])
+                                    self.min = min([img.min(), self.min])
 
 
                             if self.PreProcessVignette.isChecked():
