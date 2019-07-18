@@ -71,6 +71,7 @@ from Geometry import *
 from ArrayTypes import AdjustYPR, CurveAdjustment
 from reg_value_conversion import *
 from ExifUtils import *
+from Geotiff import *
 
 modpath = os.path.dirname(os.path.realpath(__file__))
 
@@ -3918,12 +3919,18 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def save_calibrated_image_without_conversion(self, in_image_path, calibrated_image, out_dir):
         out_image_path = out_dir + in_image_path.split('.')[1] + "_CALIBRATED." + in_image_path.split('.')[2]
         if 'tif' in in_image_path.split('.')[2].lower():
-            cv2.imencode(".tif", calibrated_image)
-            cv2.imwrite(out_image_path, calibrated_image)
-            self.save_geo_data_to_tiff(in_image_path, out_image_path)
+            # out_geotiff_path = out_image_path + 'geotiff.tif'
+            # cv2.imencode(".tif", calibrated_image)
+            # cv2.imwrite(out_image_path, calibrated_image)
+            # self.save_geo_data_to_tiff(in_image_path, out_image_path)
+            # Geotiff.from_rgba(in_image_path, calibrated_image, out_image_path)
+            self.geotiff_from_rgba(in_image_path, calibrated_image, out_image_path)
+
         else:
             cv2.imwrite(out_image_path, calibrated_image, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
-        self.copyExif(in_image_path, out_image_path)
+            self.copyExif(in_image_path, out_image_path)
+
+        # self.copyExif(in_image_path, out_image_path)
 
 
     def calculate_mode(self, freq_array):
@@ -4003,58 +4010,45 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             alpha = []
         if alpha.any():
             alpha *= 2**bit_depth-1
-            # self.print_2d_list_frequencies(13228, alpha)
             alpha = alpha.astype(int)
-            # self.print_2d_list_frequencies(13228, alpha)
             alpha = alpha.astype(dtype)
             # self.print_2d_list_frequencies(13228, alpha)
 
         return red, green, blue, alpha
 
-    def save_geo_data_to_tiff(self, in_ds_path, calibrated_data):
+    def geotiff_from_rgba(self, in_geotiff_path, image_data, out_geotiff_path):
+        out_geotiff = Geotiff.create_geotiff(image_data, out_geotiff_path)
+        out_geotiff.FlushCache()
 
-        in_ds = gdal.Open(in_ds_path)
-        projection = in_ds.GetProjection()
-        orig_gt = in_ds.GetGeoTransform()
+        self.copyExif(in_geotiff_path, out_geotiff_path)
 
-        calibrated = gdal.Open(calibrated_data)
+        projection, geo_transform, gcps, gcp_projection = Geotiff.get_geo_data(in_geotiff_path)
+        Geotiff.set_geo_data(out_geotiff, projection, geo_transform, gcps, gcp_projection)
 
-        # crb0 = calibrated.GetRasterBand(0).ReadAsArray()
-        crb1 = calibrated.GetRasterBand(1).ReadAsArray()
-        crb2 = calibrated.GetRasterBand(2).ReadAsArray()
-        crb3 = calibrated.GetRasterBand(3).ReadAsArray()
-        crb4 = calibrated.GetRasterBand(4).ReadAsArray()
+        bands = Geotiff.get_bands_from_image_data(image_data)
+        nodata = -10000
+        Geotiff.write_bands_to_geotiff(out_geotiff, bands, nodata)
 
-        [cols, rows] = crb1.shape
+        out_geotiff.FlushCache()
+        out_geotiff = None
 
-        driver = gdal.GetDriverByName("GTiff")
-        # out_filename = '.' + in_ds_path.split('.')[1] + '_geotiff.tif'
-        out_filename = './geotiff.tif'
-        num_bands = 4
-        out_ds = driver.Create(out_filename, rows, cols, num_bands, gdal.GDT_UInt16, ['COMPRESS=LZW', 'PHOTOMETRIC=RGB', 'ALPHA=YES'])
-        out_ds.SetGeoTransform(orig_gt)
-        out_ds.SetProjection(projection)
+    # def save_geo_data_to_tiff(self, in_geotiff_path, calibrated_image_path):
 
-        out_ds.GetRasterBand(1).WriteArray(crb1)
-        out_ds.GetRasterBand(1).SetNoDataValue(-10000)
-        out_ds.GetRasterBand(2).WriteArray(crb2)
-        out_ds.GetRasterBand(2).SetNoDataValue(-10000)
-        out_ds.GetRasterBand(3).WriteArray(crb3)
-        out_ds.GetRasterBand(3).SetNoDataValue(-10000)
-        out_ds.GetRasterBand(4).WriteArray(crb4)
-        out_ds.GetRasterBand(4).SetNoDataValue(-10000)
+    #     in_geotiff = gdal.Open(in_geotiff_path)
+    #     projection = in_geotiff.GetProjection()
+    #     geo_transform = in_geotiff.GetGeoTransform()
+    #     GCPs = in_geotiff.GetGCPs()
+    #     GCP_projection = in_geotiff.GetGCPProjection()
 
-        out_ds.SetGCPs(in_ds.GetGCPs(), in_ds.GetGCPProjection())
-        out_ds.FlushCache()
+    #     calibrated_image = gdal.Open(calibrated_image_path, gdal.GA_Update)
+    #     calibrated_image.SetGeoTransform(geo_transform)
+    #     calibrated_image.SetProjection(projection)
+    #     calibrated_image.SetGCPs(GCPs, GCP_projection)
 
-        # calibrated_data = gdal.Open(out_ds_path, gdal.GA_Update)
-        # calibrated_data.SetGeoTransform(orig_gt)
-        # calibrated_data.SetProjection(projection)
-        # calibrated_data.SetGCPs(in_ds.GetGCPs(), in_ds.GetGCPProjection())
+    #     calibrated_image.FlushCache()
 
-        in_ds = None
-        calibrated_data = None
-        out_ds = None
+    #     in_geotiff = None
+    #     calibrated_image = None
 
     def print_2d_list_frequencies(self, size, list):
         frequencies = collections.Counter([])
@@ -5771,8 +5765,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             self.copyExif(outphoto, outphoto)
                         # self.PreP.shaperocessLog.append("Skipped Debayering")
                         QtWidgets.QApplication.processEvents()
-
-                        
 
                 except Exception as e:
                     exc_type, exc_obj,exc_tb = sys.exc_info()
