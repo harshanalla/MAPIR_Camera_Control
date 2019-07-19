@@ -4018,7 +4018,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
         if alpha is None:
             alpha = []
-        if not not alpha:
+        if not alpha == []:
             alpha *= 2**bit_depth-1
             alpha = alpha.astype(int)
             alpha = alpha.astype(dtype)
@@ -4079,6 +4079,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
         ### split channels (using cv2.split caused too much overhead and made the host program crash)
         alpha = []
+        has_alpha_layer = False
         blue = refimg[:, :, 0]
         green = refimg[:, :, 1]
         red = refimg[:, :, 2]
@@ -4088,6 +4089,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
         if refimg.shape[2] == 4:
             alpha = refimg[:, :, 3]
+            has_alpha_layer = True
             refimg = copy.deepcopy(refimg[:, :, :3])
 
         red = self.calibrate_channel(red, coeffs["red"]["slope"], coeffs["red"]["intercept"])
@@ -4109,7 +4111,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         green = ((green - minpixel) / (maxpixel - minpixel))
         blue = ((blue - minpixel) / (maxpixel - minpixel))
 
-        if not not alpha:
+        if has_alpha_layer:
             original_alpha_depth = alpha.max() - alpha.min()
             alpha = alpha / original_alpha_depth
 
@@ -4117,7 +4119,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
         if self.IndexBox.checkState() == self.UNCHECKED:
             red, green, blue, alpha = self.convert_calibrated_floats_to_bit_depth(16, red, green, blue, alpha)
-            if not not alpha:
+            if has_alpha_layer:
                 refimg = cv2.merge((blue, green, red, alpha))
             else:
                 refimg = cv2.merge((blue, green, red))
