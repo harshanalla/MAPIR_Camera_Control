@@ -3240,14 +3240,27 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def any_calibration_target_image_selected(self, calibration_QR_file):
         return len(calibration_QR_file.text()) > 0
 
-    def generate_calibration(self, calibration_camera_model, calibration_QR_file, calibration_filter, calibration_lens, qrcoeffs, qr_coeffs_index):
+    def generate_calibration(self, calibration_camera_model, calibration_QR_file, calibration_filter, calibration_lens, qr_coeffs_index):
         try:
             if not self.any_calibration_camera_model_selected(calibration_camera_model):
                 self.append_select_a_camera_message_to_calibration_log()
 
             elif self.any_calibration_target_image_selected(calibration_QR_file):
                 self.findQR(calibration_QR_file.text(), [calibration_camera_model, calibration_filter, calibration_lens])
-                qrcoeffs = copy.deepcopy(self.multiplication_values["mono"])
+                # # TODO: refactor
+                # if qr_coeffs_index == 1:
+                #     self.qrcoeffs = copy.deepcopy(self.multiplication_values["mono"])
+                # if qr_coeffs_index == 2:
+                #     self.qrcoeffs2 = copy.deepcopy(self.multiplication_values["mono"])
+                # if qr_coeffs_index == 3:
+                #     self.qrcoeffs3 = copy.deepcopy(self.multiplication_values["mono"])
+                # if qr_coeffs_index == 4:
+                #     self.qrcoeffs4 = copy.deepcopy(self.multiplication_values["mono"])
+                # if qr_coeffs_index == 5:
+                #     self.qrcoeffs5 = copy.deepcopy(self.multiplication_values["mono"])
+                # if qr_coeffs_index == 6:
+                #     self.qrcoeffs6 = copy.deepcopy(self.multiplication_values["mono"])
+
                 self.qr_coeffs[qr_coeffs_index] = copy.deepcopy(self.multiplication_values["mono"])
                 self.useqr = True
 
@@ -3260,16 +3273,22 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
     def on_CalibrationGenButton_released(self):
         self.generate_calibration(self.CalibrationCameraModel, self.CalibrationQRFile, self.CalibrationFilter, self.CalibrationLens, self.qrcoeffs, qr_coeffs_index=1)
+        self.qrcoeffs = self.qr_coeffs[1]
     def on_CalibrationGenButton_2_released(self):
         self.generate_calibration(self.CalibrationCameraModel_2, self.CalibrationQRFile_2, self.CalibrationFilter_2, self.CalibrationLens_2, self.qrcoeffs2, qr_coeffs_index=2)
+        self.qrcoeffs2 = self.qr_coeffs[2]
     def on_CalibrationGenButton_3_released(self):
         self.generate_calibration(self.CalibrationCameraModel_3, self.CalibrationQRFile_3, self.CalibrationFilter_3, self.CalibrationLens_3, self.qrcoeffs3, qr_coeffs_index=3)
+        self.qrcoeffs3 = self.qr_coeffs[3]
     def on_CalibrationGenButton_4_released(self):
         self.generate_calibration(self.CalibrationCameraModel_4, self.CalibrationQRFile_4, self.CalibrationFilter_4, self.CalibrationLens_4, self.qrcoeffs4, qr_coeffs_index=4)
+        self.qrcoeffs4 = self.qr_coeffs[4]
     def on_CalibrationGenButton_5_released(self):
         self.generate_calibration(self.CalibrationCameraModel_5, self.CalibrationQRFile_5, self.CalibrationFilter_5, self.CalibrationLens_5, self.qrcoeffs5, qr_coeffs_index=5)
+        self.qrcoeffs5 = self.qr_coeffs[5]
     def on_CalibrationGenButton_6_released(self):
         self.generate_calibration(self.CalibrationCameraModel_6, self.CalibrationQRFile_6, self.CalibrationFilter_6, self.CalibrationLens_6, self.qrcoeffs6, qr_coeffs_index=6)
+        self.qrcoeffs6 = self.qr_coeffs[6]
 
     #Function that calibrates global max and mins
     def calibrate(self, mult_values, value):
@@ -3301,7 +3320,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.Histogram_Clipping_Percentage.setEnabled(False)
             self.HCP_value.setEnabled(False)
             self.HCP_value.clear()
-    
+
     def check_HCP_value(self):
         if "." in self.HCP_value.text():
             return True
@@ -3490,20 +3509,20 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                                 try:
                                 #compare current image min-max with global min-max (non-calibrated)
-                                    self.pixel_min_max["redmax"] = max([red.max(), self.pixel_min_max["redmax"]])
-                                    self.pixel_min_max["redmin"] = min([red.min(), self.pixel_min_max["redmin"]])
+                                    self.pixel_min_max["redmax"] = max(red.max(), self.pixel_min_max["redmax"])
+                                    self.pixel_min_max["redmin"] = min(red.min(), self.pixel_min_max["redmin"])
 
-                                    self.pixel_min_max["greenmax"] = max([green.max(), self.pixel_min_max["greenmax"]])
-                                    self.pixel_min_max["greenmin"] = min([green.min(), self.pixel_min_max["greenmin"]])
+                                    self.pixel_min_max["greenmax"] = max(green.max(), self.pixel_min_max["greenmax"])
+                                    self.pixel_min_max["greenmin"] = min(green.min(), self.pixel_min_max["greenmin"])
 
 
-                                    self.pixel_min_max["bluemax"] = max([blue.max(), self.pixel_min_max["bluemax"]])
-                                    self.pixel_min_max["bluemin"] = min([blue.min(), self.pixel_min_max["bluemin"]])
+                                    self.pixel_min_max["bluemax"] = max(blue.max(), self.pixel_min_max["bluemax"])
+                                    self.pixel_min_max["bluemin"] = min(blue.min(), self.pixel_min_max["bluemin"])
 
                                     if self.histogramClipBox.checkState() == self.CHECKED:
-                                        self.HC_max["redmax"] = max([self.get_HC_value(red), self.HC_max["redmax"]])
-                                        self.HC_max["greenmax"] = max([self.get_HC_value(green), self.HC_max["greenmax"]])
-                                        self.HC_max["bluemax"] = max([self.get_HC_value(blue), self.HC_max["bluemax"]])
+                                        self.HC_max["redmax"] = max(self.get_HC_value(red), self.HC_max["redmax"])
+                                        self.HC_max["greenmax"] = max(self.get_HC_value(green), self.HC_max["greenmax"])
+                                        self.HC_max["bluemax"] = max(self.get_HC_value(blue), self.HC_max["bluemax"])
 
 
                                 except Exception as e:
@@ -3683,11 +3702,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                                 try:
                                     #compare current image min-max with global min-max (non-calibrated)
-                                    self.monominmax["max"] = max([img.max(), self.monominmax["max"]])
-                                    self.monominmax["min"] = min([img.min(), self.monominmax["min"]])
+                                    self.monominmax["max"] = max(img.max(), self.monominmax["max"])
+                                    self.monominmax["min"] = min(img.min(), self.monominmax["min"])
 
                                     if self.histogramClipBox.checkState() == self.CHECKED:
-                                        self.HC_mono_max = max([self.get_HC_value(img), self.HC_mono_max])
+                                        self.HC_mono_max = max(self.get_HC_value(img), self.HC_mono_max)
 
                                 except Exception as e:
                                     exc_type, exc_obj,exc_tb = sys.exc_info()
