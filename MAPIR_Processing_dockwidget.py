@@ -3240,7 +3240,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def any_calibration_target_image_selected(self, calibration_QR_file):
         return len(calibration_QR_file.text()) > 0
 
-    def generate_calibration(self, calibration_camera_model, calibration_QR_file, calibration_filter, calibration_lens, qr_coeffs_index):
+    def generate_calibration(self, calibration_camera_model, calibration_QR_file, calibration_filter, calibration_lens, qrcoeffs, qr_coeffs_index):
         try:
             if not self.any_calibration_camera_model_selected(calibration_camera_model):
                 self.append_select_a_camera_message_to_calibration_log()
@@ -3250,6 +3250,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 print(self.multiplication_values)
 
                 self.qr_coeffs[qr_coeffs_index] = copy.deepcopy(self.multiplication_values["mono"])
+                qrcoeffs = self.qr_coeffs
                 self.useqr = True
 
             else:
@@ -3260,23 +3261,23 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.CalibrationLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
 
     def on_CalibrationGenButton_released(self):
-        self.generate_calibration(self.CalibrationCameraModel, self.CalibrationQRFile, self.CalibrationFilter, self.CalibrationLens, qr_coeffs_index=1)
-        self.qrcoeffs = self.qr_coeffs[1]
+        self.generate_calibration(self.CalibrationCameraModel, self.CalibrationQRFile, self.CalibrationFilter, self.CalibrationLens, self.qrcoeffs, qr_coeffs_index=1)
+        # self.qrcoeffs = self.qr_coeffs[1]
     def on_CalibrationGenButton_2_released(self):
-        self.generate_calibration(self.CalibrationCameraModel_2, self.CalibrationQRFile_2, self.CalibrationFilter_2, self.CalibrationLens_2, qr_coeffs_index=2)
-        self.qrcoeffs2 = self.qr_coeffs[2]
+        self.generate_calibration(self.CalibrationCameraModel_2, self.CalibrationQRFile_2, self.CalibrationFilter_2, self.CalibrationLens_2, self.qrcoeffs2, qr_coeffs_index=2)
+        # self.qrcoeffs2 = self.qr_coeffs[2]
     def on_CalibrationGenButton_3_released(self):
-        self.generate_calibration(self.CalibrationCameraModel_3, self.CalibrationQRFile_3, self.CalibrationFilter_3, self.CalibrationLens_3, qr_coeffs_index=3)
-        self.qrcoeffs3 = self.qr_coeffs[3]
+        self.generate_calibration(self.CalibrationCameraModel_3, self.CalibrationQRFile_3, self.CalibrationFilter_3, self.CalibrationLens_3, self.qrcoeffs3, qr_coeffs_index=3)
+        # self.qrcoeffs3 = self.qr_coeffs[3]
     def on_CalibrationGenButton_4_released(self):
-        self.generate_calibration(self.CalibrationCameraModel_4, self.CalibrationQRFile_4, self.CalibrationFilter_4, self.CalibrationLens_4, qr_coeffs_index=4)
-        self.qrcoeffs4 = self.qr_coeffs[4]
+        self.generate_calibration(self.CalibrationCameraModel_4, self.CalibrationQRFile_4, self.CalibrationFilter_4, self.CalibrationLens_4, self.qrcoeffs4, qr_coeffs_index=4)
+        # self.qrcoeffs4 = self.qr_coeffs[4]
     def on_CalibrationGenButton_5_released(self):
-        self.generate_calibration(self.CalibrationCameraModel_5, self.CalibrationQRFile_5, self.CalibrationFilter_5, self.CalibrationLens_5, qr_coeffs_index=5)
-        self.qrcoeffs5 = self.qr_coeffs[5]
+        self.generate_calibration(self.CalibrationCameraModel_5, self.CalibrationQRFile_5, self.CalibrationFilter_5, self.CalibrationLens_5, self.qrcoeffs5, qr_coeffs_index=5)
+        # self.qrcoeffs5 = self.qr_coeffs[5]
     def on_CalibrationGenButton_6_released(self):
-        self.generate_calibration(self.CalibrationCameraModel_6, self.CalibrationQRFile_6, self.CalibrationFilter_6, self.CalibrationLens_6, qr_coeffs_index=6)
-        self.qrcoeffs6 = self.qr_coeffs[6]
+        self.generate_calibration(self.CalibrationCameraModel_6, self.CalibrationQRFile_6, self.CalibrationFilter_6, self.CalibrationLens_6, self.qrcoeffs6, qr_coeffs_index=6)
+        # self.qrcoeffs6 = self.qr_coeffs[6]
 
     #Function that calibrates global max and mins
     def calibrate(self, mult_values, value):
@@ -4298,62 +4299,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         return self.CalibrationTargetSelect.currentIndex() == 1
 
     def get_version_2_target_corners(self, image_path):
-        # self.get_version_2_target_corners_old(image_path)
-        self.get_version_2_target_corners_new(image_path)
-
-    def get_version_2_target_corners_new(self, image_path):
         self.coords = Calibration.get_image_corners(image_path)
         self.ref = self.refindex[1]
         print('self.coords: ' + str(self.coords))
-
-    # def get_version_2_target_corners_old(self, image_path):
-    #     meta_im = image_path.split(".")[0] + "_temp_meta." + image_path.split(".")[1]
-    #     cv2.imwrite(meta_im, cv2.imread(image_path, -1))
-    #     self.copyExif(image_path, meta_im)
-
-    #     subprocess.call([modpath + os.sep + r'FiducialFinder.exe', image_path], startupinfo=si)
-    #     im_orig = cv2.imread(image_path, -1)
-
-    #     list = None
-    #     im = cv2.imread(image_path, 0)
-    #     listcounter = 2
-
-    #     if os.path.exists(r'.' + os.sep + r'calib.txt'):
-    #         # cv2.imwrite(image_path.split('.')[-2] + "_original." + image_path.split('.')[-1], cv2.imread(image_path, -1))
-    #         while (list is None or len(list) <= 0) and listcounter < 10:
-    #             with open(r'.' + os.sep + r'calib.txt', 'r+') as cornerfile:
-    #                 list = cornerfile.read()
-    #                 print("list: ", list, type(list))
-
-    #             im = im * listcounter
-    #             listcounter += 1
-    #             cv2.imwrite(image_path, im)
-    #             subprocess.call([modpath + os.sep + r'FiducialFinder.exe', image_path], startupinfo=si)
-
-    #             try:
-    #                 list = list.split('[')[1].split(']')[0]
-
-    #             except Exception as e:
-    #                 exc_type, exc_obj, exc_tb = sys.exc_info()
-    #                 print("Error: ", e)
-    #                 print("Line: " + str(exc_tb.tb_lineno))
-
-    #         cv2.imwrite(image_path, im_orig)
-    #         self.copyExif(meta_im, image_path)
-    #         os.remove(meta_im)
-
-    #         # os.unlink(image_path.split('.')[-2] + "_original." + image_path.split('.')[-1])
-    #         with open(r'.' + os.sep + r'calib.txt', 'r+') as f:
-    #             f.truncate()
-
-    #     #Finding coordinates for Version 2
-    #     self.CalibrationLog.append("Looking for QR target \n")
-    #     if len(list) > 0:
-    #         self.ref = self.refindex[1]
-    #         # self.CalibrationLog.append(list)
-    #         temp = np.fromstring(str(list), dtype=int, sep=',')
-    #         self.coords = [[temp[0],temp[1]],[temp[2],temp[3]],[temp[6],temp[7]],[temp[4],temp[5]]]
-    #         print('self.coords: ' + str(self.coords))
 
     ####Function for finding the QR target and calculating the calibration coeficients\
     def findQR(self, image_path, ind):
@@ -4415,7 +4363,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         for i in hierarchy[0]:
                             self.traverseHierarchy(hierarchy, contours, count, im, 0)
                             count += 1
-    
+
                     if len(self.coords) == 3:
                         break
                     else:
@@ -4425,7 +4373,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     self.CalibrationLog.append("Could not find MAPIR ground target.")
                     QtWidgets.QApplication.processEvents()
                     return
-     
+
             line1 = Geometry.get_distance_between_two_points(self.coords[0], self.coords[1])
             line2 = Geometry.get_distance_between_two_points(self.coords[1], self.coords[2])
             line3 = Geometry.get_distance_between_two_points(self.coords[2], self.coords[0])
