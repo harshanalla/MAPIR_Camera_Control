@@ -37,4 +37,11 @@ def get_image_corners(target_img):
 
 	target_corner_ints = [[int(corner[0]), int(corner[1])] for corner in single_target]
 
-	return target_corner_ints
+	target_corner_ints_reordered = [
+		target_corner_ints[0],
+		target_corner_ints[1],
+		target_corner_ints[3],
+		target_corner_ints[2]
+	]
+
+	return target_corner_ints_reordered

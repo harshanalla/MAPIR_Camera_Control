@@ -4297,20 +4297,79 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def is_calibration_target_version_1(self):
         return self.CalibrationTargetSelect.currentIndex() == 1
 
-####Function for finding the QR target and calculating the calibration coeficients\
+    def get_version_2_target_corners(self, image_path):
+        # self.get_version_2_target_corners_old(image_path)
+        self.get_version_2_target_corners_new(image_path)
+
+    def get_version_2_target_corners_new(self, image_path):
+        self.coords = Calibration.get_image_corners(image_path)
+        self.ref = self.refindex[1]
+        print('self.coords: ' + str(self.coords))
+
+    # def get_version_2_target_corners_old(self, image_path):
+    #     meta_im = image_path.split(".")[0] + "_temp_meta." + image_path.split(".")[1]
+    #     cv2.imwrite(meta_im, cv2.imread(image_path, -1))
+    #     self.copyExif(image_path, meta_im)
+
+    #     subprocess.call([modpath + os.sep + r'FiducialFinder.exe', image_path], startupinfo=si)
+    #     im_orig = cv2.imread(image_path, -1)
+
+    #     list = None
+    #     im = cv2.imread(image_path, 0)
+    #     listcounter = 2
+
+    #     if os.path.exists(r'.' + os.sep + r'calib.txt'):
+    #         # cv2.imwrite(image_path.split('.')[-2] + "_original." + image_path.split('.')[-1], cv2.imread(image_path, -1))
+    #         while (list is None or len(list) <= 0) and listcounter < 10:
+    #             with open(r'.' + os.sep + r'calib.txt', 'r+') as cornerfile:
+    #                 list = cornerfile.read()
+    #                 print("list: ", list, type(list))
+
+    #             im = im * listcounter
+    #             listcounter += 1
+    #             cv2.imwrite(image_path, im)
+    #             subprocess.call([modpath + os.sep + r'FiducialFinder.exe', image_path], startupinfo=si)
+
+    #             try:
+    #                 list = list.split('[')[1].split(']')[0]
+
+    #             except Exception as e:
+    #                 exc_type, exc_obj, exc_tb = sys.exc_info()
+    #                 print("Error: ", e)
+    #                 print("Line: " + str(exc_tb.tb_lineno))
+
+    #         cv2.imwrite(image_path, im_orig)
+    #         self.copyExif(meta_im, image_path)
+    #         os.remove(meta_im)
+
+    #         # os.unlink(image_path.split('.')[-2] + "_original." + image_path.split('.')[-1])
+    #         with open(r'.' + os.sep + r'calib.txt', 'r+') as f:
+    #             f.truncate()
+
+    #     #Finding coordinates for Version 2
+    #     self.CalibrationLog.append("Looking for QR target \n")
+    #     if len(list) > 0:
+    #         self.ref = self.refindex[1]
+    #         # self.CalibrationLog.append(list)
+    #         temp = np.fromstring(str(list), dtype=int, sep=',')
+    #         self.coords = [[temp[0],temp[1]],[temp[2],temp[3]],[temp[6],temp[7]],[temp[4],temp[5]]]
+    #         print('self.coords: ' + str(self.coords))
+
+    ####Function for finding the QR target and calculating the calibration coeficients\
     def findQR(self, image_path, ind):
         try:
             self.ref = ""
 
-            if self.CalibrationTargetSelect.currentIndex() == 0:
+            if self.is_calibration_target_version_2():
                 version = "V2"
 
-            elif self.CalibrationTargetSelect.currentIndex() == 1:
+            elif self.is_calibration_target_version_1():
                 version = "V1"
 
             camera_model = ind[0].currentText()
             fil = ind[1].currentText()
             lens = ind[2].currentText()
+
             image = cv2.imread(image_path, -1)
 
             if self.check_if_RGB(camera_model, fil, lens) and len(image.shape) < 3:
@@ -4319,14 +4378,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             elif not self.check_if_RGB(camera_model, fil, lens) and len(image.shape) > 2:
                 raise IndexError("Mono filter was selected but input folders contain RGB images")
 
-            self.CalibrationLog.append("Looking for QR target \n")
-            if self.is_calibration_target_version_2():
-
-                self.ref = self.refindex[1]
-                self.coords = Calibration.get_image_corners(image_path)
+            #Fiducial Finder only needs to be run for Version 2, calib.txt will only be written for Version 2
+            if version == "V2":
+                self.get_version_2_target_corners(image_path)
 
             #Finding coordinates for Version 1
             else:
+                self.CalibrationLog.append("Looking for QR target \n")
                 self.ref = self.refindex[0]
 
                 if self.check_if_RGB(camera_model, fil, lens): #if RGB Camera
@@ -4357,7 +4415,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         for i in hierarchy[0]:
                             self.traverseHierarchy(hierarchy, contours, count, im, 0)
                             count += 1
-
+    
                     if len(self.coords) == 3:
                         break
                     else:
@@ -4367,16 +4425,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     self.CalibrationLog.append("Could not find MAPIR ground target.")
                     QtWidgets.QApplication.processEvents()
                     return
-
-
-            ############################################# OLD ##################################################
-
-            line1 = np.sqrt(np.power((self.coords[0][0] - self.coords[1][0]), 2) + np.power((self.coords[0][1] - self.coords[1][1]), 2))  # Getting the distance between each centroid
-            line2 = np.sqrt(np.power((self.coords[1][0] - self.coords[2][0]), 2) + np.power((self.coords[1][1] - self.coords[2][1]), 2))
-            line3 = np.sqrt(np.power((self.coords[2][0] - self.coords[0][0]), 2) + np.power((self.coords[2][1] - self.coords[0][1]), 2))
-
-            hypotenuse = line1 if line1 > line2 else line2
-            hypotenuse = line3 if line3 > hypotenuse else hypotenuse
+     
+            line1 = Geometry.get_distance_between_two_points(self.coords[0], self.coords[1])
+            line2 = Geometry.get_distance_between_two_points(self.coords[1], self.coords[2])
+            line3 = Geometry.get_distance_between_two_points(self.coords[2], self.coords[0])
+            hypotenuse = max([line1, line2, line3])
 
             #Finding Version 2 Target
             if version == "V2":
@@ -4529,19 +4582,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     print(e)
                     print("Line: " + str(exc_tb.tb_lineno))
 
-                #                 (self.refvalues[self.ref]["RGN"][2][0] - self.refvalues[self.ref]["Red"][0] ) / \
-                #                (self.refvalues[self.ref]["RGN"][2][0] + self.refvalues[self.ref]["Red"][0] )
-                #
-                # ideal_ndvi_2 = (self.refvalues[self.ref]["RGN"][2][1] - self.refvalues[self.ref]["Red"][1] ) / \
-                #                (self.refvalues[self.ref]["RGN"][2][1] + self.refvalues[self.ref]["Red"][1] )
-                #
-                #
-                # ideal_ndvi_3 = (self.refvalues[self.ref]["RGN"][2][2] - self.refvalues[self.ref]["Red"][2]) / \
-                #                (self.refvalues[self.ref]["RGN"][2][2] + self.refvalues[self.ref]["Red"][2])
-                #
-                # ideal_ndvi_4 = (self.refvalues[self.ref]["RGN"][2][3] - self.refvalues[self.ref]["Red"][3]) / \
-                #                (self.refvalues[self.ref]["RGN"][2][3] + self.refvalues[self.ref]["Red"][3])
-
                 t1redmean = np.mean(targ1values[:, :, 2])
                 t1greenmean = np.mean(targ1values[:, :, 1])
                 t1bluemean = np.mean(targ1values[:, :, 0])
@@ -4627,7 +4667,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 x_channels = [xred, xgreen, xblue]
 
                 if self.bad_target_photo(x_channels):
-                    self.CalibrationLog.append("WARNING: Provided calibration target photo is not generating good calibration values. For optimal calibration, please use another calibration target photo or check that white balance and exposure settings are set to defualt values. \n")
+                    self.CalibrationLog.append("WARNING: Provided calibration target photo is not generating good calibration values. For optimal calibration, please use another calibration target photo or check that white balance and exposure settings are set to default values. \n")
 
                 red_slope, red_intercept = self.get_LOBF_values(xred, yred)
                 green_slope, green_intercept = self.get_LOBF_values(xgreen, ygreen)
@@ -4739,44 +4779,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 elif camera_model == "Survey2" and fil == "Blue":
                     y = self.refvalues[self.ref]["450"][2]
 
-                elif fil == "405":
-                    y = self.refvalues[self.ref]["Mono405"]
-
-                elif fil == "450":
-                    y = self.refvalues[self.ref]["Mono450"]
-
-                elif fil == "490":
-                    y = self.refvalues[self.ref]["Mono490"]
-
-                elif fil == "518":
-                    y = self.refvalues[self.ref]["Mono518"]
-
-                elif fil == "550":
-                    y = self.refvalues[self.ref]["Mono550"]
-
-                elif fil == "590":
-                    y = self.refvalues[self.ref]["Mono590"]
-
-                elif fil == "615":
-                    y = self.refvalues[self.ref]["Mono615"]
-
-                elif fil == "632":
-                    y = self.refvalues[self.ref]["Mono632"]
-
-                elif fil == "650":
-                    y = self.refvalues[self.ref]["Mono650"]
-
-                elif fil == "685":
-                    y = self.refvalues[self.ref]["Mono685"]
-
-                elif fil == "725":
-                    y = self.refvalues[self.ref]["Mono725"]
-
-                elif fil == "808":
-                    y = self.refvalues[self.ref]["Mono808"]
-
-                elif fil == "850":
-                    y = self.refvalues[self.ref]["Mono850"]
+                elif fil in ['405', '450', '490', '518', '550', '590', '615', '632', '650', '685', '725', '808', '850']:
+                    mono_fil = 'Mono' + fil
+                    y = self.refvalues[self.ref][mono_fil]
 
                 elif fil == "RE":
                     y = self.refvalues[self.ref]["725"]
@@ -4814,446 +4819,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             # self.CalibrationLog.append("Found QR Target, please proceed with calibration.")
             #
             # return [intcpt, slope]
-    # Calibration Steps: End
-
-    # Helper functions
-    # def debayer(self, m):
-    #     r = m[0:: 2, 0:: 2]
-    #     g = np.clip(m[1::2, 0::2] // 2 + m[0::2, 1::2] // 2, 0, 2**14 - 1)
-    #     b = m[1:: 2, 1:: 2]
-    #     # b = (((b - b.min()) / (b.max() - b.min())) * 65536.0).astype("uint16")
-    #     # r = (((r - r.min()) / (r.max() - r.min())) * 65536.0).astype("uint16")
-    #     # g = (((g - g.min()) / (g.max() - g.min())) * 65536.0).astype("uint16")
-    #     return np.dstack([b, g, r])
-
-
-            # ########################################## NEW ###############################################################
-
-            # # # distance between centroids
-            # # line1 = Geometry.get_distance_between_two_points(self.coords[0], self.coords[1])
-            # # line2 = Geometry.get_distance_between_two_points(self.coords[1], self.coords[2])
-            # # line3 = Geometry.get_distance_between_two_points(self.coords[2], self.coords[0])
-            # # hypotenuse = max([line1, line2, line3])
-
-            # #Finding Version 2 Target
-            # if self.is_calibration_target_version_2():
-            #     slope = (self.coords[2][1] - self.coords[1][1]) / (self.coords[2][0] - self.coords[1][0])
-            #     dist = self.coords[0][1] - (slope * self.coords[0][0]) + ((slope * self.coords[2][0]) - self.coords[2][1])
-            #     dist /= np.sqrt(np.power(slope, 2) + 1)
-            #     center = self.coords[0]
-            #     right = self.coords[1]
-            #     bottom = self.coords[2]
-
-            #     slope_center_right = (center[1] - right[1]) / (center[0] - right[0])
-            #     angle = abs(math.degrees(math.atan(slope_center_right)))
-            # else:
-            #     if hypotenuse == line1:
-
-            #         slope = (self.coords[1][1] - self.coords[0][1]) / (self.coords[1][0] - self.coords[0][0])
-            #         dist = self.coords[2][1] - (slope * self.coords[2][0]) + ((slope * self.coords[1][0]) - self.coords[1][1])
-            #         dist /= np.sqrt(np.power(slope, 2) + 1)
-            #         center = self.coords[2]
-
-            #         if (slope < 0 and dist < 0) or (slope >= 0 and dist >= 0):
-
-            #             bottom = self.coords[0]
-            #             right = self.coords[1]
-            #         else:
-
-            #             bottom = self.coords[1]
-            #             right = self.coords[0]
-            #     elif hypotenuse == line2:
-
-            #         slope = (self.coords[2][1] - self.coords[1][1]) / (self.coords[2][0] - self.coords[1][0])
-            #         dist = self.coords[0][1] - (slope * self.coords[0][0]) + ((slope * self.coords[2][0]) - self.coords[2][1])
-            #         dist /= np.sqrt(np.power(slope, 2) + 1)
-            #         center = self.coords[0]
-
-            #         if (slope < 0 and dist < 0) or (slope >= 0 and dist >= 0):
-
-            #             bottom = self.coords[1]
-            #             right = self.coords[2]
-            #         else:
-
-            #             bottom = self.coords[2]
-            #             right = self.coords[1]
-            #     else:
-
-            #         slope = (self.coords[0][1] - self.coords[2][1]) / (self.coords[0][0] - self.coords[2][0])
-            #         dist = self.coords[1][1] - (slope * self.coords[1][0]) + ((slope * self.coords[0][0]) - self.coords[0][1])
-            #         dist /= np.sqrt(np.power(slope, 2) + 1)
-            #         center = self.coords[1]
-            #         if (slope < 0 and dist < 0) or (slope >= 0 and dist >= 0):
-            #             # self.CalibrationLog.append("slope and dist share sign")
-            #             bottom = self.coords[2]
-            #             right = self.coords[0]
-            #         else:
-
-            #             bottom = self.coords[0]
-            #             right = self.coords[2]
-
-            # if self.is_calibration_target_version_2():
-            #     # if len(list) > 0:
-            #     if len(self.coords) > 0:
-            #         guidelength = np.sqrt(np.power((center[0] - bottom[0]), 2) + np.power((center[1] - bottom[1]), 2))
-            #         pixelinch = guidelength / self.CORNER_TO_CORNER
-
-            #         rad = (pixelinch * self.CORNER_TO_TARG)
-            #         vx = center[1] - bottom[1]
-            #         vy = center[0] - bottom[0]
-
-            # else:
-            #     guidelength = np.sqrt(np.power((center[0] - bottom[0]), 2) + np.power((center[1] - bottom[1]), 2))
-            #     pixelinch = guidelength / self.SQ_TO_SQ
-            #     rad = (pixelinch * self.SQ_TO_TARG)
-            #     vx = center[0] - bottom[0]
-            #     vy = center[1] - bottom[1]
-
-            # newlen = np.sqrt(vx * vx + vy * vy)
-
-            # if self.is_calibration_target_version_2():
-            #     # if len(list) > 0:
-            #     if len(self.coords) > 0:
-            #         targ1x = (rad * (vx / newlen)) + self.coords[0][0]
-            #         targ1y = (rad * (vy / newlen)) + self.coords[0][1]
-            #         targ2x = (rad * (vx / newlen)) + self.coords[1][0]
-            #         targ2y = (rad * (vy / newlen)) + self.coords[1][1]
-            #         targ3x = (rad * (vx / newlen)) + self.coords[2][0]
-            #         targ3y = (rad * (vy / newlen)) + self.coords[2][1]
-            #         targ4x = (rad * (vx / newlen)) + self.coords[3][0]
-            #         targ4y = (rad * (vy / newlen)) + self.coords[3][1]
-
-            #         if angle > self.ANGLE_SHIFT_QR:
-            #             corn_to_targ = self.CORNER_TO_TARG - 1
-            #             rad = (pixelinch * corn_to_targ)
-            #             targ1y = -(rad * (vy / newlen)) + self.coords[0][1]
-            #             targ2y = -(rad * (vy / newlen)) + self.coords[1][1]
-            #             targ3y = -(rad * (vy / newlen)) + self.coords[2][1]
-            #             targ4y = -(rad * (vy / newlen)) + self.coords[3][1]
-
-
-            #         target1 = (int(targ1x), int(targ1y))
-            #         target2 = (int(targ2x), int(targ2y))
-            #         target3 = (int(targ3x), int(targ3y))
-            #         target4 = (int(targ4x), int(targ4y))
-
-            # else:
-            #     targ1x = (rad * (vx / newlen)) + center[0]
-            #     targ1y = (rad * (vy / newlen)) + center[1]
-            #     targ3x = (rad * (vx / newlen)) + right[0]
-            #     targ3y = (rad * (vy / newlen)) + right[1]
-
-            #     target1 = (int(targ1x), int(targ1y))
-            #     target3 = (int(targ3x), int(targ3y))
-            #     target2 = (int((np.abs(target1[0] + target3[0])) / 2), int(np.abs((target1[1] + target3[1])) / 2))
-
-            # im2 = cv2.imread(image_path, -1)
-
-            # # kernel = np.ones((2, 2), np.uint16)
-            # # im2 = cv2.erode(im2, kernel, iterations=1)
-            # # im2 = cv2.dilate(im2, kernel, iterations=1)
-
-    #         if camera_model == "Survey2" and fil == "Red + NIR (NDVI)":
-    #             blue = im2[:, :, 0]
-    #             green = im2[:, :, 1]
-    #             red = im2[:, :, 2] - (im2[:, :, 0] * 0.80)
-
-    #             if "JPG" in os.path.splitext(image_path)[1]:
-    #                 red[red > 255.0] = 255.0
-    #                 red[red < 0.0] = 0.0
-    #                 red = red.astype("uint8")
-
-    #             else:
-    #                 red[red > 65535.0] = 65535.0
-    #                 red[red < 0.0] = 0.0
-    #                 red = red.astype("uint16")
-
-    #             im2 =  cv2.merge((blue, green, red))
-
-
-    #         if self.check_if_RGB(camera_model, fil, lens):
-    #             try:
-    #                 targ1values = im2[(target1[1] - int((pixelinch * 0.75) / 2)):(target1[1] + int((pixelinch * 0.75) / 2)),
-    #                               (target1[0] - int((pixelinch * 0.75) / 2)):(target1[0] + int((pixelinch * 0.75) / 2))]
-
-
-    #                 targ2values = im2[(target2[1] - int((pixelinch * 0.75) / 2)):(target2[1] + int((pixelinch * 0.75) / 2)),
-    #                               (target2[0] - int((pixelinch * 0.75) / 2)):(target2[0] + int((pixelinch * 0.75) / 2))]
-
-    #                 targ3values = im2[(target3[1] - int((pixelinch * 0.75) / 2)):(target3[1] + int((pixelinch * 0.75) / 2)),
-    #                               (target3[0] - int((pixelinch * 0.75) / 2)):(target3[0] + int((pixelinch * 0.75) / 2))]
-    #             except Exception as e:
-    #                 exc_type, exc_obj,exc_tb = sys.exc_info()
-    #                 print(e)
-    #                 print("Line: " + str(exc_tb.tb_lineno))
-
-    #             t1redmean = np.mean(targ1values[:, :, 2])
-    #             t1greenmean = np.mean(targ1values[:, :, 1])
-    #             t1bluemean = np.mean(targ1values[:, :, 0])
-
-    #             t2redmean = np.mean(targ2values[:, :, 2])
-    #             t2greenmean = np.mean(targ2values[:, :, 1])
-    #             t2bluemean = np.mean(targ2values[:, :, 0])
-
-    #             t3redmean = np.mean(targ3values[:, :, 2])
-    #             t3greenmean = np.mean(targ3values[:, :, 1])
-    #             t3bluemean = np.mean(targ3values[:, :, 0])
-
-    #             yred = []
-    #             yblue = []
-    #             ygreen = []
-    #             if self.is_calibration_target_version_2():
-    #                 if len(self.coords) > 0:
-    #                     targ4values = im2[(target4[1] - int((pixelinch * 0.75) / 2)):(target4[1] + int((pixelinch * 0.75) / 2)),
-    #                                   (target4[0] - int((pixelinch * 0.75) / 2)):(target4[0] + int((pixelinch * 0.75) / 2))]
-    #                     t4redmean = np.mean(targ4values[:, :, 2])
-    #                     t4greenmean = np.mean(targ4values[:, :, 1])
-    #                     t4bluemean = np.mean(targ4values[:, :, 0])
-    #                     yred = [0.87, 0.51, 0.23, 0.0]
-    #                     yblue = [0.87, 0.51, 0.23, 0.0]
-    #                     ygreen = [0.87, 0.51, 0.23, 0.0]
-
-    #                     xred = [t1redmean, t2redmean, t3redmean, t4redmean]
-    #                     xgreen = [t1greenmean, t2greenmean, t3greenmean, t4greenmean]
-    #                     xblue = [t1bluemean, t2bluemean, t3bluemean, t4bluemean]
-
-    #                 #self.print_center_targs(image_path, targ1values, targ2values, targ3values, targ4values, target1, target2, target3, target4, angle)
-
-    #             else:
-    #                 yred = [0.87, 0.51, 0.23]
-    #                 yblue = [0.87, 0.51, 0.23]
-    #                 ygreen = [0.87, 0.51, 0.23]
-
-    #                 xred = [t1redmean, t2redmean, t3redmean]
-    #                 xgreen = [t1greenmean, t2greenmean, t3greenmean]
-    #                 xblue = [t1bluemean, t2bluemean, t3bluemean]
-
-    #             if ((camera_model == "Survey3" and fil == "RGN") or (camera_model == "DJI Phantom 4 Pro")
-    #                     or (camera_model == "Kernel 14.4" and fil =="550/660/850")):
-    #                 yred = self.refvalues[self.ref]["550/660/850"][0]
-    #                 ygreen = self.refvalues[self.ref]["550/660/850"][1]
-    #                 yblue = self.refvalues[self.ref]["550/660/850"][2]
-
-    #             elif ((camera_model == "Survey3" and fil == "NGB")
-    #                 or (camera_model == "Kernel 14.4" and fil == "475/550/850")):
-
-    #                 yred = self.refvalues[self.ref]["475/550/850"][0]
-    #                 ygreen = self.refvalues[self.ref]["475/550/850"][1]
-    #                 yblue = self.refvalues[self.ref]["475/550/850"][2]
-
-    #             elif (camera_model == "Survey3" and fil == "OCN") or (camera_model == "Kernel 14.4" and fil == "OCN"):
-
-    #                 yred = self.refvalues[self.ref]["490/615/808"][0]
-    #                 ygreen = self.refvalues[self.ref]["490/615/808"][1]
-    #                 yblue = self.refvalues[self.ref]["490/615/808"][2]
-
-    #             else: #Survey 2 - NDVI
-    #                 yred = self.refvalues[self.ref]["660/850"][0]
-    #                 ygreen = self.refvalues[self.ref]["660/850"][1]
-    #                 yblue = self.refvalues[self.ref]["660/850"][2]
-
-    #             if self.get_filetype(image_path) == "JPG":
-    #                 xred = [x / 255 for x in xred]
-    #                 xgreen = [x / 255 for x in xgreen]
-    #                 xblue = [x / 255 for x in xblue]
-
-    #             elif self.get_filetype(image_path) == "TIF":
-    #                 xred = [x / 65535 for x in xred]
-    #                 xgreen = [x / 65535 for x in xgreen]
-    #                 xblue = [x / 65535 for x in xblue]
-
-    #             xred, yred = self.check_exposure_quality(xred, yred)
-    #             xgreen, ygreen = self.check_exposure_quality(xgreen, ygreen)
-    #             xblue, yblue = self.check_exposure_quality(xblue, yblue)
-
-    #             if any(item == 1 or item == 0 or np.isnan(item) for item in xred + xgreen + xblue):
-    #                 raise Exception("Provided calibration target photo is not generating good calibration values. Please use another calibration target photo.")
-
-    #             x_channels = [xred, xgreen, xblue]
-
-    #             if self.bad_target_photo(x_channels):
-    #                 self.CalibrationLog.append("WARNING: Provided calibration target photo is not generating good calibration values. For optimal calibration, please use another calibration target photo or check that white balance and exposure settings are set to default values. \n")
-
-    #             red_slope, red_intercept = self.get_LOBF_values(xred, yred)
-    #             green_slope, green_intercept = self.get_LOBF_values(xgreen, ygreen)
-    #             blue_slope, blue_intercept = self.get_LOBF_values(xblue, yblue)
-
-    #             #return cofr, cofg, cofb
-    #             self.multiplication_values["red"]["slope"] = red_slope
-    #             self.multiplication_values["red"]["intercept"] = red_intercept
-
-    #             self.multiplication_values["green"]["slope"] = green_slope
-    #             self.multiplication_values["green"]["intercept"] = green_intercept
-
-    #             self.multiplication_values["blue"]["slope"] = blue_slope
-    #             self.multiplication_values["blue"]["intercept"] = blue_intercept
-
-    #             if (camera_model == "Survey2" and fil == "Red + NIR (NDVI)"):
-    #                 self.multiplication_values["green"]["slope"] = 1
-    #                 self.multiplication_values["green"]["intercept"] = 0
-
-
-    #             if self.is_calibration_target_version_2():
-    #                 if len(self.coords) > 0:
-    #                     self.CalibrationLog.append("Found QR Target Model 2, please proceed with calibration.")
-    #                 else:
-    #                     self.CalibrationLog.append("Could not find Calibration Target.")
-    #             else:
-    #                 self.CalibrationLog.append("Found QR Target Model 1, please proceed with calibration.")
-
-    #         else:
-    #             if self.is_calibration_target_version_2():
-    #                 if len(self.coords) > 0:
-    #                     targ1values = im2[(target1[1] - int((pixelinch * 0.75) / 2)):(target1[1] + int((pixelinch * 0.75) / 2)),
-    #                                   (target1[0] - int((pixelinch * 0.75) / 2)):(target1[0] + int((pixelinch * 0.75) / 2))]
-    #                     targ2values = im2[(target2[1] - int((pixelinch * 0.75) / 2)):(target2[1] + int((pixelinch * 0.75) / 2)),
-    #                                   (target2[0] - int((pixelinch * 0.75) / 2)):(target2[0] + int((pixelinch * 0.75) / 2))]
-    #                     targ3values = im2[(target3[1] - int((pixelinch * 0.75) / 2)):(target3[1] + int((pixelinch * 0.75) / 2)),
-    #                                   (target3[0] - int((pixelinch * 0.75) / 2)):(target3[0] + int((pixelinch * 0.75) / 2))]
-    #                     targ4values = im2[(target4[1] - int((pixelinch * 0.75) / 2)):(target4[1] + int((pixelinch * 0.75) / 2)),
-    #                                   (target4[0] - int((pixelinch * 0.75) / 2)):(target4[0] + int((pixelinch * 0.75) / 2))]
-
-    #                     # if (len(im2.shape) > 2):
-    #                     #     if fil in ["RE", "NIR", "Red"]:
-    #                     #         channel_index = 2
-    #                     #     elif fil in ["Green"]:
-    #                     #         channel_index = 1
-    #                     #     elif fil in ["Blue"]:
-    #                     #         channel_index = 0
-
-    #                     #     t1mean = np.mean(targ1values[:,:,channel_index])
-    #                     #     t2mean = np.mean(targ2values[:,:,channel_index])
-    #                     #     t3mean = np.mean(targ3values[:,:,channel_index])
-    #                     #     t4mean = np.mean(targ4values[:,:,channel_index])
-
-    #                     if (len(im2.shape) > 2) and fil in ["RE", "NIR", "Red"]:
-    #                         t1mean = np.mean(targ1values[:,:,2])
-    #                         t2mean = np.mean(targ2values[:,:,2])
-    #                         t3mean = np.mean(targ3values[:,:,2])
-    #                         t4mean = np.mean(targ4values[:,:,2])
-
-    #                     elif (len(im2.shape) > 2) and fil in ["Green"]:
-    #                         t1mean = np.mean(targ1values[:,:,1])
-    #                         t2mean = np.mean(targ2values[:,:,1])
-    #                         t3mean = np.mean(targ3values[:,:,1])
-    #                         t4mean = np.mean(targ4values[:,:,1])
-
-    #                     elif (len(im2.shape) > 2) and fil in ["Blue"]:
-    #                         t1mean = np.mean(targ1values[:,:,0])
-    #                         t2mean = np.mean(targ2values[:,:,0])
-    #                         t3mean = np.mean(targ3values[:,:,0])
-    #                         t4mean = np.mean(targ4values[:,:,0])
-
-    #                     else:
-    #                         t1mean = np.mean(targ1values)
-    #                         t2mean = np.mean(targ2values)
-    #                         t3mean = np.mean(targ3values)
-    #                         t4mean = np.mean(targ4values)
-
-    #                     y = [0.87, 0.51, 0.23, 0.0]
-    #                     x = [t1mean, t2mean, t3mean, t4mean]
-    #             else:
-    #                 targ1values = im2[
-    #                     (target1[1] - int((pixelinch * 0.75) / 2)):(target1[1] + int((pixelinch * 0.75) / 2)),
-    #                     (target1[0] - int((pixelinch * 0.75) / 2)):(target1[0] + int((pixelinch * 0.75) / 2))
-    #                 ]
-
-    #                 targ2values = im2[
-    #                     (target2[1] - int((pixelinch * 0.75) / 2)):(target2[1] + int((pixelinch * 0.75) / 2)),
-    #                     (target2[0] - int((pixelinch * 0.75) / 2)):(target2[0] + int((pixelinch * 0.75) / 2))
-    #                 ]
-
-    #                 targ3values = im2[
-    #                     (target3[1] - int((pixelinch * 0.75) / 2)):(target3[1] + int((pixelinch * 0.75) / 2)),
-    #                     (target3[0] - int((pixelinch * 0.75) / 2)):(target3[0] + int((pixelinch * 0.75) / 2))
-    #                 ]
-
-
-    #                 if (len(im2.shape) > 2) and fil in ["RE", "NIR", "Red"]:
-    #                     t1mean = np.mean(targ1values[:,:,2])
-    #                     t2mean = np.mean(targ2values[:,:,2])
-    #                     t3mean = np.mean(targ3values[:,:,2])
-
-    #                 elif (len(im2.shape) > 2) and fil in ["Green"]:
-    #                     t1mean = np.mean(targ1values[:,:,1])
-    #                     t2mean = np.mean(targ2values[:,:,1])
-    #                     t3mean = np.mean(targ3values[:,:,1])
-
-    #                 elif (len(im2.shape) > 2) and fil in ["Blue"]:
-    #                     t1mean = np.mean(targ1values[:,:,0])
-    #                     t2mean = np.mean(targ2values[:,:,0])
-    #                     t3mean = np.mean(targ3values[:,:,0])
-    #                 else:
-    #                     t1mean = np.mean(targ1values)
-    #                     t2mean = np.mean(targ2values)
-    #                     t3mean = np.mean(targ3values)
-    #                 y = [0.87, 0.51, 0.23]
-    #                 x = [t1mean, t2mean, t3mean]
-
-
-    #             if (fil == "NIR" and (camera_model in ["Survey2", "Survey3"])):
-    #                 y = self.refvalues[self.ref]["850"][0]
-
-    #             elif camera_model == "Survey2" and fil == "Red":
-    #                 y = self.refvalues[self.ref]["650"][0]
-
-    #             elif camera_model == "Survey2" and fil == "Green":
-    #                 y = self.refvalues[self.ref]["550"][1]
-
-    #             elif camera_model == "Survey2" and fil == "Blue":
-    #                 y = self.refvalues[self.ref]["450"][2]
-
-    #             elif fil in ['405', '450', '490', '518', '550', '590', '615', '632', '650', '685', '725', '808', '850']:
-    #                 mono_fil = 'Mono' + fil
-    #                 y = self.refvalues[self.ref][mono_fil]
-
-    #             elif fil == "RE":
-    #                 y = self.refvalues[self.ref]["725"]
-
-
-    #             if self.get_filetype(image_path) == "JPG":
-    #                 x = [i / 255 for i in x]
-
-    #             elif self.get_filetype(image_path) == "TIF":
-    #                 x = [i / 65535 for i in x]
-
-    #             if self.bad_target_photo([x]):
-    #                 self.CalibrationLog.append("WARNING: Provided calibration target photo is not generating good calibration values. For optimal calibration, please use another calibration target photo or check that white balance and exposure settings are set to defualt values. \n")
-
-    #             slope, intercept = self.get_LOBF_values(x, y)
-
-    #             self.multiplication_values["mono"]["slope"] = slope
-    #             self.multiplication_values["mono"]["intercept"] = intercept
-
-    #             if version == "V2":
-    #                 if len(self.coords) > 0:
-    #                     self.CalibrationLog.append("Found QR Target Model 2, please proceed with calibration.")
-    #                 else:
-    #                     self.CalibrationLog.append("Could not find Calibration Target.")
-    #             else:
-    #                 self.CalibrationLog.append("Found QR Target Model 1, please proceed with calibration.")
-    #             QtWidgets.QApplication.processEvents()
-
-    #     except Exception as e:
-    #         exc_type, exc_obj, exc_tb = sys.exc_info()
-    #         print(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
-    #         self.CalibrationLog.append("Error: " + str(e))
-    #         return
-    #         # slope, intcpt, r_value, p_value, std_err = stats.linregress(x, y)
-    #         # self.CalibrationLog.append("Found QR Target, please proceed with calibration.")
-    #         #
-    #         # return [intcpt, slope]
-    # # Calibration Steps: End
-
-    # # Helper functions
-    # # def debayer(self, m):
-    # #     r = m[0:: 2, 0:: 2]
-    # #     g = np.clip(m[1::2, 0::2] // 2 + m[0::2, 1::2] // 2, 0, 2**14 - 1)
-    # #     b = m[1:: 2, 1:: 2]
-    # #     # b = (((b - b.min()) / (b.max() - b.min())) * 65536.0).astype("uint16")
-    # #     # r = (((r - r.min()) / (r.max() - r.min())) * 65536.0).astype("uint16")
-    # #     # g = (((g - g.min()) / (g.max() - g.min())) * 65536.0).astype("uint16")
-    # #     return np.dstack([b, g, r])
+        # Calibration Steps: End
 
     def output_mono_band_validation(self):
         camera_model = self.PreProcessCameraModel.currentText()
