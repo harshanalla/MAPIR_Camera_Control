@@ -3247,19 +3247,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
             elif self.any_calibration_target_image_selected(calibration_QR_file):
                 self.findQR(calibration_QR_file.text(), [calibration_camera_model, calibration_filter, calibration_lens])
-                # # TODO: refactor
-                # if qr_coeffs_index == 1:
-                #     self.qrcoeffs = copy.deepcopy(self.multiplication_values["mono"])
-                # if qr_coeffs_index == 2:
-                #     self.qrcoeffs2 = copy.deepcopy(self.multiplication_values["mono"])
-                # if qr_coeffs_index == 3:
-                #     self.qrcoeffs3 = copy.deepcopy(self.multiplication_values["mono"])
-                # if qr_coeffs_index == 4:
-                #     self.qrcoeffs4 = copy.deepcopy(self.multiplication_values["mono"])
-                # if qr_coeffs_index == 5:
-                #     self.qrcoeffs5 = copy.deepcopy(self.multiplication_values["mono"])
-                # if qr_coeffs_index == 6:
-                #     self.qrcoeffs6 = copy.deepcopy(self.multiplication_values["mono"])
 
                 self.qr_coeffs[qr_coeffs_index] = copy.deepcopy(self.multiplication_values["mono"])
                 self.useqr = True
@@ -3272,22 +3259,23 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.CalibrationLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
 
     def on_CalibrationGenButton_released(self):
-        self.generate_calibration(self.CalibrationCameraModel, self.CalibrationQRFile, self.CalibrationFilter, self.CalibrationLens, self.qrcoeffs, qr_coeffs_index=1)
+        self.generate_calibration(self.CalibrationCameraModel, self.CalibrationQRFile, self.CalibrationFilter, self.CalibrationLens, qr_coeffs_index=1)
         self.qrcoeffs = self.qr_coeffs[1]
+        print(self.multiplication_values)
     def on_CalibrationGenButton_2_released(self):
-        self.generate_calibration(self.CalibrationCameraModel_2, self.CalibrationQRFile_2, self.CalibrationFilter_2, self.CalibrationLens_2, self.qrcoeffs2, qr_coeffs_index=2)
+        self.generate_calibration(self.CalibrationCameraModel_2, self.CalibrationQRFile_2, self.CalibrationFilter_2, self.CalibrationLens_2, qr_coeffs_index=2)
         self.qrcoeffs2 = self.qr_coeffs[2]
     def on_CalibrationGenButton_3_released(self):
-        self.generate_calibration(self.CalibrationCameraModel_3, self.CalibrationQRFile_3, self.CalibrationFilter_3, self.CalibrationLens_3, self.qrcoeffs3, qr_coeffs_index=3)
+        self.generate_calibration(self.CalibrationCameraModel_3, self.CalibrationQRFile_3, self.CalibrationFilter_3, self.CalibrationLens_3, qr_coeffs_index=3)
         self.qrcoeffs3 = self.qr_coeffs[3]
     def on_CalibrationGenButton_4_released(self):
-        self.generate_calibration(self.CalibrationCameraModel_4, self.CalibrationQRFile_4, self.CalibrationFilter_4, self.CalibrationLens_4, self.qrcoeffs4, qr_coeffs_index=4)
+        self.generate_calibration(self.CalibrationCameraModel_4, self.CalibrationQRFile_4, self.CalibrationFilter_4, self.CalibrationLens_4, qr_coeffs_index=4)
         self.qrcoeffs4 = self.qr_coeffs[4]
     def on_CalibrationGenButton_5_released(self):
-        self.generate_calibration(self.CalibrationCameraModel_5, self.CalibrationQRFile_5, self.CalibrationFilter_5, self.CalibrationLens_5, self.qrcoeffs5, qr_coeffs_index=5)
+        self.generate_calibration(self.CalibrationCameraModel_5, self.CalibrationQRFile_5, self.CalibrationFilter_5, self.CalibrationLens_5, qr_coeffs_index=5)
         self.qrcoeffs5 = self.qr_coeffs[5]
     def on_CalibrationGenButton_6_released(self):
-        self.generate_calibration(self.CalibrationCameraModel_6, self.CalibrationQRFile_6, self.CalibrationFilter_6, self.CalibrationLens_6, self.qrcoeffs6, qr_coeffs_index=6)
+        self.generate_calibration(self.CalibrationCameraModel_6, self.CalibrationQRFile_6, self.CalibrationFilter_6, self.CalibrationLens_6, qr_coeffs_index=6)
         self.qrcoeffs6 = self.qr_coeffs[6]
 
     #Function that calibrates global max and mins
