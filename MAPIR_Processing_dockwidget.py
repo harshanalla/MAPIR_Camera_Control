@@ -669,15 +669,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                   "blue":  {"slope": 1.387381083964384, "intercept":  -0.2193633829181454}
                                  }
 
-    # BASE_COEFF_SURVEY3_RGN_TIF = {"red":   {"slope": 3.3823966319413326, "intercept": -0.025581742423831766},
-    #                               "green": {"slope": 2.0198257823722026, "intercept": -0.019624370783744682},
-    #                               "blue":  {"slope": 6.639688121967463, "intercept":  -0.025991734455270532}
-    #                              }
-
-    BASE_COEFF_SURVEY3_RGN_TIF = {
-                                    'blue':{'intercept': 0.6078914232583446, 'slope': -0.5233694385784161},
-                                    'green':{'intercept': 3.9966226779092056, 'slope': -4.218639617971096},
-                                    'red':{'intercept': 1.2907787483457058, 'slope': -1.2995711928050688}
+    BASE_COEFF_SURVEY3_RGN_TIF = {"red":   {"slope": 3.3823966319413326, "intercept": -0.025581742423831766},
+                                  "green": {"slope": 2.0198257823722026, "intercept": -0.019624370783744682},
+                                  "blue":  {"slope": 6.639688121967463, "intercept":  -0.025991734455270532}
                                  }
 
     BASE_COEFF_SURVEY3_OCN_JPG = {"red":   {"slope": 1.0228327654792326, "intercept": -0.1847085716228949},
