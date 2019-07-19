@@ -669,9 +669,15 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                   "blue":  {"slope": 1.387381083964384, "intercept":  -0.2193633829181454}
                                  }
 
-    BASE_COEFF_SURVEY3_RGN_TIF = {"red":   {"slope": 3.3823966319413326, "intercept": -0.025581742423831766},
-                                  "green": {"slope": 2.0198257823722026, "intercept": -0.019624370783744682},
-                                  "blue":  {"slope": 6.639688121967463, "intercept":  -0.025991734455270532}
+    # BASE_COEFF_SURVEY3_RGN_TIF = {"red":   {"slope": 3.3823966319413326, "intercept": -0.025581742423831766},
+    #                               "green": {"slope": 2.0198257823722026, "intercept": -0.019624370783744682},
+    #                               "blue":  {"slope": 6.639688121967463, "intercept":  -0.025991734455270532}
+    #                              }
+
+    BASE_COEFF_SURVEY3_RGN_TIF = {
+                                    'blue':{'intercept': 0.6078914232583446, 'slope': -0.5233694385784161},
+                                    'green':{'intercept': 3.9966226779092056, 'slope': -4.218639617971096},
+                                    'red':{'intercept': 1.2907787483457058, 'slope': -1.2995711928050688}
                                  }
 
     BASE_COEFF_SURVEY3_OCN_JPG = {"red":   {"slope": 1.0228327654792326, "intercept": -0.1847085716228949},
@@ -3643,19 +3649,15 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         for i, calfile in enumerate(files_to_calibrate):
 
                             cameramodel = ind
+                            self.append_calibrating_image_message_to_calibration_log(i, files_to_calibrate)
+                            QtWidgets.QApplication.processEvents()
                             if self.useqr:
                                 try:
-                                    self.append_calibrating_image_message_to_calibration_log(i, files_to_calibrate)
-                                    QtWidgets.QApplication.processEvents()
-
                                     self.CalibratePhotos(calfile, self.multiplication_values, self.pixel_min_max, outdir, ind)
                                 except Exception as e:
                                     exc_type, exc_obj,exc_tb = sys.exc_info()
                                     self.CalibrationLog.append(str(e))
                             else:
-                                self.append_calibrating_image_message_to_calibration_log(i, files_to_calibrate)
-                                QtWidgets.QApplication.processEvents()
-
                                 self.CalibratePhotos(calfile, base_coef, self.pixel_min_max, outdir, ind)
 
                     else:
@@ -4014,7 +4016,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
         if alpha is None:
             alpha = []
-        if alpha.any():
+        if not not alpha:
             alpha *= 2**bit_depth-1
             alpha = alpha.astype(int)
             alpha = alpha.astype(dtype)
@@ -4105,7 +4107,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         green = ((green - minpixel) / (maxpixel - minpixel))
         blue = ((blue - minpixel) / (maxpixel - minpixel))
 
-        if alpha.any():
+        if not not alpha:
             original_alpha_depth = alpha.max() - alpha.min()
             alpha = alpha / original_alpha_depth
 
@@ -4113,7 +4115,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
         if self.IndexBox.checkState() == self.UNCHECKED:
             red, green, blue, alpha = self.convert_calibrated_floats_to_bit_depth(16, red, green, blue, alpha)
-            if alpha.any():
+            if not not alpha:
                 refimg = cv2.merge((blue, green, red, alpha))
             else:
                 refimg = cv2.merge((blue, green, red))
