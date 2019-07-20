@@ -173,7 +173,7 @@ class eRegister(IntEnum):
     RG_NOISE_REDUCTION = 152
     RG_FLICKER_CORRECTION = 153
     RG_FORCE_BACKLIGHT = 154
-    RG_FACE_DETECTION       = 171
+    RG_FACE_DETECTION = 171
     RG_ACC_ROLL_L = 172
     RG_ACC_ROLL_H = 173
     RG_ACC_ROLL_SIGN = 174
@@ -198,6 +198,7 @@ class eRegister(IntEnum):
     RG_ACC_AZ_1 = 197
     RG_ACC_AZ_2 = 198
     RG_ACC_AZ_3 = 199
+    RG_FIRMWARE_MINOR_ID = 200
 
     # LED (PASSIVE)
     RG_PROCES_1_LED_COLOR   = 201

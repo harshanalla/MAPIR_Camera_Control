@@ -2,7 +2,7 @@ import glob
 import os
 from MAPIR_Processing_dockwidget import MAPIR_ProcessingDockWidget
 
-def test_findQR():
+# def test_findQR():
     
 
 def test_answer():

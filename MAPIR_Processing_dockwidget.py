@@ -1489,23 +1489,28 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.LUTwindow = Applicator(self)
         self.LUTwindow.resize(385, 160)
         self.LUTwindow.show()
-   
 
         QtWidgets.QApplication.processEvents()
-    def on_ViewerCalcButton_released(self):        
+    def on_ViewerCalcButton_released(self):
         if self.LUTwindow == None:
             self.calcwindow = Calculator(self)
 
         self.calcwindow.resize(685, 250)
         self.calcwindow.show()
         QtWidgets.QApplication.processEvents()
+    
+    def kernel_viewer_zoom_in(self):
+        factor = 1.15
+        self.KernelViewer.scale(factor, factor)
+    
+    def kernel_viewer_zoom_out(self):
+        factor = 1.15
+        self.KernelViewer.scale(1/factor, 1/factor)
 
     def on_ZoomIn_released(self):
         if self.image_loaded == True:
             try:
-                # self.KernelViewer.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorViewCenter)
-                factor = 1.15
-                self.KernelViewer.scale(factor, factor)
+                self.kernel_viewer_zoom_in()
             except Exception as e:
                 exc_type, exc_obj,exc_tb = sys.exc_info()
                 print(e)
@@ -1513,9 +1518,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def on_ZoomOut_released(self):
         if self.image_loaded == True:
             try:
-                # self.KernelViewer.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorViewCenter)
-                factor = 1.15
-                self.KernelViewer.scale(1/factor, 1/factor)
+                self.kernel_viewer_zoom_out()
             except Exception as e:
                 exc_type, exc_obj,exc_tb = sys.exc_info()
                 print(e)
@@ -1584,26 +1587,26 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def append_acceleration_value_to_kernel_panel(self, label, reg_values):
         self.KernelPanel.append(self.get_acceleration_value_string(label, reg_values))
 
-    # def append_acceleration_value_binary_to_kernel_panel(self, label, reg_values):
-    #     self.KernelPanel.append(label + str(convert_acceleration_reg_values_to_binary(reg_values)))
-
     def log_acceleration_values_to_kernel_panel(self):
         self.append_acceleration_value_to_kernel_panel(
-            'Accelerometer X Axis Float: ', [
+            # 'Accelerometer X Axis Float: ', [
+            'Yaw Float: ', [
                 self.getRegister(eRegister.RG_ACC_AX_0.value),
                 self.getRegister(eRegister.RG_ACC_AX_1.value),
                 self.getRegister(eRegister.RG_ACC_AX_2.value),
                 self.getRegister(eRegister.RG_ACC_AX_3.value),
             ])
         self.append_acceleration_value_to_kernel_panel(
-            'Accelerometer Y Axis Float: ', [
+            # 'Accelerometer Y Axis Float: ', [
+            'Pitch Float: ', [
                 self.getRegister(eRegister.RG_ACC_AY_0.value),
                 self.getRegister(eRegister.RG_ACC_AY_1.value),
                 self.getRegister(eRegister.RG_ACC_AY_2.value),
                 self.getRegister(eRegister.RG_ACC_AY_3.value),
             ])
         self.append_acceleration_value_to_kernel_panel(
-            'Accelerometer Z Axis Float: ', [
+            # 'Accelerometer Z Axis Float: ', [
+            'Roll Float: ', [
                 self.getRegister(eRegister.RG_ACC_AZ_0.value),
                 self.getRegister(eRegister.RG_ACC_AZ_1.value),
                 self.getRegister(eRegister.RG_ACC_AZ_2.value),
@@ -1760,10 +1763,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.KernelPanel.append("Array ID: " + str(arid))
 
             self.log_acceleration_values_to_kernel_panel()
-            self.log_yaw_pitch_roll_to_kernel_panel()
+            # self.log_yaw_pitch_roll_to_kernel_panel()
 
             self.KernelPanel.append("\n")
-            # self.KernelPanel.append("Serial Number: " + self.getSerialNumber())
 
             buf = [0] * 512
             buf[0] = self.SET_REGISTER_BLOCK_READ_REPORT
@@ -1773,11 +1775,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             serno = str(chr(st[2]) + chr(st[3]) + chr(st[4]) + chr(st[5]) + chr(st[6]) + chr(st[7]))
             self.KernelPanel.append("Serial #: " + serno)
 
-            self.KernelPanel.append("Camera Firmware: 1." + str(self.getRegister(eRegister.RG_FIRMWARE_ID.value)))
+            self.KernelPanel.append("Camera Firmware: 1." + str(self.getRegister(eRegister.RG_FIRMWARE_ID.value)) + '.' + str(self.getRegister(eRegister.RG_FIRMWARE_MINOR_ID)))
 
             self.KernelExposureMode.blockSignals(False)
-            # self.KernelShutterSpeed.blockSignals(False)
-            # self.KernelISO.blockSignals(False)
 
             self.KernelVideoOut.blockSignals(False)
             self.KernelFolderCount.blockSignals(False)
@@ -1791,8 +1791,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             self.KernelLog.append("Error: (" + str(e) + ' Line: ' + str(
                 exc_tb.tb_lineno) + ") updating interface.")
-        # self.KernelGain.blockSignals(False)
-        # self.KernelSetPoint.blockSignals(False)
+
     def on_KernelFolderButton_released(self):
         self.present_folder_select_dialog(self.KernelTransferFolder)
 
