@@ -4081,9 +4081,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             if refimg.dtype == 'uint8':
                 if 'tif' in photo.split('.')[-1].lower():
                     tiff = gdal.Open(photo, gdal.GA_ReadOnly)
-                    tiff_has_no_projection_data = tiff.GetProjection() == ''
-                    if not tiff_has_no_projection_data:
+                    tiff_has_projection_data = not tiff.GetProjection() == ''
+                    if tiff_has_projection_data:
                         bit_depth = 16
+                    else:
+                        bit_depth = 8
                 else:
                     bit_depth = 8
             elif refimg.dtype == 'uint16':

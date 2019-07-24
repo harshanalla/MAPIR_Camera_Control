@@ -1,8 +1,6 @@
-
+import collections
 import cv2
 import cv2.aruco as aruco
-from PIL import Image
-import collections
 from scipy import stats
 
 def is_grayscale_image(img):
@@ -13,7 +11,7 @@ def is_color_image(img):
 
 def show_detected_targets(target_img, corners, ids):
     draw_image = target_img.copy()
-    cv2.aruco.drawDetectedMarkers(draw_image, corners, ids)
+    aruco.drawDetectedMarkers(draw_image, corners, ids)
     resize = cv2.resize(draw_image, (2000, 1500), interpolation=cv2.INTER_LINEAR)
     cv2.imshow('frame', resize)
 
