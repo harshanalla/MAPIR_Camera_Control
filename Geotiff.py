@@ -43,28 +43,34 @@ class Geotiff:
         [cols, rows] = bands[0].shape
         num_bands = 4
 
+        # if image_data.dtype == 'uint8':
+        #     gdal_dtype = gdal.GDT_UInt8
+        # elif image_data.dtype == 'uint16':
+        #     gdal_dtype = gdal.GDT_UInt16
+        gdal_dtype = gdal.GDT_UInt16
+
         driver = gdal.GetDriverByName("GTiff")
         out_geotiff = driver.Create(
             out_geotiff_path,
             rows,
             cols,
             num_bands,
-            gdal.GDT_UInt16,
+            gdal_dtype,
             ['COMPRESS=LZW', 'PHOTOMETRIC=RGB', 'ALPHA=YES']
         )
         return out_geotiff
 
-    @staticmethod
-    def from_rgba(in_geotiff_path, image_data, out_geotiff_path):
-        out_geotiff = Geotiff.create_geotiff(image_data, out_geotiff_path)
+    # @staticmethod
+    # def from_rgba(in_geotiff_path, image_data, out_geotiff_path):
+    #     out_geotiff = Geotiff.create_geotiff(image_data, out_geotiff_path)
 
-        projection, geo_transform, gcps, gcp_projection = Geotiff.get_geo_data(in_geotiff_path)
+    #     projection, geo_transform, gcps, gcp_projection = Geotiff.get_geo_data(in_geotiff_path)
 
-        Geotiff.set_geo_data(out_geotiff, projection, geo_transform, gcps, gcp_projection)
+    #     Geotiff.set_geo_data(out_geotiff, projection, geo_transform, gcps, gcp_projection)
 
-        bands = Geotiff.get_bands_from_image_data(image_data)
-        nodata = -10000
-        Geotiff.write_bands_to_geotiff(out_geotiff, bands, nodata)
+    #     bands = Geotiff.get_bands_from_image_data(image_data)
+    #     nodata = -10000
+    #     Geotiff.write_bands_to_geotiff(out_geotiff, bands, nodata)
 
-        out_geotiff.FlushCache()
-        out_geotiff = None
+    #     out_geotiff.FlushCache()
+    #     out_geotiff = None

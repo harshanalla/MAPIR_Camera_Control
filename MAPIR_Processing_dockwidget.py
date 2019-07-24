@@ -55,6 +55,8 @@ import json
 import math
 import webbrowser
 import Calibration
+import geometry
+from bit_depth_conversion import normalize, normalize_rgb
 from camera_specs import CameraSpecs
 
 from MAPIR_Enums import *
@@ -67,11 +69,12 @@ import xml.etree.ElementTree as ET
 import KernelConfig
 from MAPIR_Converter import *
 from Exposure import *
-from Geometry import *
+# from Geometry import *
 from ArrayTypes import AdjustYPR, CurveAdjustment
 from reg_value_conversion import *
 from ExifUtils import *
 from Geotiff import *
+
 
 modpath = os.path.dirname(os.path.realpath(__file__))
 
@@ -92,31 +95,35 @@ if sys.platform == "win32":
 # if sys.platform == "win32":
 #       import exiftool
 #       exiftool.executable = modpath + os.sep + "exiftool.exe"
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_base.ui'))
-MODAL_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_modal.ui'))
-CAN_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_CAN.ui'))
-TIME_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_time.ui'))
-# DEL_CLASS, _ = uic.loadUiType(os.path.join(
-#     os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_delete.ui'))
-TRANSFER_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_transfer.ui'))
-ADVANCED_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_Advanced.ui'))
-MATRIX_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_matrix.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_base.ui'))
+MODAL_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_modal.ui'))
+CAN_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_CAN.ui'))
+TIME_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_time.ui'))
+# DEL_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_delete.ui'))
+TRANSFER_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_transfer.ui'))
+ADVANCED_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_Advanced.ui'))
+MATRIX_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_matrix.ui'))
 
 class DebayerMatrix(QtWidgets.QDialog, MATRIX_CLASS):
     parent = None
 
-    GAMMA_LIST = [{"CCM": [1,0,0,0,1,0,0,0,1], "RGB_OFFSET": [0,0,0], "GAMMA": [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0]},
-                  {"CCM": [1,0,1.402,1,-0.34414,-0.71414,1,1.772,0], "RGB_OFFSET": [0, 0, 0],
-                   "GAMMA": [2.3,1.3,2.3,0.3,0.3,0.3,2.3,2.3,1,2,1,2,2,2,1,2,1,2,2,0,2,0,2,0]},
-                  {"CCM": [3.2406,-1.5372,-0.498,-0.9689,1.8756,0.0415,0.0557,-0.2040,1.0570 ], "RGB_OFFSET": [0, 0, 0],
-                   "GAMMA": [7.0,0.0,6.5,3.0,6.0,8.0,5.5,13.0,5.0,22.0,4.5,38.0,3.5,102.0,2.5,230.0,1.75,422.0,1.25,679.0,0.875,1062.0,0.625,1575.0]},]
+    GAMMA_LIST = [
+        {
+            "CCM": [1,0,0,0,1,0,0,0,1],
+            "RGB_OFFSET": [0,0,0],
+            "GAMMA": [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0]
+        },
+        {
+            "CCM": [1,0,1.402,1,-0.34414,-0.71414,1,1.772,0],
+            "RGB_OFFSET": [0, 0, 0],
+            "GAMMA": [2.3,1.3,2.3,0.3,0.3,0.3,2.3,2.3,1,2,1,2,2,2,1,2,1,2,2,0,2,0,2,0]
+        },
+        {
+            "CCM": [3.2406,-1.5372,-0.498,-0.9689,1.8756,0.0415,0.0557,-0.2040,1.0570 ],
+            "RGB_OFFSET": [0, 0, 0],
+            "GAMMA": [7.0,0.0,6.5,3.0,6.0,8.0,5.5,13.0,5.0,22.0,4.5,38.0,3.5,102.0,2.5,230.0,1.75,422.0,1.25,679.0,0.875,1062.0,0.625,1575.0]
+        }
+    ]
 
     def __init__(self, parent=None):
         """Constructor."""
@@ -126,9 +133,6 @@ class DebayerMatrix(QtWidgets.QDialog, MATRIX_CLASS):
         self.setupUi(self)
 
     def on_ModalSaveButton_released(self):
-
-
-
         self.close()
 
     def on_ModalCancelButton_released(self):
@@ -295,28 +299,6 @@ class KernelTransfer(QtWidgets.QDialog, TRANSFER_CLASS):
         QtWidgets.QApplication.processEvents()
         self.close()
 
-# class KernelDelete(QtWidgets.QDialog, DEL_CLASS):
-#     parent = None
-#
-#     def __init__(self, parent=None):
-#         """Constructor."""
-#         super(KernelDelete, self).__init__(parent=parent)
-#         self.parent = parent
-#
-#         self.setupUi(self)
-#
-#     def on_ModalSaveButton_released(self):
-#         for drv in self.parent.driveletters:
-#             if os.path.isdir(drv + r":" + os.sep + r"dcim"):
-#                 # try:
-#                 files = glob.glob(drv + r":" + os.sep + r"dcim/*/*")
-#                 for file in files:
-#                     os.unlink(file)
-#         self.close()
-#
-#     def on_ModalCancelButton_released(self):
-#         self.close()
-
 class KernelModal(QtWidgets.QDialog, MODAL_CLASS):
     parent = None
 
@@ -356,14 +338,6 @@ class KernelModal(QtWidgets.QDialog, MODAL_CLASS):
         self.parent.days = days
         self.parent.weeks = weeks
         self.parent.writeToIntervalLine()
-
-        # weeks /= 604800
-        # days /= 86400
-        # hours /= 3600
-        # minutes /= 60
-        # seconds += minutes + hours + days + weeks
-        #
-        # MAPIR_ProcessingDockWidget.interval = int(seconds)
         self.close()
 
     def on_ModalCancelButton_released(self):
@@ -3159,7 +3133,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             if len(infolder) == 0:
                 self.PreProcessLog.append("Attention! Please select an input folder.\n")
                 return 0
-            
+
             outdir = self.PreProcessOutFolder.text()
             if len(outdir) == 0:
                 self.PreProcessLog.append("Attention! No Output folder selected, creating output under input folder.\n")
@@ -3173,9 +3147,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 else:
                     os.mkdir(outfolder)
                     endloop = True
-
-            # self.PreProcessLog.append("Input folder: " + infolder)
-            # self.PreProcessLog.append("Output folder: " + outfolder)
             try:
                 start = time.time()
                 self.preProcessHelper(infolder, outfolder)
@@ -3187,9 +3158,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             except Exception as e:
                 exc_type, exc_obj,exc_tb = sys.exc_info()
                 self.PreProcessLog.append(str(e))
-            
-            # if os.path.exists(modpath + os.sep + 'Vig'):
-            #     shutil.rmtree(modpath + os.sep + 'Vig')
+
 
                 # Pre-Process Steps: End
 
@@ -3329,12 +3298,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     # def make_calibration_out_dir(self):
     def get_files_to_calibrate(self):
         files = []
-        files.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
-        files.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
-        files.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
-        files.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
+        files.extend(MAPIR_ProcessingDockWidget.get_tiff_files_in_dir('.'))
+        files.extend(MAPIR_ProcessingDockWidget.get_jpg_files_in_dir('.'))
         return files
-    
+
     # def get_calibration_out_path(self, parent_dirname, folder_count):
     #     parent_dirname + os.sep + "Calibrated_" + str(folder_count)
 
@@ -3999,29 +3966,24 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         self.histogram_clip_channel(green, global_HC_max)
         self.histogram_clip_channel(blue, global_HC_max)
 
-    def convert_calibrated_floats_to_bit_depth(self, bit_depth, red, green, blue, alpha=None):
+    @staticmethod
+    def convert_normalized_layer_to_bit_depth(layer, bit_depth):
+        layer *= 2**bit_depth-1
+        layer = layer.astype(int)
+        dtype = 'uint' + str(bit_depth)
+        layer = layer.astype(dtype)
+        return layer
 
-        red *= 2**bit_depth-1
-        green *= 2**bit_depth-1
-        blue *= 2**bit_depth-1
-
-        red = red.astype(int)
-        green = green.astype(int)
-        blue = blue.astype(int)
-
-        dtype = "uint" + str(bit_depth)
-
-        red = red.astype(dtype)
-        green = green.astype(dtype)
-        blue = blue.astype(dtype)
+    def convert_normalized_image_to_bit_depth(self, bit_depth, red, green, blue, alpha=None):
+        red = MAPIR_ProcessingDockWidget.convert_normalized_layer_to_bit_depth(red, bit_depth)
+        green = MAPIR_ProcessingDockWidget.convert_normalized_layer_to_bit_depth(green, bit_depth)
+        blue = MAPIR_ProcessingDockWidget.convert_normalized_layer_to_bit_depth(blue, bit_depth)
 
         if alpha is None:
             alpha = []
         if not alpha == []:
-            alpha *= 2**bit_depth-1
-            alpha = alpha.astype(int)
-            alpha = alpha.astype(dtype)
-            # self.print_2d_list_frequencies(13228, alpha)
+            alpha = MAPIR_ProcessingDockWidget.convert_normalized_layer_to_bit_depth(alpha, bit_depth)
+            # MAPIR_ProcessingDockWidget.print_2d_list_frequencies(13228, alpha)
 
         return red, green, blue, alpha
 
@@ -4060,7 +4022,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     #     in_geotiff = None
     #     calibrated_image = None
 
-    def print_2d_list_frequencies(self, size, list):
+    @staticmethod
+    def print_2d_list_frequencies(size, list):
         frequencies = collections.Counter([])
         for i in range(size):
             row = list[i]
@@ -4106,22 +4069,32 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.histogram_clip_image(red, green, blue, global_HC_max)
             maxpixel = global_HC_max
 
-        red = ((red - minpixel) / (maxpixel - minpixel))
-        green = ((green - minpixel) / (maxpixel - minpixel))
-        blue = ((blue - minpixel) / (maxpixel - minpixel))
+        red, green, blue = normalize_rgb(red, green, blue, maxpixel, minpixel)
 
         if has_alpha_layer:
             original_alpha_depth = alpha.max() - alpha.min()
             alpha = alpha / original_alpha_depth
 
-        # self.print_2d_list_frequencies(13228, alpha)
+        # MAPIR_ProcessingDockWidget.print_2d_list_frequencies(13228, alpha)
 
         if self.IndexBox.checkState() == self.UNCHECKED:
-            red, green, blue, alpha = self.convert_calibrated_floats_to_bit_depth(16, red, green, blue, alpha)
-            if has_alpha_layer:
-                refimg = cv2.merge((blue, green, red, alpha))
+            if refimg.dtype == 'uint8':
+                if 'tif' in photo.split('.')[-1].lower():
+                    tiff = gdal.Open(photo, gdal.GA_ReadOnly)
+                    tiff_has_no_projection_data = tiff.GetProjection() == ''
+                    if not tiff_has_no_projection_data:
+                        bit_depth = 16
+                else:
+                    bit_depth = 8
+            elif refimg.dtype == 'uint16':
+                bit_depth = 16
             else:
-                refimg = cv2.merge((blue, green, red))
+                raise Exception('Calibration input image should be 8-bit or 16-bit')
+
+            # self.convert_normalized_image_to_bit_depth(bit_depth, red, green, blue, alpha)
+            red, green, blue, alpha = self.convert_normalized_image_to_bit_depth(bit_depth, red, green, blue, alpha)
+            layers = (blue, green, red, alpha) if has_alpha_layer else (blue, green, red)
+            refimg = cv2.merge(layers)
 
         else: #Float to Index
             red = red.astype("float32")
@@ -4202,19 +4175,14 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def check_if_RGB(self, camera, filt, lens): #Kernel 14.4, Survey 3 - RGBs, and Phantoms
         if camera in self.DJIS:
             return True
-
         elif (camera == "Survey3" and filt not in ["RE", "NIR"]):
             return True
-
         elif camera == "Kernel 14.4":
             return True
-
         elif camera == "Survey2" and filt == "Red + NIR (NDVI)":
             return True
-
         elif camera == "Survey2" and filt == "RGB":
             return True
-
         else:
             return False
 
@@ -4375,27 +4343,28 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     QtWidgets.QApplication.processEvents()
                     return
 
-            line1 = Geometry.get_distance_between_two_points(self.coords[0], self.coords[1])
-            line2 = Geometry.get_distance_between_two_points(self.coords[1], self.coords[2])
-            line3 = Geometry.get_distance_between_two_points(self.coords[2], self.coords[0])
+            line1 = geometry.distance(self.coords[0], self.coords[1])
+            line2 = geometry.distance(self.coords[1], self.coords[2])
+            line3 = geometry.distance(self.coords[2], self.coords[0])
             hypotenuse = max([line1, line2, line3])
 
             #Finding Version 2 Target
             if version == "V2":
-                slope = (self.coords[2][1] - self.coords[1][1]) / (self.coords[2][0] - self.coords[1][0])
-                dist = self.coords[0][1] - (slope * self.coords[0][0]) + ((slope * self.coords[2][0]) - self.coords[2][1])
-                dist /= np.sqrt(np.power(slope, 2) + 1)
                 center = self.coords[0]
                 right = self.coords[1]
                 bottom = self.coords[2]
 
-                slope_center_right = (center[1] - right[1]) / (center[0] - right[0])
-                angle = abs(math.degrees(math.atan(slope_center_right)))
+                slope = geometry.slope(right, bottom)
+                dist = center[1] - (slope * center[0]) + ((slope * bottom[0]) - bottom[1])
+                dist /= np.sqrt(np.power(slope, 2) + 1)
+                # (center_y - slope * center_x + slope * bottom_x - bottom_y) / sqrt(slope^2 + 1)
+
+                slope_right_to_center = geometry.slope(right, center)
+                angle = abs(math.degrees(math.atan(slope_right_to_center)))
 
             else:
                 if hypotenuse == line1:
-
-                    slope = (self.coords[1][1] - self.coords[0][1]) / (self.coords[1][0] - self.coords[0][0])
+                    slope = geometry.slope(self.coords[0], self.coords[1])
                     dist = self.coords[2][1] - (slope * self.coords[2][0]) + ((slope * self.coords[1][0]) - self.coords[1][1])
                     dist /= np.sqrt(np.power(slope, 2) + 1)
                     center = self.coords[2]
@@ -4409,8 +4378,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         bottom = self.coords[1]
                         right = self.coords[0]
                 elif hypotenuse == line2:
-
-                    slope = (self.coords[2][1] - self.coords[1][1]) / (self.coords[2][0] - self.coords[1][0])
+                    slope = geometry.slope(self.coords[1], self.coords[2])
                     dist = self.coords[0][1] - (slope * self.coords[0][0]) + ((slope * self.coords[2][0]) - self.coords[2][1])
                     dist /= np.sqrt(np.power(slope, 2) + 1)
                     center = self.coords[0]
@@ -4424,8 +4392,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         bottom = self.coords[2]
                         right = self.coords[1]
                 else:
-
-                    slope = (self.coords[0][1] - self.coords[2][1]) / (self.coords[0][0] - self.coords[2][0])
+                    slope = geometry.slope(self.coords[2], self.coords[0])
                     dist = self.coords[1][1] - (slope * self.coords[1][0]) + ((slope * self.coords[0][0]) - self.coords[0][1])
                     dist /= np.sqrt(np.power(slope, 2) + 1)
                     center = self.coords[1]
@@ -4496,7 +4463,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             # kernel = np.ones((2, 2), np.uint16)
             # im2 = cv2.erode(im2, kernel, iterations=1)
             # im2 = cv2.dilate(im2, kernel, iterations=1)
-            
             if camera_model == "Survey2" and fil == "Red + NIR (NDVI)":
                 blue = im2[:, :, 0]
                 green = im2[:, :, 1]
@@ -4571,7 +4537,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     xred = [t1redmean, t2redmean, t3redmean]
                     xgreen = [t1greenmean, t2greenmean, t3greenmean]
                     xblue = [t1bluemean, t2bluemean, t3bluemean]
-    
+
                 if ((camera_model == "Survey3" and fil == "RGN") or (camera_model == "DJI Phantom 4 Pro") 
                         or (camera_model == "Kernel 14.4" and fil =="550/660/850")):
                     yred = self.refvalues[self.ref]["550/660/850"][0]
@@ -4596,7 +4562,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     ygreen = self.refvalues[self.ref]["660/850"][1]
                     yblue = self.refvalues[self.ref]["660/850"][2]
 
-                if self.get_filetype(image_path) == "JPG":   
+                if self.get_filetype(image_path) == "JPG":
                     xred = [x / 255 for x in xred]
                     xgreen = [x / 255 for x in xgreen]
                     xblue = [x / 255 for x in xblue]
@@ -4686,14 +4652,14 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 else:
                     targ1values = im2[(target1[1] - int((pixelinch * 0.75) / 2)):(target1[1] + int((pixelinch * 0.75) / 2)),
                                   (target1[0] - int((pixelinch * 0.75) / 2)):(target1[0] + int((pixelinch * 0.75) / 2))]
-            
+
                     targ2values = im2[(target2[1] - int((pixelinch * 0.75) / 2)):(target2[1] + int((pixelinch * 0.75) / 2)),
                                   (target2[0] - int((pixelinch * 0.75) / 2)):(target2[0] + int((pixelinch * 0.75) / 2))]
 
                     targ3values = im2[(target3[1] - int((pixelinch * 0.75) / 2)):(target3[1] + int((pixelinch * 0.75) / 2)),
                                   (target3[0] - int((pixelinch * 0.75) / 2)):(target3[0] + int((pixelinch * 0.75) / 2))]
 
-       
+
                     if (len(im2.shape) > 2) and fil in ["RE", "NIR", "Red"]:
                         t1mean = np.mean(targ1values[:,:,2])
                         t2mean = np.mean(targ2values[:,:,2])
@@ -4777,12 +4743,38 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         if not ((camera_model in ["Survey2", "Survey3"]) and (filt in ["RE", "NIR", "Red", "Blue", "Green"])):
             self.PreProcessLog.append("WARNING: Outputting mono band for filter {} is not supported for Calibration Tab \n".format(filt))
 
+    @staticmethod
+    def get_mapir_files_in_dir(dir_name):
+        return glob.glob(dir_name + os.sep + "*.[mM][aA][pP][iI][rR]")
+
+    @staticmethod
+    def get_raw_files_in_dir(dir_name):
+        return glob.glob(dir_name + os.sep + "*.[rR][aA][wW]")
+
+    @staticmethod
+    def get_tiff_files_in_dir(dir_name):
+        file_paths = []
+        file_paths.extend(glob.glob(dir_name + os.sep + "*.[tT][iI][fF]"))
+        file_paths.extend(glob.glob(dir_name + os.sep + "*.[tT][iI][fF][fF]"))
+        return file_paths
+
+    @staticmethod
+    def get_jpg_files_in_dir(dir_name):
+        file_paths = []
+        file_paths.extend(glob.glob(dir_name + os.sep + "*.[jJ][pP][gG]"))
+        file_paths.extend(glob.glob(dir_name + os.sep + "*.[jJ][pP][eE][gG]"))
+        return file_paths
+
+    @staticmethod
+    def get_dng_files_in_dir(dir_name):
+        return glob.glob(dir_name + os.sep + "*.DNG")
+
     def preProcessHelper(self, infolder, outfolder, customerdata=True):
         if self.PreProcessMonoBandBox.isChecked():
             self.output_mono_band_validation()
 
         self.HC_max = {"redmax": 0.0,
-                       "greenmax": 0.0, 
+                       "greenmax": 0.0,
                        "bluemax": 0.0, }
 
         self.HC_mono_max = 0
@@ -4793,13 +4785,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         if self.PreProcessCameraModel.currentText() in self.DJIS:
             os.chdir(infolder)
             infiles = []
-            infiles.extend(glob.glob("." + os.sep + "*.DNG"))
+            infiles.extend(MAPIR_ProcessingDockWidget.get_dng_files_in_dir('.'))
             infiles.sort()
             counter = 0
 
             for input in infiles:
-                log_string = "Processing Image: {} of {}  {}\n".format(str((counter) + 1), str(len(infiles)), input.split(os.sep)[1])
-                self.PreProcessLog.append(log_string)
+                self.append_processing_image_message_to_preprocess_log(counter, infiles, input)
                 QtWidgets.QApplication.processEvents()
                 self.openDNG(infolder + input.split('.')[1] + "." + input.split('.')[2], outfolder, customerdata)
 
@@ -4815,18 +4806,17 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         self.HC_max["greenmax"] = self.get_clipping_value(img[:, :, 1])
                         self.HC_max["bluemax"] = self.get_clipping_value(img[:, :, 0])
 
-                        self.min = img[:, :, 0].min() if img[:, :, 0].min() < img[:, :, 1].min() else img[:, :, 1].min()
-                        self.min = img[:, :, 2].min() if img[:, :, 2].min() < self.min else self.min
+                        # self.min = min(img[:, :, 0].min(), img[:, :, 1].min(), img[:, :, 2].min())
 
                     else:
                         self.HC_max["redmax"] = max([self.get_clipping_value(img[:, :, 2]), self.HC_max["redmax"]])
                         self.HC_max["greenmax"] = max([self.get_clipping_value(img[:, :, 1]), self.HC_max["greenmax"]])
                         self.HC_max["bluemax"] = max([self.get_clipping_value(img[:, :, 0]), self.HC_max["bluemax"]])
 
-                        self.min = min([img[:, :, 0].min(), self.min])
-                        self.min = min([img[:, :, 1].min(), self.min])
-                        self.min = min([img[:, :, 2].min(), self.min])
-
+                        # self.min = min([img[:, :, 0].min(), self.min])
+                        # self.min = min([img[:, :, 1].min(), self.min])
+                        # self.min = min([img[:, :, 2].min(), self.min])
+                    self.min = min(img[:, :, 0].min(), img[:, :, 1].min(), img[:, :, 2].min())
                 counter += 1
 
             if self.Process_Histogram_ClipBox.isChecked():
@@ -4843,18 +4833,17 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         elif self.PreProcessCameraModel.currentText() in self.KERNELS:
             os.chdir(infolder)
             infiles = []
-            infiles.extend(glob.glob("." + os.sep + "*.[mM][aA][pP][iI][rR]"))
-            infiles.extend(glob.glob("." + os.sep + "*.[tT][iI][fF]"))
-            infiles.extend(glob.glob("." + os.sep + "*.[tT][iI][fF][fF]"))
-            counter = 0 
+            infiles.extend(MAPIR_ProcessingDockWidget.get_mapir_files_in_dir('.'))
+            infiles.extend(MAPIR_ProcessingDockWidget.get_tiff_files_in_dir('.'))
+
+            counter = 0
             self.csv_array = []
 
 
             for input in infiles:
                 csv_name = input[3:6]
 
-                log_string = "Processing Image: {} of {}  {}\n".format(str((counter) + 1), str(len(infiles)), input.split(os.sep)[1])
-                self.PreProcessLog.append(log_string)
+                self.append_processing_image_message_to_preprocess_log(counter, infiles, input)
                 QtWidgets.QApplication.processEvents()
 
                 filename = input.split('.')
@@ -4887,9 +4876,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         else:
             os.chdir(infolder)
             infiles = []
-            infiles.extend(glob.glob("." + os.sep + "*.[rR][aA][wW]"))
-            infiles.extend(glob.glob("." + os.sep + "*.[jJ][pP][gG]"))
-            infiles.extend(glob.glob("." + os.sep + "*.[jJ][pP][eE][gG]"))
+            infiles.extend(MAPIR_ProcessingDockWidget.get_raw_files_in_dir('.'))
+            infiles.extend(MAPIR_ProcessingDockWidget.get_jpg_files_in_dir('.'))
             infiles.sort()
 
             if len(infiles) > 1:
@@ -4921,7 +4909,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                             except Exception as e:
                                 exc_type, exc_obj, exc_tb = sys.exc_info()
-                                # self.PreProcessLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
                                 print(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
 
                                 oldfirmware = True
@@ -5040,6 +5027,18 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     self.PreProcessLog.append(
                         "Incorrect file structure. Please arrange files in a RAW, JPG, RAW, JPG... format.")
 
+    @staticmethod
+    def get_processing_image_message(counter, infiles):
+        current_file_path = infiles[counter]
+        file_name_with_extension = current_file_path.split(os.sep)[-1]
+        file_name = file_name_with_extension.split('.')[0]
+        message = "Processing Image: {} of {}  {}\n".format(str((counter) + 1), str(len(infiles)), file_name)
+        return message
+
+    def append_processing_image_message_to_preprocess_log(self, counter, infiles):
+        message = MAPIR_ProcessingDockWidget.get_processing_image_message(counter, infiles)
+        self.PreProcessLog.append(message)
+
 
     def traverseHierarchy(self, tier, cont, index, image, depth):
 
@@ -5068,7 +5067,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.copyExif(os.path.abspath(inphoto), newfile)
 
             shutil.move(newfile, outfolder)
-            
 
         else:
             self.PreProcessLog.append("Attention!: " + str(newfile) + " already exists.")
@@ -5117,14 +5115,14 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             fil_str = fil_names[0] + "-" + fil_names[1] + "-" + fil_names[2]
 
         dark_frame_value = self.get_dark_frame_value(fil_str)
-        
+
         with open(modpath + os.sep + r"vig_" + fil_str + "_" + lens_str + "_" + "1" + r".txt", "rb") as vigfilered:
             v_array = np.ndarray((h, w), np.dtype("float32"), np.fromfile(vigfilered, np.dtype("float32")))
             red -= dark_frame_value
             red = red / v_array
             red[red > 65535.0] = 65535.0
             red[red < 0.0] = 0.0
-        
+
         with open(modpath + os.sep + r"vig_" + fil_str + "_" + lens_str + "_" + "2" + r".txt", "rb") as vigfilegreen:
             v_array = np.ndarray((h, w), np.dtype("float32"),
                                  np.fromfile(vigfilegreen, np.dtype("float32")))
@@ -5171,35 +5169,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
     def merge(self, red, blue, green, filetype):
         if filetype == "TIF":
-            red, green, blue, _ = self.convert_calibrated_floats_to_bit_depth(16, red, green, blue)
-            # red *= 65535
-            # green *= 65535
-            # blue *= 65535
-
-            # red = red.astype(int)
-            # green = green.astype(int)
-            # blue = blue.astype(int)
-
-            # red = red.astype("uint16")
-            # green = green.astype("uint16")
-            # blue = blue.astype("uint16")
-
+            # self.convert_normalized_image_to_bit_depth(16, red, green, blue)
+            red, green, blue, _ = self.convert_normalized_image_to_bit_depth(16, red, green, blue)
             return cv2.merge((blue, green, red))
 
         elif filetype == "JPG":
-            red, green, blue, _ = self.convert_calibrated_floats_to_bit_depth(8, red, green, blue)
-            # red *= 255
-            # green *= 255
-            # blue *= 255
-
-            # red = red.astype(int)
-            # green = green.astype(int)
-            # blue = blue.astype(int)
-
-            # red = red.astype("uint8")
-            # green = green.astype("uint8")
-            # blue = blue.astype("uint8")
-
+            # self.convert_normalized_image_to_bit_depth(8, red, green, blue)
+            red, green, blue, _ = self.convert_normalized_image_to_bit_depth(8, red, green, blue)
             return cv2.merge((blue, green, red))
 
 
@@ -5387,7 +5363,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def remove_lines(self, img, h, w):
         diff_perc = .50
         bad_rows = []
-        
+
         for row in range(h):
             cols_start = list(range(0, 0 + (5 * 9), 5))
             cols_end = list(range(w - (5 * 9), w, 5))
@@ -5406,7 +5382,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     pixel_below = 0
 
                 else:
-                    pixel_below = img.item(row+2, col) 
+                    pixel_below = img.item(row+2, col)
                     pixel_above = img.item(row-2, col)
 
                 if (pixel_above / img.item(row, col)) < diff_perc and (pixel_below / img.item(row, col)) < diff_perc:
@@ -5651,13 +5627,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 fil_str = fil_names[0] + "-" + fil_names[1] + "-" + fil_names[2]
 
                             dark_frame_value = self.get_dark_frame_value(fil_str)
-                            
+
                             with open(modpath + os.sep + r"vig_" + fil_str + "_" + lens_str + "_" + "1" + r".txt", "rb") as vigfilered:
                                 v_array = np.ndarray((h, w), np.dtype("float32"), np.fromfile(vigfilered, np.dtype("float32")))
                                 red = red / v_array
                                 red[red > 65535.0] = 65535.0
                                 red[red < 0.0] = 0.0
-                            
                                 red -= dark_frame_value
 
                             with open(modpath + os.sep + r"vig_" + fil_str + "_" + lens_str + "_" + "2" + r".txt", "rb") as vigfilegreen:
@@ -5880,9 +5855,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                 ypr[0] = float(self.conv.META_PAYLOAD["ATT_Q0"][1])
                 ypr[1] = float(self.conv.META_PAYLOAD["ATT_Q1"][1])
-                # ypr[1] = (float(self.conv.META_PAYLOAD["ATT_Q1"][1]) + 180.0) % 360.0)
                 ypr[2] = float(self.conv.META_PAYLOAD["ATT_Q2"][1])
-                # ypr[2] = (float(self.conv.META_PAYLOAD["ATT_Q2"][1]) + 180.0) % 360.0)
 
                 self.conv.META_PAYLOAD["ARRAY_ID"][1] = self.conv.STD_PAYLOAD["LINK_ID"]
                 #ypr = {"yaw": 0, "pitch": 0, "roll": 0}
@@ -5890,23 +5863,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 if self.conv.META_PAYLOAD["ARRAY_TYPE"][1] != 0:
                     ypr = AdjustYPR(int(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]), int(self.conv.META_PAYLOAD["ARRAY_ID"][1]),ypr)
                     ypr = CurveAdjustment(int(self.conv.META_PAYLOAD["ARRAY_TYPE"][1]), int(self.conv.META_PAYLOAD["ARRAY_ID"][1]),ypr)
-
-                # '''
-                # if self.conv.STD_PAYLOAD["LINK_ID"] == 0:
-                #     ypr[0] -= 45
-                #     ypr[0] -= 180
-
-                # elif self.conv.STD_PAYLOAD["LINK_ID"] == 1:
-                #     ypr[0] -= 45
-
-                # elif self.conv.STD_PAYLOAD["LINK_ID"] == 2:
-                #     ypr[0] += 45
-
-                # elif self.conv.STD_PAYLOAD["LINK_ID"] == 3:
-                #     ypr[0] -= 45'''
-
-                # ypr = [x % 360 if x > 360 else x for x in ypr]
-                # ypr = [x % 360 if x < 0 else x for x in ypr]
 
                 w = int(data[0][1])
                 h = int(data[1][1])
