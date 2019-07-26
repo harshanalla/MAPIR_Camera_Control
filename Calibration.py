@@ -71,7 +71,7 @@ def get_image_corners(target_img_path):
 
 	# color_img = cv2.imread(target_img_path, 1)
 	# show_detected_targets(color_img, corners, ids)
-    show_detected_targets(img, corners, ids)
+    # show_detected_targets(img, corners, ids)
 
     target_matches = filter_detected_targets_by_id(corners, ids, 13)[0]
     single_target = target_matches[0]

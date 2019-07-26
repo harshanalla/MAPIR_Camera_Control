@@ -41,6 +41,8 @@ import win32api
 import PIL
 import bitstring
 import collections
+# import tifffile
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 import PyQt5.uic as uic
@@ -69,7 +71,6 @@ import xml.etree.ElementTree as ET
 import KernelConfig
 from MAPIR_Converter import *
 from Exposure import *
-# from Geometry import *
 from ArrayTypes import AdjustYPR, CurveAdjustment
 from reg_value_conversion import *
 from ExifUtils import *
@@ -82,8 +83,13 @@ if not os.path.exists(modpath + os.sep + "instring.txt"):
     istr = open(modpath + os.sep + "instring.txt", "w")
     istr.close()
 
-from osgeo import gdal
-import gdal as gdal2
+# from osgeo import gdal
+# gdal.UseExceptions()
+# fp, pathname, description = imp.find_module('_gdal', [dirname(gdal.__file__)])
+# dist_dir = "dist"
+# shutil.copy(pathname, dist_dir)
+# import gdal as gdal2
+# import gdal
 
 import glob
 
@@ -1156,15 +1162,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
     def on_KernelFilterSelect_currentIndexChanged(self):
         try:
-            # threeletter = self.KernelFilterSelect.currentText()
-            # buf = [0] * 512
-            # buf[0] = self.SET_REGISTER_BLOCK_WRITE_REPORT
-            # buf[1] = eRegister.RG_MEDIA_FILE_NAME_A.value
-            # buf[2] = 3
-            # buf[3] = ord(threeletter[0])
-            # buf[4] = ord(threeletter[1])
-            # buf[5] = ord(threeletter[2])
-            # res = self.writeToKernel(buf)
             self.UpdateLensID()
             self.KernelUpdate()
 
@@ -1194,16 +1191,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 exc_type, exc_obj,exc_tb = sys.exc_info()
                 self.KernelLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
         QtWidgets.QApplication.processEvents()
-    def on_KernelCameraSelect_currentIndexChanged(self):
-        # if self.KernelCameraSelect.currentIndex() == 0:
-        #     self.array_indicator = True
-        # else:
-        #     self.array_indicator = False
-        self.camera = self.paths[self.KernelCameraSelect.currentIndex()]
 
-        # self.KernelFilterSelect.blockSignals(True)
-        # self.KernelFilterSelect.setCurrentIndex(self.KernelFilterSelect.findText(self.KernelCameraSelect.currentText()))
-        # self.KernelFilterSelect.blockSignals(False)
+    def on_KernelCameraSelect_currentIndexChanged(self):
+        self.camera = self.paths[self.KernelCameraSelect.currentIndex()]
         if not self.KernelTransferButton.isChecked():
             try:
                 self.KernelUpdate()
@@ -1211,6 +1201,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 exc_type, exc_obj,exc_tb = sys.exc_info()
                 self.KernelLog.append(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
         QtWidgets.QApplication.processEvents()
+
     def on_VignetteButton_released(self):
         if self.VigWindow == None:
             self.VigWindow = Vignette(self)
@@ -1219,27 +1210,16 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
     def on_KernelBrowserButton_released(self):
         self.present_file_select_dialog(self.KernelBrowserFile)
-        # with open(modpath + os.sep + "instring.txt", "r+") as instring:
-        #     self.KernelBrowserFile.setText(QtWidgets.QFileDialog.getOpenFileName(directory=instring.read())[0])
-        #     instring.truncate(0)
-        #     instring.seek(0)
-        #     instring.write(self.KernelBrowserFile.text())
         try:
-            # self.KernelViewer.verticalScrollBar().blockSignals(True)
-            # self.KernelViewer.horizontalScrollBar().blockSignals(True)
 
-            # self.KernelViewer.installEventFilter(self.eFilter)
             if os.path.exists(self.KernelBrowserFile.text()):
                 self.display_image = cv2.imread(self.KernelBrowserFile.text(), -1)
                 self.index_to_save = self.display_image
-                # if self.display_image == None:
-                #     self.display_image = gdal.Open(self.KernelBrowserFile.text())
-                #     self.display_image = np.array(self.display_image.GetRasterBand(1).ReadAsArray())
+
                 if self.display_image.dtype == np.dtype("uint16"):
                     self.display_image = self.display_image / 65535.0
                     self.display_image = self.display_image * 255.0
                     self.display_image = self.display_image.astype("uint8")
-                # self.imkeys = np.array(list(range(0, 65536)))
                 self.displaymin = self.display_image.min()
                 self.displaymax = self.display_image.max()
 
@@ -1253,16 +1233,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     self.display_image = cv2.cvtColor(self.display_image, cv2.COLOR_GRAY2RGB)
                 self.display_image_original = copy.deepcopy(self.display_image)
                 h, w = self.display_image.shape[:2]
-
-
-
-                # self.image_loaded = True
-
-                # self.display_image = ((self.display_image - self.display_image.min())/(self.display_image.max() - self.display_image.min())) * 255.0
-
-
-                # browser_w = self.KernelViewer.width()
-                # browser_h = self.KernelViewer.height()
 
                 self.image_loaded = True
                 self.stretchView()
@@ -1358,6 +1328,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             exc_type, exc_obj,exc_tb = sys.exc_info()
             print(e)
             print("Line: " + str(exc_tb.tb_lineno))
+
     def updateViewer(self, keepAspectRatio = True):
         self.mapscene = QtWidgets.QGraphicsScene()
 
@@ -1392,23 +1363,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.LUTGraphic.setPixmap(QtGui.QPixmap.fromImage(
                     QtGui.QImage(self.legend_frame)))
                 self.LegendLayout_2.show()
-                # if self.LUTwindow.ClipOption.currentIndex() == 2:
-                #     temp = copy.deepcopy(self.calcwindow.ndvi)
-                #     if self.ViewerIndexBox.isChecked():
-                #
-                #         self.ndvipsuedo[temp <= self.LUTwindow._min, 0] = temp[temp <= self.LUTwindow._min]
-                #         self.ndvipsuedo[temp <= self.LUTwindow._min, 1] = temp[temp <= self.LUTwindow._min]
-                #         self.ndvipsuedo[temp <= self.LUTwindow._min, 2] = temp[temp <= self.LUTwindow._min]
-                #         self.ndvipsuedo[temp >= self.LUTwindow._max, 0] = temp[temp >= self.LUTwindow._max]
-                #         self.ndvipsuedo[temp >= self.LUTwindow._max, 1] = temp[temp >= self.LUTwindow._max]
-                #         self.ndvipsuedo[temp >= self.LUTwindow._max, 2] = temp[temp >= self.LUTwindow._max]
-                #     else:
-                #         self.ndvipsuedo[temp <= self.LUTwindow._min] = self.display_image[temp <= self.LUTwindow._min]
-                #         # self.ndvipsuedo[temp <= workingmin, 1] = temp[temp <= workingmin]
-                #         # self.ndvipsuedo[temp <= workingmin, 2] = temp[temp <= workingmin]
-                #         self.ndvipsuedo[temp >= self.LUTwindow._max] = self.display_image[temp >= self.LUTwindow._max]
-                #         # self.ndvipsuedo[temp >= workingmax, 1] = temp[temp >= workingmax]
-                #         # self.ndvipsuedo[temp >= workingmax, 2] = temp[temp >= workingmax]
             else:
                 legend = cv2.imread(os.path.dirname(__file__) + r'\lut_legend.jpg', 0).astype("uint8")
                 # legend = cv2.cvtColor(legend, cv2.COLOR_GRAY2RGB)
@@ -1418,23 +1372,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.LUTGraphic.setPixmap(QtGui.QPixmap.fromImage(
                     QtGui.QImage(self.legend_frame)))
 
-                # if self.LUTwindow.ClipOption.currentIndex() == 2:
-                #     temp = copy.deepcopy(self.calcwindow.ndvi)
-                #     if self.ViewerIndexBox.isChecked():
-                #
-                #         self.ndvipsuedo[temp <= self.LUTwindow._min, 0] = temp[temp <= self.LUTwindow._min]
-                #         self.ndvipsuedo[temp <= self.LUTwindow._min, 1] = temp[temp <= self.LUTwindow._min]
-                #         self.ndvipsuedo[temp <= self.LUTwindow._min, 2] = temp[temp <= self.LUTwindow._min]
-                #         self.ndvipsuedo[temp >= self.LUTwindow._max, 0] = temp[temp >= self.LUTwindow._max]
-                #         self.ndvipsuedo[temp >= self.LUTwindow._max, 1] = temp[temp >= self.LUTwindow._max]
-                #         self.ndvipsuedo[temp >= self.LUTwindow._max, 2] = temp[temp >= self.LUTwindow._max]
-                #     else:
-                #         self.ndvipsuedo[temp <= self.LUTwindow._min] = self.display_image[temp <= self.LUTwindow._min]
-                #         # self.ndvipsuedo[temp <= workingmin, 1] = temp[temp <= workingmin]
-                #         # self.ndvipsuedo[temp <= workingmin, 2] = temp[temp <= workingmin]
-                #         self.ndvipsuedo[temp >= self.LUTwindow._max] = self.display_image[temp >= self.LUTwindow._max]
-                #         # self.ndvipsuedo[temp >= workingmax, 1] = temp[temp >= workingmax]
-                #         # self.ndvipsuedo[temp >= workingmax, 2] = temp[temp >= workingmax]
                 if self.ViewerIndexBox.isChecked():
                     self.LegendLayout_2.show()
                     self.frame = QtGui.QImage(self.calcwindow.ndvi.data, w, h, w, QtGui.QImage.Format_Grayscale8)
@@ -1549,60 +1486,57 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.KernelViewer.setFocus()
             QtWidgets.QApplication.processEvents()
 
-    def getIMURegisterString(self, label, sign, highByte, lowByte):
-        return label + str(convert_imu_register_value(self.getRegister(sign), self.getRegister(highByte), self.getRegister(lowByte))) + '°'
+    # def getIMURegisterString(self, label, sign, highByte, lowByte):
+    #     return label + str(convert_imu_register_value(self.getRegister(sign), self.getRegister(highByte), self.getRegister(lowByte))) + '°'
 
-    def appendIMURegisterValueToKernelPanel(self, label, signEnum, highByteEnum, lowByteEnum):
-        self.KernelPanel.append(self.getIMURegisterString(label, signEnum.value, highByteEnum.value, lowByteEnum.value))
+    # def appendIMURegisterValueToKernelPanel(self, label, signEnum, highByteEnum, lowByteEnum):
+    #     self.KernelPanel.append(self.getIMURegisterString(label, signEnum.value, highByteEnum.value, lowByteEnum.value))
 
-    def get_acceleration_value_string(self, label, reg_values):
-        return label + str(convert_acceleration_reg_values_to_float(reg_values))
+    def get_imu_value_string(self, label, reg_values):
+        return label + str(convert_imu_reg_values_to_float(reg_values))
 
-    def append_acceleration_value_to_kernel_panel(self, label, reg_values):
-        self.KernelPanel.append(self.get_acceleration_value_string(label, reg_values))
-
-    def log_acceleration_values_to_kernel_panel(self):
-        self.append_acceleration_value_to_kernel_panel(
-            # 'Accelerometer X Axis Float: ', [
-            'Yaw Float: ', [
-                self.getRegister(eRegister.RG_ACC_AX_0.value),
-                self.getRegister(eRegister.RG_ACC_AX_1.value),
-                self.getRegister(eRegister.RG_ACC_AX_2.value),
-                self.getRegister(eRegister.RG_ACC_AX_3.value),
-            ])
-        self.append_acceleration_value_to_kernel_panel(
-            # 'Accelerometer Y Axis Float: ', [
-            'Pitch Float: ', [
-                self.getRegister(eRegister.RG_ACC_AY_0.value),
-                self.getRegister(eRegister.RG_ACC_AY_1.value),
-                self.getRegister(eRegister.RG_ACC_AY_2.value),
-                self.getRegister(eRegister.RG_ACC_AY_3.value),
-            ])
-        self.append_acceleration_value_to_kernel_panel(
-            # 'Accelerometer Z Axis Float: ', [
-            'Roll Float: ', [
-                self.getRegister(eRegister.RG_ACC_AZ_0.value),
-                self.getRegister(eRegister.RG_ACC_AZ_1.value),
-                self.getRegister(eRegister.RG_ACC_AZ_2.value),
-                self.getRegister(eRegister.RG_ACC_AZ_3.value),
-            ])
-
+    def append_imu_value_to_kernel_panel(self, label, reg_values):
+        self.KernelPanel.append(self.get_imu_value_string(label, reg_values))
 
     def log_yaw_pitch_roll_to_kernel_panel(self):
-        # self.KernelPanel.append('Camera IMU Roll Low: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_L.value)))
-        # self.KernelPanel.append('Camera IMU Roll High: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_H.value)))
-        # self.KernelPanel.append('Camera IMU Roll Sign: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_SIGN.value)))
-        self.appendIMURegisterValueToKernelPanel('Camera IMU Roll: ', eRegister.RG_ACC_ROLL_SIGN, eRegister.RG_ACC_ROLL_H, eRegister.RG_ACC_ROLL_L)
-        # self.KernelPanel.append('Camera IMU Pitch Low: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_L.value)))
-        # self.KernelPanel.append('Camera IMU Pitch High: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_H.value)))
-        # self.KernelPanel.append('Camera IMU Pitch Sign: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_SIGN.value)))
-        self.appendIMURegisterValueToKernelPanel('Camera IMU Pitch: ', eRegister.RG_ACC_PITCH_SIGN, eRegister.RG_ACC_PITCH_H, eRegister.RG_ACC_PITCH_L)
-        # self.KernelPanel.append('Camera IMU Yaw Low: ' + str(self.getRegister(eRegister.RG_ACC_YAW_L.value)))
-        # self.KernelPanel.append('Camera IMU Yaw High: ' + str(self.getRegister(eRegister.RG_ACC_YAW_H.value)))
-        # self.KernelPanel.append('Camera IMU Yaw Sign: ' + str(self.getRegister(eRegister.RG_ACC_YAW_SIGN.value)))
-        self.appendIMURegisterValueToKernelPanel('Camera IMU Yaw: ', eRegister.RG_ACC_YAW_SIGN, eRegister.RG_ACC_YAW_H, eRegister.RG_ACC_YAW_L)
-        # self.KernelPanel.append('RG_ACC_TEST_ENDIAN_L: ' + str(self.getRegister(eRegister.RG_ACC_TEST_ENDIAN_L.value)))
-        # self.KernelPanel.append('RG_ACC_TEST_ENDIAN_H: ' + str(self.getRegister(eRegister.RG_ACC_TEST_ENDIAN_H.value)))
+        self.append_imu_value_to_kernel_panel(
+            'Yaw Float: ', [
+                self.getRegister(eRegister.RG_ACC_YAW_0.value),
+                self.getRegister(eRegister.RG_ACC_YAW_1.value),
+                self.getRegister(eRegister.RG_ACC_YAW_2.value),
+                self.getRegister(eRegister.RG_ACC_YAW_3.value),
+            ])
+        self.append_imu_value_to_kernel_panel(
+            'Pitch Float: ', [
+                self.getRegister(eRegister.RG_ACC_PITCH_0.value),
+                self.getRegister(eRegister.RG_ACC_PITCH_1.value),
+                self.getRegister(eRegister.RG_ACC_PITCH_2.value),
+                self.getRegister(eRegister.RG_ACC_PITCH_3.value),
+            ])
+        self.append_imu_value_to_kernel_panel(
+            'Roll Float: ', [
+                self.getRegister(eRegister.RG_ACC_ROLL_0.value),
+                self.getRegister(eRegister.RG_ACC_ROLL_1.value),
+                self.getRegister(eRegister.RG_ACC_ROLL_2.value),
+                self.getRegister(eRegister.RG_ACC_ROLL_3.value),
+            ])
+
+
+    # def log_yaw_pitch_roll_to_kernel_panel(self):
+        # # self.KernelPanel.append('Camera IMU Roll Low: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_L.value)))
+        # # self.KernelPanel.append('Camera IMU Roll High: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_H.value)))
+        # # self.KernelPanel.append('Camera IMU Roll Sign: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_SIGN.value)))
+        # self.appendIMURegisterValueToKernelPanel('Camera IMU Roll: ', eRegister.RG_ACC_ROLL_SIGN, eRegister.RG_ACC_ROLL_H, eRegister.RG_ACC_ROLL_L)
+        # # self.KernelPanel.append('Camera IMU Pitch Low: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_L.value)))
+        # # self.KernelPanel.append('Camera IMU Pitch High: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_H.value)))
+        # # self.KernelPanel.append('Camera IMU Pitch Sign: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_SIGN.value)))
+        # self.appendIMURegisterValueToKernelPanel('Camera IMU Pitch: ', eRegister.RG_ACC_PITCH_SIGN, eRegister.RG_ACC_PITCH_H, eRegister.RG_ACC_PITCH_L)
+        # # self.KernelPanel.append('Camera IMU Yaw Low: ' + str(self.getRegister(eRegister.RG_ACC_YAW_L.value)))
+        # # self.KernelPanel.append('Camera IMU Yaw High: ' + str(self.getRegister(eRegister.RG_ACC_YAW_H.value)))
+        # # self.KernelPanel.append('Camera IMU Yaw Sign: ' + str(self.getRegister(eRegister.RG_ACC_YAW_SIGN.value)))
+        # self.appendIMURegisterValueToKernelPanel('Camera IMU Yaw: ', eRegister.RG_ACC_YAW_SIGN, eRegister.RG_ACC_YAW_H, eRegister.RG_ACC_YAW_L)
+        # # self.KernelPanel.append('RG_ACC_TEST_ENDIAN_L: ' + str(self.getRegister(eRegister.RG_ACC_TEST_ENDIAN_L.value)))
+        # # self.KernelPanel.append('RG_ACC_TEST_ENDIAN_H: ' + str(self.getRegister(eRegister.RG_ACC_TEST_ENDIAN_H.value)))
 
     def KernelUpdate(self):
         try:
@@ -1736,8 +1670,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             arid = self.writeToKernel(buf)[2]
             self.KernelPanel.append("Array ID: " + str(arid))
 
-            self.log_acceleration_values_to_kernel_panel()
-            # self.log_yaw_pitch_roll_to_kernel_panel()
+            # self.log_acceleration_values_to_kernel_panel()
+            self.log_yaw_pitch_roll_to_kernel_panel()
 
             self.KernelPanel.append("\n")
 
@@ -3430,7 +3364,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 outdir = self.make_calibration_out_dir(folderind[j])
 
                         for i, calpixel in enumerate(files_to_calibrate):
-                            img = cv2.imread(calpixel, -1)
+                            file_ext = calpixel.split('.')[-1]
+                            # if file_ext == 'tif' or file_ext == 'TIF':
+                            #     img = tifffile.imread(calpixel)
+                            # else:
+                            img = cv2.imread(calpixel, cv2.IMREAD_UNCHANGED)
                             if len(img.shape) < 3:
                                 raise IndexError("RGB filter was selected but input folders contain MONO images")
 
@@ -3639,7 +3577,13 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                     outdir = self.make_calibration_out_dir(folderind[j])
 
                         for i, calpixel in enumerate(files_to_calibrate):
-                            img = cv2.imread(calpixel, -1)
+                            file_ext = calpixel.split('.')[-1]
+                            # if file_ext == 'tif' or file_ext == 'TIF':
+                            #     img = tifffile.imread(calpixel)
+                            # else:
+                                # img = cv2.imread(calpixel, cv2.IMREAD_UNCHANGED)
+                            img = cv2.imread(calpixel, cv2.IMREAD_UNCHANGED)
+                            # img = cv2.imread(calpixel, -1)
 
                             if len(img.shape) > 2:
                                 raise IndexError("Mono filter was selected but input folders contain RGB images")
@@ -3889,22 +3833,26 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def save_calibrated_image_without_conversion(self, in_image_path, calibrated_image, out_dir):
         out_image_path = out_dir + in_image_path.split('.')[1] + "_CALIBRATED." + in_image_path.split('.')[2]
         if 'tif' in in_image_path.split('.')[2].lower():
+            cv2.imencode(".tif", calibrated_image)
+            cv2.imwrite(out_image_path, calibrated_image)
 
-            tiff = gdal.Open(in_image_path, gdal.GA_ReadOnly)
-            tiff_has_no_projection_data = tiff.GetProjection() == ''
-            tiff = None
+            # tiff = gdal.Open(in_image_path, gdal.GA_ReadOnly)
+            # tiff_has_no_projection_data = tiff.GetProjection() == ''
+            # tiff = None
 
-            if tiff_has_no_projection_data:
-                cv2.imencode(".tif", calibrated_image)
-                cv2.imwrite(out_image_path, calibrated_image)
-                self.copyExif(in_image_path, out_image_path)
-            else:
-                # Geotiff.from_rgba(in_image_path, calibrated_image, out_image_path)
-                self.geotiff_with_metadata_from_rgba(in_image_path, calibrated_image, out_image_path)
+            # # if tiff_has_no_projection_data:
+            #     cv2.imencode(".tif", calibrated_image)
+            #     cv2.imwrite(out_image_path, calibrated_image)
+            #     self.copyExif(in_image_path, out_image_path)
+            # # else:
+            # #     # cv2.imencode(".tif", calibrated_image)
+            # #     # cv2.imwrite(out_image_path, calibrated_image)
+            # #     self.geotiff_with_metadata_from_rgba(in_image_path, calibrated_image, out_image_path)
 
         else:
             cv2.imwrite(out_image_path, calibrated_image, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
-            self.copyExif(in_image_path, out_image_path)
+
+        self.copyExif(in_image_path, out_image_path)
 
         # self.copyExif(in_image_path, out_image_path)
 
@@ -4079,21 +4027,29 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
         if self.IndexBox.checkState() == self.UNCHECKED:
             if refimg.dtype == 'uint8':
-                if 'tif' in photo.split('.')[-1].lower():
-                    tiff = gdal.Open(photo, gdal.GA_ReadOnly)
-                    tiff_has_projection_data = not tiff.GetProjection() == ''
-                    if tiff_has_projection_data:
-                        bit_depth = 16
-                    else:
-                        bit_depth = 8
-                else:
-                    bit_depth = 8
+                # if 'tif' in photo.split('.')[-1].lower():
+                #     # tiff = gdal.Open(photo, gdal.GA_ReadOnly)
+                #     # tiff_has_projection_data = not tiff.GetProjection() == ''
+                #     # self.CalibrationLog.append('tiff: ' + str(tiff))
+                #     # self.CalibrationLog.append(str(gdal))
+                #     # self.CalibrationLog.append(gdal.__version__)
+                #     # self.CalibrationLog.append(gdal.VersionInfo())
+                #     # self.CalibrationLog.append('Projection: ' + str(tiff.GetProjection()))
+                #     # self.CalibrationLog.append('has_projection_data: ' + str(tiff_has_projection_data))
+                #     # if tiff_has_projection_data:
+                #     #     bit_depth = 16
+                #     #     self.CalibrationLog.append('tiff with projection data bd=16')
+                #     else:
+                #         bit_depth = 8
+                #         self.CalibrationLog.append('tiff without projection data bd=8')
+                # else:
+                    # bit_depth = 8
+                bit_depth = 8
             elif refimg.dtype == 'uint16':
                 bit_depth = 16
             else:
                 raise Exception('Calibration input image should be 8-bit or 16-bit')
 
-            # self.convert_normalized_image_to_bit_depth(bit_depth, red, green, blue, alpha)
             red, green, blue, alpha = self.convert_normalized_image_to_bit_depth(bit_depth, red, green, blue, alpha)
             layers = (blue, green, red, alpha) if has_alpha_layer else (blue, green, red)
             refimg = cv2.merge(layers)
@@ -4130,20 +4086,20 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 cv2.imwrite(newimg_b, blue)
                 cv2.imwrite(newimg_g, green)
 
-                srin = gdal.Open(photo)
-                inproj = srin.GetProjection()
-                transform = srin.GetGeoTransform()
-                gcpcount = srin.GetGCPs()
+                # srin = gdal.Open(photo)
+                # inproj = srin.GetProjection()
+                # transform = srin.GetGeoTransform()
+                # gcpcount = srin.GetGCPs()
 
-                srout = gdal.Open(newimg_r, gdal.GA_Update)
-                srout = gdal.Open(newimg_g, gdal.GA_Update)
-                srout = gdal.Open(newimg_b, gdal.GA_Update)
+                # srout = gdal.Open(newimg_r, gdal.GA_Update)
+                # srout = gdal.Open(newimg_g, gdal.GA_Update)
+                # srout = gdal.Open(newimg_b, gdal.GA_Update)
 
-                srout.SetProjection(inproj)
-                srout.SetGeoTransform(transform)
-                srout.SetGCPs(gcpcount, srin.GetGCPProjection())
-                srout = None
-                srin = None
+                # srout.SetProjection(inproj)
+                # srout.SetGeoTransform(transform)
+                # srout.SetGCPs(gcpcount, srin.GetGCPProjection())
+                # srout = None
+                # srin = None
 
                 self.copyExif(photo, newimg_r)
                 self.copyExif(photo, newimg_g)
@@ -4166,8 +4122,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             numer = nir - visible
             denom = nir + visible
 
-            retval = numer/denom
-            return retval
+            index = numer/denom
+            return index
         except Exception as e:
             exc_type, exc_obj,exc_tb = sys.exc_info()
             print(e)
