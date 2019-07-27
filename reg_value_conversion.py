@@ -17,6 +17,6 @@ def convert_imu_reg_values_to_binary(reg_values):
     return binary
 
 def convert_binary_to_float(binary):
-    binaryString = bin(binary)[2:]
-    f = int(binaryString, 2)
-    return struct.unpack('f', struct.pack('I', f))[0]
+    binary_string = bin(binary)[2:]
+    num_float = int(binary_string, 2)
+    return struct.unpack('f', struct.pack('I', num_float))[0]
