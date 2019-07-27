@@ -2206,18 +2206,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         else:
             self.regs[code] = value
             return True
-    # def on_TestButton_released(self):
-    #     buf = [0] * 512
-    #     buf[0] = self.SET_COMMAND_REPORT
-    #     buf[1] = eRegister.RG_CAMERA_ARRAY_TYPE.value
-    #     artype = self.writeToKernel(buf)[2]
-    #     print(artype)
-    #     try:
-    #         self.KernelUpdate()
-    #     except Exception as e:
-    #         exc_type, exc_obj,exc_tb = sys.exc_info()
-    #         print(e)
-    #         print("Line: " + str(exc_tb.tb_lineno))
+
     def writeToKernel(self, buffer):
         try:
             dev = hid.device()
@@ -2295,62 +2284,65 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             exc_type, exc_obj,exc_tb = sys.exc_info()
             print(e)
             print("Line: " + str(exc_tb.tb_lineno))
+
     def on_KernelVideoOut_currentIndexChanged(self):
         if self.KernelVideoOut.currentIndex() == 0:  # No Output
-            buf = [0] * 512
 
-            buf[0] = self.SET_REGISTER_WRITE_REPORT
-            buf[1] = eRegister.RG_DAC.value  # DAC Register
+            buf = self.create_write_buffer(eRegister.RG_DAC)
+            # buf = [0] * 512
+            # buf[0] = self.SET_REGISTER_WRITE_REPORT
+            # buf[1] = eRegister.RG_DAC.value  # DAC Register
             buf[2] = 0
             self.writeToKernel(buf)
 
-            buf = [0] * 512
-
-            buf[0] = self.SET_REGISTER_WRITE_REPORT
-            buf[1] = eRegister.RG_HDMI.value  # HDMI Register
+            buf = self.create_write_buffer(eRegister.RG_HDMI)
+            # buf = [0] * 512
+            # buf[0] = self.SET_REGISTER_WRITE_REPORT
+            # buf[1] = eRegister.RG_HDMI.value  # HDMI Register
             buf[2] = 0
             self.writeToKernel(buf)
         elif self.KernelVideoOut.currentIndex() == 1:  # HDMI
-            buf = [0] * 512
 
-            buf[0] = self.SET_REGISTER_WRITE_REPORT
-            buf[1] = eRegister.RG_DAC.value  # DAC Register
+            buf = self.create_write_buffer(eRegister.RG_DAC)
+            # buf = [0] * 512
+            # buf[0] = self.SET_REGISTER_WRITE_REPORT
+            # buf[1] = eRegister.RG_DAC.value  # DAC Register
             buf[2] = 0
             self.writeToKernel(buf)
 
-            buf = [0] * 512
-
-            buf[0] = self.SET_REGISTER_WRITE_REPORT
-            buf[1] = eRegister.RG_HDMI.value  # HDMI Register
+            # buf = [0] * 512
+            # buf[0] = self.SET_REGISTER_WRITE_REPORT
+            # buf[1] = eRegister.RG_HDMI.value  # HDMI Register
             buf[2] = 1
             self.writeToKernel(buf)
         elif self.KernelVideoOut.currentIndex() == 2:  # SD( DAC )
-            buf = [0] * 512
 
-            buf[0] = self.SET_REGISTER_WRITE_REPORT
-            buf[1] = eRegister.RG_DAC.value  # DAC Register
+            buf = self.create_write_buffer(eRegister.RG_DAC)
+            # buf = [0] * 512
+            # buf[0] = self.SET_REGISTER_WRITE_REPORT
+            # buf[1] = eRegister.RG_DAC.value  # DAC Register
             buf[2] = 1
             self.writeToKernel(buf)
 
-            buf = [0] * 512
-
-            buf[0] = self.SET_REGISTER_WRITE_REPORT
-            buf[1] = eRegister.RG_HDMI.value  # HDMI Register
+            buf = self.create_write_buffer(eRegister.RG_HDMI)
+            # buf = [0] * 512
+            # buf[0] = self.SET_REGISTER_WRITE_REPORT
+            # buf[1] = eRegister.RG_HDMI.value  # HDMI Register
             buf[2] = 0
             self.writeToKernel(buf)
         else:  # Both outputs
-            buf = [0] * 512
 
-            buf[0] = self.SET_REGISTER_WRITE_REPORT
-            buf[1] = eRegister.RG_DAC.value  # DAC Register
+            buf = self.create_write_buffer(eRegister.RG_DAC)
+            # buf = [0] * 512
+            # buf[0] = self.SET_REGISTER_WRITE_REPORT
+            # buf[1] = eRegister.RG_DAC.value  # DAC Register
             buf[2] = 1
             self.writeToKernel(buf)
 
-            buf = [0] * 512
-
-            buf[0] = self.SET_REGISTER_WRITE_REPORT
-            buf[1] = eRegister.RG_HDMI.value  # HDMI Register
-            buf[2] = 1
+            buf = self.create_write_buffer(eRegister.RG_HDMI)
+            # buf = [0] * 512
+            # buf[0] = self.SET_REGISTER_WRITE_REPORT
+            # buf[1] = eRegister.RG_HDMI.value  # HDMI Register
             self.writeToKernel(buf)
         # self.camera.close()
         try:
