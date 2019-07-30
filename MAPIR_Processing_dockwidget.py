@@ -1683,7 +1683,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             serno = str(chr(st[2]) + chr(st[3]) + chr(st[4]) + chr(st[5]) + chr(st[6]) + chr(st[7]))
             self.KernelPanel.append("Serial #: " + serno)
 
-            self.KernelPanel.append("Camera Firmware: 1." + str(self.getRegister(eRegister.RG_FIRMWARE_ID.value)) + '.' + str(self.getRegister(eRegister.RG_FIRMWARE_MINOR_ID)))
+            self.KernelPanel.append("Camera Firmware: " + str(self.getRegister(eRegister.RG_FIRMWARE_ID.value)) + '.' + str(self.getRegister(eRegister.RG_FIRMWARE_MINOR_ID)) + '.' + str(self.getRegister(eRegister.RG_FIRMWARE_INTERNAL_VERSION)))
 
             self.KernelExposureMode.blockSignals(False)
 
@@ -1787,26 +1787,18 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             print(e)
             print("Line: " + str(exc_tb.tb_lineno))
 
-    def create_read_buffer(self, reg_enum):
+    def getXML(self):
         buf = [0] * 512
         buf[0] = self.SET_REGISTER_BLOCK_READ_REPORT
-        buf[1] = reg_enum.value
-        return buf
-
-    def getXML(self):
-        buf = self.create_read_buffer(eRegister.RG_MEDIA_FILE_NAME_A)
-        # buf = [0] * 512
-        # buf[0] = self.SET_REGISTER_BLOCK_READ_REPORT
-        # buf[1] = eRegister.RG_MEDIA_FILE_NAME_A.value
+        buf[1] = eRegister.RG_MEDIA_FILE_NAME_A.value
         buf[2] = 3
         res = self.writeToKernel(buf)
 
         filt = chr(res[2]) + chr(res[3]) + chr(res[4])
 
-        buf = self.create_read_buffer(eRegister.RG_CAMERA_SETTING)
-        # buf = [0] * 512
-        # buf[0] = self.SET_REGISTER_BLOCK_READ_REPORT
-        # buf[1] = eRegister.RG_CAMERA_SETTING.value
+        buf = [0] * 512
+        buf[0] = self.SET_REGISTER_BLOCK_READ_REPORT
+        buf[1] = eRegister.RG_CAMERA_SETTING.value
         buf[2] = eRegister.RG_SIZE.value
 
         res = self.writeToKernel(buf)
@@ -1814,17 +1806,14 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         sens = str(self.getRegister(eRegister.RG_SENSOR_ID.value))
         lens = str(self.getRegister(eRegister.RG_LENS_ID.value))
 
-
-        buf = self.create_read_buffer(eRegister.RG_CAMERA_ARRAY_TYPE)
-        # buf = [0] * 512
-        # buf[0] = self.SET_REGISTER_READ_REPORT
-        # buf[1] = eRegister.RG_CAMERA_ARRAY_TYPE.value
+        buf = [0] * 512
+        buf[0] = self.SET_REGISTER_READ_REPORT
+        buf[1] = eRegister.RG_CAMERA_ARRAY_TYPE.value
         artype = str(self.writeToKernel(buf)[2])
 
-        buf = self.create_read_buffer(eRegister.RG_CAMERA_LINK_ID)
-        # buf = [0] * 512
-        # buf[0] = self.SET_REGISTER_READ_REPORT
-        # buf[1] = eRegister.RG_CAMERA_LINK_ID.value
+        buf = [0] * 512
+        buf[0] = self.SET_REGISTER_READ_REPORT
+        buf[1] = eRegister.RG_CAMERA_LINK_ID.value
         arid = str(self.writeToKernel(buf)[2])
 
         return (filt, sens, lens, arid, artype)
@@ -2037,11 +2026,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.camera = currentcam
 
 
-    def create_write_buffer(self, reg_enum):
-        buf = [0] * 512
-        buf[0] = self.SET_REGISTER_WRITE_REPORT
-        buf[1] = reg_enum.value
-        return buf
+
 
     def on_KernelExposureMode_currentIndexChanged(self):
         # self.KernelExposureMode.blockSignals(True)
@@ -2050,19 +2035,16 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.KernelMESettingsButton.setEnabled(True)
             self.KernelAESettingsButton.setEnabled(False)
 
-            buf = self.create_write_buffer(eRegister.RG_SHUTTER)
-            # buf = [0] * 512
-            # buf[0] = self.SET_REGISTER_WRITE_REPORT
-            # buf[1] = eRegister.RG_SHUTTER.value
+            buf = [0] * 512
+            buf[0] = self.SET_REGISTER_WRITE_REPORT
+            buf[1] = eRegister.RG_SHUTTER.value
             buf[2] = 9
 
             res = self.writeToKernel(buf)
 
-            buf = self.create_write_buffer(eRegister.RG_ISO)
-
-            # buf = [0] * 512
-            # buf[0] = self.SET_REGISTER_WRITE_REPORT
-            # buf[1] = eRegister.RG_ISO.value
+            buf = [0] * 512
+            buf[0] = self.SET_REGISTER_WRITE_REPORT
+            buf[1] = eRegister.RG_ISO.value
             buf[2] = 1
 
             res = self.writeToKernel(buf)
@@ -2073,61 +2055,59 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.KernelMESettingsButton.setEnabled(False)
             self.KernelAESettingsButton.setEnabled(True)
 
-            buf = self.create_write_buffer(eRegister.RG_SHUTTER)
-            # buf = [0] * 512
-            # buf[0] = self.SET_REGISTER_WRITE_REPORT
-            # buf[1] = eRegister.RG_SHUTTER.value
+            buf = [0] * 512
+            buf[0] = self.SET_REGISTER_WRITE_REPORT
+            buf[1] = eRegister.RG_SHUTTER.value
             buf[2] = 0
+
             res = self.writeToKernel(buf)
 
-            buf = self.create_write_buffer(eRegister.RG_AE_SELECTION)
-            # buf = [0] * 512
-            # buf[0] = self.SET_REGISTER_WRITE_REPORT
-            # buf[1] = eRegister.RG_AE_SELECTION.value
-            # # buf[2] = self.AutoAlgorithm.currentIndex()
+            buf = [0] * 512
+            buf[0] = self.SET_REGISTER_WRITE_REPORT
+            buf[1] = eRegister.RG_AE_SELECTION.value
+            # buf[2] = self.AutoAlgorithm.currentIndex()
             res = self.writeToKernel(buf)
 
-            buf = self.create_write_buffer(eRegister.RG_AE_MAX_SHUTTER)
-            # buf = [0] * 512
-            # buf[0] = self.SET_REGISTER_WRITE_REPORT
-            # buf[1] = eRegister.RG_AE_MAX_SHUTTER.value
-            # # buf[2] = self.AutoMaxShutter.currentIndex()
+            buf = [0] * 512
+            buf[0] = self.SET_REGISTER_WRITE_REPORT
+            buf[1] = eRegister.RG_AE_MAX_SHUTTER.value
+            # buf[2] = self.AutoMaxShutter.currentIndex()
+
             res = self.writeToKernel(buf)
 
-            buf = self.create_write_buffer(eRegister.RG_AE_MIN_SHUTTER)
-            # buf = [0] * 512
-            # buf[0] = self.SET_REGISTER_WRITE_REPORT
-            # buf[1] = eRegister.RG_AE_MIN_SHUTTER.value
-            # # buf[2] = self.AutoMinShutter.currentIndex()
+            buf = [0] * 512
+            buf[0] = self.SET_REGISTER_WRITE_REPORT
+            buf[1] = eRegister.RG_AE_MIN_SHUTTER.value
+            # buf[2] = self.AutoMinShutter.currentIndex()
+
             res = self.writeToKernel(buf)
 
-            buf = self.create_write_buffer(eRegister.RG_AE_MAX_GAIN)
-            # buf = [0] * 512
-            # buf[0] = self.SET_REGISTER_WRITE_REPORT
-            # buf[1] = eRegister.RG_AE_MAX_GAIN.value
-            # # buf[2] = self.AutoMaxISO.currentIndex()
+            buf = [0] * 512
+            buf[0] = self.SET_REGISTER_WRITE_REPORT
+            buf[1] = eRegister.RG_AE_MAX_GAIN.value
+            # buf[2] = self.AutoMaxISO.currentIndex()
+
             res = self.writeToKernel(buf)
 
-            buf = self.create_write_buffer(eRegister.RG_AE_F_STOP)
-            # buf = [0] * 512
-            # buf[0] = self.SET_REGISTER_WRITE_REPORT
-            # buf[1] = eRegister.RG_AE_F_STOP.value
-            # # buf[2] = self.AutoFStop.currentIndex()
+            buf = [0] * 512
+            buf[0] = self.SET_REGISTER_WRITE_REPORT
+            buf[1] = eRegister.RG_AE_F_STOP.value
+            # buf[2] = self.AutoFStop.currentIndex()
+
             res = self.writeToKernel(buf)
 
+            buf = [0] * 512
+            buf[0] = self.SET_REGISTER_WRITE_REPORT
+            buf[1] = eRegister.RG_AE_GAIN.value
+            # buf[2] = self.AutoGain.currentIndex()
 
-            buf = self.create_write_buffer(eRegister.RG_AE_GAIN)
-            # buf = [0] * 512
-            # buf[0] = self.SET_REGISTER_WRITE_REPORT
-            # buf[1] = eRegister.RG_AE_GAIN.value
-            # # buf[2] = self.AutoGain.currentIndex()
             res = self.writeToKernel(buf)
 
-            buf = self.create_write_buffer(eRegister.RG_AE_SETPOINT)
-            # buf = [0] * 512
-            # buf[0] = self.SET_REGISTER_WRITE_REPORT
-            # buf[1] = eRegister.RG_AE_SETPOINT.value
-            # # buf[2] = self.AutoSetpoint.currentIndex()
+            buf = [0] * 512
+            buf[0] = self.SET_REGISTER_WRITE_REPORT
+            buf[1] = eRegister.RG_AE_SETPOINT.value
+            # buf[2] = self.AutoSetpoint.currentIndex()
+
             res = self.writeToKernel(buf)
 
             QtWidgets.QApplication.processEvents()
@@ -2158,20 +2138,25 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
             buf[0] = self.SET_COMMAND_REPORT
             if self.KernelCaptureMode.currentIndex() == 0:
+
+
+
                 buf[1] = eCommand.CM_CAPTURE_PHOTO.value
+
 
             elif self.KernelCaptureMode.currentIndex() == 1:
                 buf[1] = eCommand.CM_CONTINUOUS.value
 
             elif self.KernelCaptureMode.currentIndex() == 2:
+
                 buf[1] = eCommand.CM_TIME_LAPSE.value
 
             elif self.KernelCaptureMode.currentIndex() == 3:
+
                 buf[1] = eCommand.CM_RECORD_VIDEO.value
-
             elif self.KernelCaptureMode.currentIndex() == 4:
-                buf[1] = eCommand.CM_RECORD_LOOPING_VIDEO.value
 
+                buf[1] = eCommand.CM_RECORD_LOOPING_VIDEO.value
             else:
                 self.KernelLog.append("Invalid capture mode.")
 
@@ -2206,7 +2191,18 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         else:
             self.regs[code] = value
             return True
-
+    # def on_TestButton_released(self):
+    #     buf = [0] * 512
+    #     buf[0] = self.SET_COMMAND_REPORT
+    #     buf[1] = eRegister.RG_CAMERA_ARRAY_TYPE.value
+    #     artype = self.writeToKernel(buf)[2]
+    #     print(artype)
+    #     try:
+    #         self.KernelUpdate()
+    #     except Exception as e:
+    #         exc_type, exc_obj,exc_tb = sys.exc_info()
+    #         print(e)
+    #         print("Line: " + str(exc_tb.tb_lineno))
     def writeToKernel(self, buffer):
         try:
             dev = hid.device()
@@ -2225,10 +2221,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
 
     def on_KernelBeep_toggled(self):
-        buf = self.create_write_buffer(eRegister.RG_BEEPER_ENABLE)
-        # buf = [0] * 512
-        # buf[0] = self.SET_REGISTER_WRITE_REPORT
-        # buf[1] = eRegister.RG_BEEPER_ENABLE.value
+        buf = [0] * 512
+
+        buf[0] = self.SET_REGISTER_WRITE_REPORT
+        buf[1] = eRegister.RG_BEEPER_ENABLE.value
         if self.KernelBeep.isChecked():
             buf[2] = 1
         else:
@@ -2241,13 +2237,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             exc_type, exc_obj,exc_tb = sys.exc_info()
             print(e)
             print("Line: " + str(exc_tb.tb_lineno))
-
     def on_KernelPWMSignal_toggled(self):
-        buf = self.create_write_buffer(eRegister.RG_PWM_TRIGGER)
-        # buf = [0] * 512
-        # buf[0] = self.SET_REGISTER_WRITE_REPORT
-        # buf[1] = eRegister.RG_PWM_TRIGGER.value
+        buf = [0] * 512
 
+        buf[0] = self.SET_REGISTER_WRITE_REPORT
+        buf[1] = eRegister.RG_PWM_TRIGGER.value
         if self.KernelPWMSignal.isChecked():
             buf[2] = 1
         else:
@@ -2284,65 +2278,62 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             exc_type, exc_obj,exc_tb = sys.exc_info()
             print(e)
             print("Line: " + str(exc_tb.tb_lineno))
-
     def on_KernelVideoOut_currentIndexChanged(self):
         if self.KernelVideoOut.currentIndex() == 0:  # No Output
+            buf = [0] * 512
 
-            buf = self.create_write_buffer(eRegister.RG_DAC)
-            # buf = [0] * 512
-            # buf[0] = self.SET_REGISTER_WRITE_REPORT
-            # buf[1] = eRegister.RG_DAC.value  # DAC Register
+            buf[0] = self.SET_REGISTER_WRITE_REPORT
+            buf[1] = eRegister.RG_DAC.value  # DAC Register
             buf[2] = 0
             self.writeToKernel(buf)
 
-            buf = self.create_write_buffer(eRegister.RG_HDMI)
-            # buf = [0] * 512
-            # buf[0] = self.SET_REGISTER_WRITE_REPORT
-            # buf[1] = eRegister.RG_HDMI.value  # HDMI Register
+            buf = [0] * 512
+
+            buf[0] = self.SET_REGISTER_WRITE_REPORT
+            buf[1] = eRegister.RG_HDMI.value  # HDMI Register
             buf[2] = 0
             self.writeToKernel(buf)
         elif self.KernelVideoOut.currentIndex() == 1:  # HDMI
+            buf = [0] * 512
 
-            buf = self.create_write_buffer(eRegister.RG_DAC)
-            # buf = [0] * 512
-            # buf[0] = self.SET_REGISTER_WRITE_REPORT
-            # buf[1] = eRegister.RG_DAC.value  # DAC Register
+            buf[0] = self.SET_REGISTER_WRITE_REPORT
+            buf[1] = eRegister.RG_DAC.value  # DAC Register
             buf[2] = 0
             self.writeToKernel(buf)
 
-            # buf = [0] * 512
-            # buf[0] = self.SET_REGISTER_WRITE_REPORT
-            # buf[1] = eRegister.RG_HDMI.value  # HDMI Register
+            buf = [0] * 512
+
+            buf[0] = self.SET_REGISTER_WRITE_REPORT
+            buf[1] = eRegister.RG_HDMI.value  # HDMI Register
             buf[2] = 1
             self.writeToKernel(buf)
         elif self.KernelVideoOut.currentIndex() == 2:  # SD( DAC )
+            buf = [0] * 512
 
-            buf = self.create_write_buffer(eRegister.RG_DAC)
-            # buf = [0] * 512
-            # buf[0] = self.SET_REGISTER_WRITE_REPORT
-            # buf[1] = eRegister.RG_DAC.value  # DAC Register
+            buf[0] = self.SET_REGISTER_WRITE_REPORT
+            buf[1] = eRegister.RG_DAC.value  # DAC Register
             buf[2] = 1
             self.writeToKernel(buf)
 
-            buf = self.create_write_buffer(eRegister.RG_HDMI)
-            # buf = [0] * 512
-            # buf[0] = self.SET_REGISTER_WRITE_REPORT
-            # buf[1] = eRegister.RG_HDMI.value  # HDMI Register
+            buf = [0] * 512
+
+            buf[0] = self.SET_REGISTER_WRITE_REPORT
+            buf[1] = eRegister.RG_HDMI.value  # HDMI Register
             buf[2] = 0
             self.writeToKernel(buf)
         else:  # Both outputs
+            buf = [0] * 512
 
-            buf = self.create_write_buffer(eRegister.RG_DAC)
-            # buf = [0] * 512
-            # buf[0] = self.SET_REGISTER_WRITE_REPORT
-            # buf[1] = eRegister.RG_DAC.value  # DAC Register
+            buf[0] = self.SET_REGISTER_WRITE_REPORT
+            buf[1] = eRegister.RG_DAC.value  # DAC Register
             buf[2] = 1
             self.writeToKernel(buf)
 
-            buf = self.create_write_buffer(eRegister.RG_HDMI)
-            # buf = [0] * 512
-            # buf[0] = self.SET_REGISTER_WRITE_REPORT
-            # buf[1] = eRegister.RG_HDMI.value  # HDMI Register
+            buf = [0] * 512
+
+            buf[0] = self.SET_REGISTER_WRITE_REPORT
+            buf[1] = eRegister.RG_HDMI.value  # HDMI Register
+            buf[2] = 1
             self.writeToKernel(buf)
         # self.camera.close()
         try:
