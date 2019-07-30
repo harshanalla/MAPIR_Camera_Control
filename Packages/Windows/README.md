@@ -3,6 +3,18 @@
 
 ## Current Version
 
+[July 30th, 2019](https://drive.google.com/file/d/1umyhBrs8cyUK9-BE-Q3Hoz9pAJURHq4T/view?usp=sharing)
+
+[July 30th, 2019 - With Kernel Vignette Correction Support](https://drive.google.com/file/d/1i2wkyEyjz6W04MeNwVOrGKVRXbOIYkeP/view?usp=sharing)
+
+Change Log
+* Add Firmware Version Number
+* Format imu values in kernel panel
+* Improved calibration target detection
+* Other minor bug fixes
+
+## Old Versions
+
 [June 26th, 2019](https://drive.google.com/file/d/1wztutOIxxDUORYoqkOSvcFQnPs9N58zm/view?usp=sharing)
 
 [June 26th, 2019 - With Kernel Vignette Correction Support](https://drive.google.com/file/d/1YbBaNEdvoHfexK04fwmmh0M4ohtBWWdn/view?usp=sharing)
@@ -11,7 +23,6 @@ Change Log
 * Added imu values to kernel panel
 * Other minor bug fixes
 
-## Old Versions
 
 [May 15th, 2019](https://drive.google.com/file/d/1w6Q4Ngf2FHls4ni15PE1wN5XmfYYB7w5/view?usp=sharing)
 

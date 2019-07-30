@@ -4,7 +4,9 @@ block_cipher = None
 
 
 a = Analysis(['MAPIR_Camera_Control.py'],
-             pathex=['C:\\Users\\Software\\Documents\\GitHub\\MAPIR_Camera_Control'],
+             pathex=['C:\\Users\\Software\\Desktop\\GITHUB\\MAPIR_Camera_Control',
+             'C:\\Users\\Software\\AppData\\Local\\Programs\\Python\\Python37\\Lib\\site-packages\\osgeo',
+             'C:\\Program Files (x86)\\Windows Kits\\10\Redist\\10.0.18362.0\\ucrt\\DLLs\\x64'],
              binaries=[('FreeImage.dll', '.'), ('FreeImagePlus.dll', '.'), ('opencv_aruco320.dll', '.'), ('opencv_aruco320d.dll', '.'), ('opencv_calib3d320.dll', '.'),
              ('opencv_calib3d320.dll', '.'),
              ('opencv_core320.dll', '.'),
@@ -48,7 +50,6 @@ a = Analysis(['MAPIR_Camera_Control.py'],
              ('mapir.config', '.'),
              ('mapir_kernel.camerarig', '.'),
              ('template.kernelconfig', '.'),
-             (('_gdal.pyd'),'.'),
              ('dark.qss', '.'),
              ('breeze_resouces.py','.'),
              ('breeze.qrc','.'),
