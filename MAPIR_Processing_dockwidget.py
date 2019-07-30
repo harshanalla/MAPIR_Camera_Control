@@ -1493,50 +1493,44 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     #     self.KernelPanel.append(self.getIMURegisterString(label, signEnum.value, highByteEnum.value, lowByteEnum.value))
 
     def get_imu_value_string(self, label, reg_values):
-        return label + str(convert_imu_reg_values_to_float(reg_values))
+        return label + str(round(convert_imu_reg_values_to_float(reg_values),4)) + '°'
 
     def append_imu_value_to_kernel_panel(self, label, reg_values):
         self.KernelPanel.append(self.get_imu_value_string(label, reg_values))
 
+    def firmware_version_is_old(self):
+        return self.getRegister(eRegister.RG_FIRMWARE_INTERNAL_VERSION) == 0
+
     def log_yaw_pitch_roll_to_kernel_panel(self):
+        self.KernelPanel.append("Last Photo Captured Orientation:")
         self.append_imu_value_to_kernel_panel(
-            'Yaw Float: ', [
+            'Yaw: ', [
                 self.getRegister(eRegister.RG_ACC_YAW_0.value),
                 self.getRegister(eRegister.RG_ACC_YAW_1.value),
                 self.getRegister(eRegister.RG_ACC_YAW_2.value),
                 self.getRegister(eRegister.RG_ACC_YAW_3.value),
             ])
         self.append_imu_value_to_kernel_panel(
-            'Pitch Float: ', [
+            'Pitch: ', [
                 self.getRegister(eRegister.RG_ACC_PITCH_0.value),
                 self.getRegister(eRegister.RG_ACC_PITCH_1.value),
                 self.getRegister(eRegister.RG_ACC_PITCH_2.value),
                 self.getRegister(eRegister.RG_ACC_PITCH_3.value),
             ])
         self.append_imu_value_to_kernel_panel(
-            'Roll Float: ', [
+            'Roll: ', [
                 self.getRegister(eRegister.RG_ACC_ROLL_0.value),
                 self.getRegister(eRegister.RG_ACC_ROLL_1.value),
                 self.getRegister(eRegister.RG_ACC_ROLL_2.value),
                 self.getRegister(eRegister.RG_ACC_ROLL_3.value),
             ])
 
-
-    # def log_yaw_pitch_roll_to_kernel_panel(self):
-        # # self.KernelPanel.append('Camera IMU Roll Low: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_L.value)))
-        # # self.KernelPanel.append('Camera IMU Roll High: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_H.value)))
-        # # self.KernelPanel.append('Camera IMU Roll Sign: ' + str(self.getRegister(eRegister.RG_ACC_ROLL_SIGN.value)))
-        # self.appendIMURegisterValueToKernelPanel('Camera IMU Roll: ', eRegister.RG_ACC_ROLL_SIGN, eRegister.RG_ACC_ROLL_H, eRegister.RG_ACC_ROLL_L)
-        # # self.KernelPanel.append('Camera IMU Pitch Low: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_L.value)))
-        # # self.KernelPanel.append('Camera IMU Pitch High: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_H.value)))
-        # # self.KernelPanel.append('Camera IMU Pitch Sign: ' + str(self.getRegister(eRegister.RG_ACC_PITCH_SIGN.value)))
-        # self.appendIMURegisterValueToKernelPanel('Camera IMU Pitch: ', eRegister.RG_ACC_PITCH_SIGN, eRegister.RG_ACC_PITCH_H, eRegister.RG_ACC_PITCH_L)
-        # # self.KernelPanel.append('Camera IMU Yaw Low: ' + str(self.getRegister(eRegister.RG_ACC_YAW_L.value)))
-        # # self.KernelPanel.append('Camera IMU Yaw High: ' + str(self.getRegister(eRegister.RG_ACC_YAW_H.value)))
-        # # self.KernelPanel.append('Camera IMU Yaw Sign: ' + str(self.getRegister(eRegister.RG_ACC_YAW_SIGN.value)))
-        # self.appendIMURegisterValueToKernelPanel('Camera IMU Yaw: ', eRegister.RG_ACC_YAW_SIGN, eRegister.RG_ACC_YAW_H, eRegister.RG_ACC_YAW_L)
-        # # self.KernelPanel.append('RG_ACC_TEST_ENDIAN_L: ' + str(self.getRegister(eRegister.RG_ACC_TEST_ENDIAN_L.value)))
-        # # self.KernelPanel.append('RG_ACC_TEST_ENDIAN_H: ' + str(self.getRegister(eRegister.RG_ACC_TEST_ENDIAN_H.value)))
+    def log_firmware_version_to_kernel_panel(self):
+        if self.firmware_version_is_old():
+            version = "Camera Firmware: 1.2.0"
+        else:
+            version = "Camera Firmware: " + str(self.getRegister(eRegister.RG_FIRMWARE_ID.value)) + '.' + str(self.getRegister(eRegister.RG_FIRMWARE_MINOR_ID)) + '.' + str(self.getRegister(eRegister.RG_FIRMWARE_INTERNAL_VERSION))
+        self.KernelPanel.append(version)
 
     def KernelUpdate(self):
         try:
@@ -1656,6 +1650,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.KernelPanel.append("Shutter: " + str(self.SHUTTER_SPEED_LOOKUP.get(self.getRegister(eRegister.RG_SHUTTER.value), "N/A")) + " sec")
             self.KernelPanel.append("ISO: " + str(self.getRegister(eRegister.RG_ISO.value)) + "00")
 
+            self.KernelPanel.append('')
 
 
             buf = [0] * 512
@@ -1670,10 +1665,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             arid = self.writeToKernel(buf)[2]
             self.KernelPanel.append("Array ID: " + str(arid))
 
+            self.KernelPanel.append('')
             # self.log_acceleration_values_to_kernel_panel()
             self.log_yaw_pitch_roll_to_kernel_panel()
-
-            self.KernelPanel.append("\n")
+            self.KernelPanel.append('')
 
             buf = [0] * 512
             buf[0] = self.SET_REGISTER_BLOCK_READ_REPORT
@@ -1681,9 +1676,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             buf[2] = 6
             st = self.writeToKernel(buf)
             serno = str(chr(st[2]) + chr(st[3]) + chr(st[4]) + chr(st[5]) + chr(st[6]) + chr(st[7]))
-            self.KernelPanel.append("Serial #: " + serno)
 
-            self.KernelPanel.append("Camera Firmware: " + str(self.getRegister(eRegister.RG_FIRMWARE_ID.value)) + '.' + str(self.getRegister(eRegister.RG_FIRMWARE_MINOR_ID)) + '.' + str(self.getRegister(eRegister.RG_FIRMWARE_INTERNAL_VERSION)))
+            self.KernelPanel.append("Serial Number: " + serno)
+            self.log_firmware_version_to_kernel_panel()
+            # self.KernelPanel.append("Camera Firmware: " + str(self.getRegister(eRegister.RG_FIRMWARE_ID.value)) + '.' + str(self.getRegister(eRegister.RG_FIRMWARE_MINOR_ID)) + '.' + str(self.getRegister(eRegister.RG_FIRMWARE_INTERNAL_VERSION)))
 
             self.KernelExposureMode.blockSignals(False)
 
