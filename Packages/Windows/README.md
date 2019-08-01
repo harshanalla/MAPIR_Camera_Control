@@ -3,9 +3,9 @@
 
 ## Current Version
 
-[July 30th, 2019](https://drive.google.com/file/d/1umyhBrs8cyUK9-BE-Q3Hoz9pAJURHq4T/view?usp=sharing)
+[July 30th, 2019](https://drive.google.com/file/d/1zWEQpeqo7Xx6yUIEsn1vOT7faI9KSE2E/view?usp=sharing)
 
-[July 30th, 2019 - With Kernel Vignette Correction Support](https://drive.google.com/file/d/1i2wkyEyjz6W04MeNwVOrGKVRXbOIYkeP/view?usp=sharing)
+[July 30th, 2019 - With Kernel Vignette Correction Support](https://drive.google.com/file/d/1nMIS4jh-Ge6ErIBZ1tNG8jt7scWuQOtD/view?usp=sharing)
 
 Change Log
 * Add Firmware Version Number
