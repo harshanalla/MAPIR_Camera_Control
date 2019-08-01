@@ -909,7 +909,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     regs = []
     DJIS = ["DJI Phantom 4", "DJI Phantom 4 Pro", "DJI Phantom 3a", "DJI Phantom 3p", "DJI X3"]
     SURVEYS = ["Survey1", "Survey2", "Survey3"]
-    KERNELS = ["Kernel 1.2", "Kernel 3.2", "Kernel 14.4", "Kernel 14.4"]
+    KERNELS = ["Kernel 3.2", "Kernel 14.4"]
 
     ANGLE_SHIFT_QR = 7
 
@@ -4828,6 +4828,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     self.PreProcessLog.append(log_string)
                     self.clip_histogram(outputfilename, file, infolder)
         else:
+            # Preprocess Survey Cameras
             os.chdir(infolder)
             infiles = []
             infiles.extend(MAPIR_ProcessingDockWidget.get_raw_files_in_dir('.'))
@@ -4835,96 +4836,112 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             infiles.sort()
 
             if len(infiles) > 1:
-                if ("RAW" in infiles[0].upper()) and ("JPG" in infiles[1].upper() or "JPG" in infiles[1].upper()):
+                first_two_files_are_jpg = "JPG" in infiles[0].upper() and "JPG" in infiles[1].upper()
+                first_two_files_are_raw_and_jpg = "RAW" in infiles[0].upper() and "JPG" in infiles[1].upper()
+
+                if first_two_files_are_raw_and_jpg or first_two_files_are_jpg:
                     counter = 0
 
-                    for input in infiles[::2]:
+                    if first_two_files_are_raw_and_jpg:
+                        files_to_process = infiles[::2]
+                    else:
+                        files_to_process = infiles
+
+                    for input in files_to_process:
                         oldfirmware = False
-
                         if customerdata == True:
-                            log_string = "Processing Image: {} of {}  {} \n".format(str(int((counter / 2) + 1)), str(int(len(infiles) / 2)), input.split(os.sep)[1])
-                            self.PreProcessLog.append(log_string)
-                            QtWidgets.QApplication.processEvents()
+                                # current_image_index = int((counter / 2) + 1) if first_two_files_are_raw_and_jpg else counter + 1
+                                current_image_index = int((counter / 2) + 1) if first_two_files_are_raw_and_jpg else counter + 1
+                                # total_image_count = int(len(infiles) / 2) if first_two_files_are_raw_and_jpg else len(infiles)
+                                total_image_count = len(files_to_process)
+                                log_string = "Processing Image: {} of {}  {} \n".format(str(current_image_index), str(total_image_count), input.split(os.sep)[1])
+                                self.PreProcessLog.append(log_string)
+                                QtWidgets.QApplication.processEvents()
+                        if first_two_files_are_raw_and_jpg:
+                            if self.PreProcessCameraModel.currentText() == "Survey3":
+                                try:
+                                    data = np.fromfile(input, dtype=np.uint8)
+                                    data = np.unpackbits(data)
+                                    datsize = data.shape[0]
+                                    data = data.reshape((int(datsize / 4), 4))
 
-                        if self.PreProcessCameraModel.currentText() == "Survey3":
+                                    temp = copy.deepcopy(data[0::2])
+                                    temp2 = copy.deepcopy(data[1::2])
+                                    data[0::2] = temp2
+                                    data[1::2] = temp
+
+                                    udata = np.packbits(np.concatenate([data[0::3], np.array([0, 0, 0, 0] * 12000000, dtype=np.uint8).reshape(12000000,4),   data[2::3], data[1::3]], axis=1).reshape(192000000, 1)).tobytes()
+                                    img = np.fromstring(udata, np.dtype('u2'), (4000 * 3000)).reshape((3000, 4000))
+
+                                except Exception as e:
+                                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                                    print(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
+
+                                    oldfirmware = True
+
+                            elif self.PreProcessCameraModel.currentText() == "Survey2":
+                                with open(input, "rb") as rawimage:
+                                    jpg_file = next(x for x in os.listdir(infolder) if "JPG" in x or "jpg" in x)
+                                    image_path = infolder + '/' + jpg_file
+                                    height, width, _ = cv2.imread(image_path, -1).shape
+
+                                    img = np.fromfile(rawimage, np.dtype('u2'), (width * height)).reshape((height, width))
+
+                            if oldfirmware:
+                                with open(input, "rb") as rawimage:
+                                    img = np.fromfile(rawimage, np.dtype('u2'), (4000 * 3000))
+
+                                    if img.shape[0] != (4000 * 3000):
+                                        raise IndexError("Resolution of the image is {}. MCC only supports processing 12MP resolution. Please reset resolution to default settings.".format(img.shape[0]))
+
+                                    img = img.reshape((3000, 4000))
+
                             try:
-                                data = np.fromfile(input, dtype=np.uint8)
-                                data = np.unpackbits(data)
-                                datsize = data.shape[0]
-                                data = data.reshape((int(datsize / 4), 4))
-
-                                temp = copy.deepcopy(data[0::2])
-                                temp2 = copy.deepcopy(data[1::2])
-                                data[0::2] = temp2
-                                data[1::2] = temp
-
-                                udata = np.packbits(np.concatenate([data[0::3], np.array([0, 0, 0, 0] * 12000000, dtype=np.uint8).reshape(12000000,4),   data[2::3], data[1::3]], axis=1).reshape(192000000, 1)).tobytes()
-                                img = np.fromstring(udata, np.dtype('u2'), (4000 * 3000)).reshape((3000, 4000))
+                                color = cv2.cvtColor(img, cv2.COLOR_BAYER_RG2RGB).astype("float32")
 
                             except Exception as e:
                                 exc_type, exc_obj, exc_tb = sys.exc_info()
                                 print(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
 
-                                oldfirmware = True
+                            if self.PreProcessColorBox.isChecked():
+                                color = color / 65535.0
+                                color = self.color_correction(color)
+                                color = color * 65535.0
 
-                        elif self.PreProcessCameraModel.currentText() == "Survey2":
-                            with open(input, "rb") as rawimage:
-                                jpg_file = next(x for x in os.listdir(infolder) if "JPG" in x or "jpg" in x)
-                                image_path = infolder + '/' + jpg_file
-                                height, width, _ = cv2.imread(image_path, -1).shape
+                            if self.PreProcessJPGBox.isChecked():
+                                color = color / 65535.0
+                                # color = (color - int(np.percentile(color, 2))) / (int(np.percentile(color, 98)) - int(np.percentile(color, 2)))
+                                color = color * 255.0
+                                color = color.astype("uint8")
+                                filename = input.split('.')
+                                outputfilename = filename[1] + '.jpg'
+                                cv2.imencode(".jpg", color)
 
-                                img = np.fromfile(rawimage, np.dtype('u2'), (width * height)).reshape((height, width))
+                            elif self.PreProcessDarkBox.isChecked():
+                                color = color / 65535.0
+                                color = color * 4095.0
+                                color = color.astype("uint16")
 
-                        if oldfirmware:
-                            with open(input, "rb") as rawimage:
-                                img = np.fromfile(rawimage, np.dtype('u2'), (4000 * 3000))
+                                filename = input.split('.')
+                                outputfilename = filename[1] + '.tif'
+                                cv2.imencode(".tif", color)
 
-                                if img.shape[0] != (4000 * 3000):
-                                    raise IndexError("Resolution of the image is {}. MCC only supports processing 12MP resolution. Please reset resolution to default settings.".format(img.shape[0]))
+                            else:
+                                if self.PreProcessColorBox.checkState() == self.UNCHECKED:
+                                    color = color * 65535.0
 
-                                img = img.reshape((3000, 4000))
+                                color = color.astype("uint16")
 
-                        try:
-                            color = cv2.cvtColor(img, cv2.COLOR_BAYER_RG2RGB).astype("float32")
-
-                        except Exception as e:
-                            exc_type, exc_obj, exc_tb = sys.exc_info()
-                            print(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
-
-                        if self.PreProcessColorBox.isChecked():
-                            color = color / 65535.0
-                            color = self.color_correction(color)
-                            color = color * 65535.0
-
-                        if self.PreProcessJPGBox.isChecked():
-                            color = color / 65535.0
-                            # color = (color - int(np.percentile(color, 2))) / (int(np.percentile(color, 98)) - int(np.percentile(color, 2)))
-                            color = color * 255.0
-                            color = color.astype("uint8")
+                                if not self.PreProcessColorBox.isChecked():
+                                    color = cv2.bitwise_not(color)
+                                filename = input.split('.')
+                                outputfilename = filename[1] + '.tif'
+                                cv2.imencode(".tif", color)
+                        else:
+                            color = cv2.imread(input)
                             filename = input.split('.')
                             outputfilename = filename[1] + '.jpg'
                             cv2.imencode(".jpg", color)
-
-                        elif self.PreProcessDarkBox.isChecked():
-                            color = color / 65535.0
-                            color = color * 4095.0
-                            color = color.astype("uint16")
-
-                            filename = input.split('.')
-                            outputfilename = filename[1] + '.tif'
-                            cv2.imencode(".tif", color)
-
-                        else:
-                            if self.PreProcessColorBox.checkState() == self.UNCHECKED:
-                                color = color * 65535.0
-
-                            color = color.astype("uint16")
-
-                            if not self.PreProcessColorBox.isChecked():
-                                color = cv2.bitwise_not(color)
-                            filename = input.split('.')
-                            outputfilename = filename[1] + '.tif'
-                            cv2.imencode(".tif", color)
 
                         if self.Process_Histogram_ClipBox.isChecked():
                             if counter == 0:
@@ -4945,27 +4962,44 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                 self.min = min([color[:, :, 2].min(), self.min])
 
                         if self.PreProcessMonoBandBox.isChecked():
+
                             dropdown_value = self.Band_Dropdown.currentText()
                             band = dropdown_value[dropdown_value.find("(")+1:dropdown_value.find(")")]
-                            cutoff = 255.0 if self.PreProcessJPGBox.isChecked() else 65535.0
+
+                            if first_two_files_are_raw_and_jpg:
+                                cutoff = 255.0 if self.PreProcessJPGBox.isChecked() else 65535.0
+                            else:
+                                cutoff = 255.0
 
                             if band == "Red":
                                 color = color[:,:,2]
-                                color[color >= cutoff] = color.min()
+                                color[color >= cutoff] = cutoff
 
                             elif band == "Green":
                                 color = color[:,:,1]
-                                color[color >= cutoff] = color.min()
+                                color[color >= cutoff] = cutoff
 
                             elif band == "Blue":
                                 color = color[:,:,0]
-                                color[color >= cutoff] = color.min()
+                                color[color >= cutoff] = cutoff
+
+                            if self.Process_Histogram_ClipBox.isChecked():
+                                if counter == 0:
+                                    self.HC_mono_max = self.get_clipping_value(color)
+                                    self.min = color.min()
+                                else:
+                                    self.HC_mono_max = max([self.get_clipping_value(color), self.HC_mono_max])
+                                    self.min = min([color.min(), self.min])
 
                         cv2.imwrite(outfolder + outputfilename, color)
 
                         if customerdata == True:
-                            self.copyExif(infolder + infiles[counter + 1], outfolder + outputfilename)
-                        counter += 2
+                            file_index = counter + 1 if first_two_files_are_raw_and_jpg else counter
+                            self.copyExif(infolder + infiles[file_index], outfolder + outputfilename)
+                        if first_two_files_are_jpg:
+                            counter += 1
+                        else:
+                            counter += 2
 
                     if self.Process_Histogram_ClipBox.isChecked():
                         files = os.listdir(outfolder)
@@ -4975,7 +5009,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                             log_string = "Clipping Histogram: {} of {}  {} \n".format((count + 1), len(files), file)
                             self.PreProcessLog.append(log_string)
-                            self.clip_histogram(output_filepath)
+                            self.preprocess_clip_histogram_survey_cameras(output_filepath)
 
                 else:
                     self.PreProcessLog.append(
@@ -5113,25 +5147,127 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
         total_pixels = color.size
 
-        sum_pixels = 0
+        num_pixels_greater_than_or_equal_to_unique_pixel_value = 0
 
-        for pixel in freq_array[::-1]:
-            sum_pixels += pixel[1]
+        for unique_pixel_value in freq_array[::-1]:
+            value = unique_pixel_value[0]
+            frequency_of_value = unique_pixel_value[1]
 
-            if (sum_pixels / total_pixels) >= HCP:
-                return pixel[0]
+            num_pixels_greater_than_or_equal_to_unique_pixel_value += frequency_of_value
 
-    def merge(self, red, blue, green, filetype):
+            if (num_pixels_greater_than_or_equal_to_unique_pixel_value / total_pixels) >= HCP:
+                return value
+
+    def convert_to_bit_depth_and_merge(self, red, green, blue, filetype):
         if filetype == "TIF":
-            # self.convert_normalized_image_to_bit_depth(16, red, green, blue)
             red, green, blue, _ = self.convert_normalized_image_to_bit_depth(16, red, green, blue)
             return cv2.merge((blue, green, red))
 
         elif filetype == "JPG":
-            # self.convert_normalized_image_to_bit_depth(8, red, green, blue)
             red, green, blue, _ = self.convert_normalized_image_to_bit_depth(8, red, green, blue)
             return cv2.merge((blue, green, red))
 
+    def clip_layer_max(self, layer, limit):
+        layer[layer > limit] = limit
+        return layer
+
+    def clip_rgb_max(self, red, green, blue, limit):
+        red = self.clip_layer_max(red, limit)
+        green = self.clip_layer_max(green, limit)
+        blue = self.clip_layer_max(blue, limit)
+        return red, green, blue
+
+    def clip_layer_min(self, layer, limit):
+        layer[layer < limit] = limit
+        return layer
+
+    def clip_rgb_min(self, red, green, blue, limit):
+        red = self.clip_layer_min(red, limit)
+        green = self.clip_layer_min(green, limit)
+        blue = self.clip_layer_min(blue, limit)
+        return red, green, blue
+
+    def preprocess_clip_histogram_survey_cameras(self, out_path):
+        try:
+            file_is_jpg = out_path.split('.')[-1].upper() in ['JPG','JPEG']
+            file_is_tif = out_path.split('.')[-1].upper() in ['TIF', 'TIFF']
+
+            if file_is_jpg:
+                encoding_ext = '.jpg'
+                bit_depth = 8
+            elif file_is_tif:
+                encoding_ext = '.tif'
+                bit_depth = 16
+
+            img = cv2.imread(out_path, -1)
+
+            camera_model = self.PreProcessCameraModel.currentText()
+            filt = self.PreProcessFilter.currentText()
+            lens = self.PreProcessLens.currentText()
+
+
+            if self.PreProcessMonoBandBox.isChecked():
+                img = self.clip_mono_band_image(img, bit_depth)
+            else:
+                img, red, green, blue = self.clip_rgb_image(img)
+                red, green, blue, _ = self.convert_normalized_image_to_bit_depth(bit_depth, red, green, blue)
+                img = cv2.merge((blue, green, red))
+
+            cv2.imencode(encoding_ext, img)
+            self.imwrite_with_exif(img, out_path)
+
+        except Exception as e:
+            exc_type, exc_obj,exc_tb = sys.exc_info()
+            print(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
+
+    def imwrite_with_exif(self, img, out_path):
+        exif_temp_path = out_path.split('.')[0] + r"_TEMP." + out_path.split('.')[1]
+
+        cv2.imwrite(exif_temp_path, img)
+        self.copyExif(out_path, exif_temp_path)
+
+        cv2.imwrite(out_path, img)
+        self.copy_exif_from_temp_and_delete_temp(out_path)
+
+    def copy_exif_from_temp_mapir_and_delete_temp(self, target_path):
+        temp_exif_path = target_path.split('.')[0] + r"_TEMP." + target_path.split('.')[1]
+        self.copyMAPIR(temp_exif_path, target_path)
+        os.unlink(temp_exif_path)
+
+    def copy_exif_from_temp_and_delete_temp(self, target_path):
+        temp_exif_path = target_path.split('.')[0] + r"_TEMP." + target_path.split('.')[1]
+        self.copyExif(temp_exif_path, target_path)
+        os.unlink(temp_exif_path)
+
+    def clip_normalized_layer_min_max(self, layer):
+        layer = self.clip_layer_min(layer, 0.0)
+        layer = self.clip_layer_max(layer, 1.0)
+        return layer
+
+    def clip_normalized_rgb_min_max(self, red, green, blue):
+        red, green, blue = self.clip_rgb_min(red, green, blue, 0.0)
+        red, green, blue = self.clip_rgb_max(red, green, blue, 1.0)
+        return red, green, blue
+
+    def clip_mono_band_image(self, img, bit_depth):
+        img = self.clip_layer_max(img, self.HC_mono_max)
+        img = normalize(img, self.HC_mono_max, self.min)
+        img = self.clip_normalized_layer_min_max(img)
+        img = MAPIR_ProcessingDockWidget.convert_normalized_layer_to_bit_depth(img, bit_depth)
+        return img
+
+    def clip_rgb_image(self, img):
+        red = img[:, :, 2]
+        blue = img[:, :, 0]
+        green = img[:, :, 1]
+
+        self.global_HC_max = max(self.HC_max["redmax"], self.HC_max["bluemax"], self.HC_max["greenmax"])
+
+        red, green, blue = self.clip_rgb_max(red, green, blue, self.global_HC_max)
+        red, green, blue = normalize_rgb(red, green, blue, self.global_HC_max, self.min)
+        red, green, blue = self.clip_normalized_rgb_min_max(red, green, blue)
+
+        return img, red, green, blue
 
     def clip_histogram(self, outphoto, file = None, infolder = None):
         try:
@@ -5146,89 +5282,56 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.copySimple(outphoto, outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
 
                 self.conv = Converter()
-                if self.PreProcessDarkBox.isChecked():
-                    _, _, _, self.lensvals = self.conv.openRaw(mapir_file_path, outphoto, darkscale=True)
-                else:
-                    _, _, _, self.lensvals = self.conv.openRaw(mapir_file_path, outphoto, darkscale=False)
+                darkscale_true = self.PreProcessDarkBox.isChecked()
+                _, _, _, self.lensvals = self.conv.openRaw(mapir_file_path, outphoto, darkscale=darkscale_true)
 
             camera_model = self.PreProcessCameraModel.currentText()
             filt = self.PreProcessFilter.currentText()
             lens = self.PreProcessLens.currentText()
 
-            if self.check_if_RGB(camera_model, filt, lens):
-                red = img[:, :, 2]
-                blue = img[:, :, 0]
-                green = img[:, :, 1]
-
-                self.global_HC_max = self.HC_max["redmax"] if self.HC_max["redmax"] > self.HC_max["bluemax"] else self.HC_max["bluemax"]
-                self.global_HC_max = self.HC_max["greenmax"] if self.HC_max["greenmax"] > self.global_HC_max else self.global_HC_max
-
-                red[red > self.global_HC_max] = self.global_HC_max
-                green[green > self.global_HC_max] = self.global_HC_max
-                blue[blue > self.global_HC_max] = self.global_HC_max
-
-                red = ((red - self.min) / (self.global_HC_max - self.min))
-                green = ((green - self.min) / (self.global_HC_max - self.min))
-                blue = ((blue - self.min) / (self.global_HC_max - self.min))
-
-                red[red < 0.0 ] = 0.0
-                green[green < 0.0 ] = 0.0
-                blue[blue < 0.0 ] = 0.0
-
-                red[red > 1.0 ] = 1.0
-                green[green > 1.0 ] = 1.0
-                blue[blue > 1.0 ] = 1.0
+            if self.PreProcessMonoBandBox.isChecked():
+                bit_depth = 16
+                img = self.clip_mono_band_image(img, bit_depth)
 
             else:
-                self.global_HC_max = self.HC_mono_max
-                img = ((img - self.min) / (self.global_HC_max - self.min))
-                img[img < 0.0 ] = 0.0
-                img[img > 1.0 ] = 1.0
-
-                img *= 65535
-                img = img.astype(int)
-                img = img.astype("uint16")
+                img, red, green, blue = self.clip_rgb_image(img)
 
             if camera_model == "Kernel 14.4":
 
                 if self.PreProcessJPGBox.isChecked():
-                    img = self.merge(red, green, blue, 'JPG')
-                    cv2.imencode(".jpg", img)
-
-                    cv2.imwrite(outphoto, img)
-                    self.copyMAPIR(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], outphoto)
-                    os.unlink(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1]) #todo
-
+                    bit_depth = 8
+                    encode_ext = '.jpg'
                 else:
-                    img = self.merge(red, blue, green, "TIF")
-                    cv2.imencode(".tif", img)
-                    cv2.imwrite(outphoto, img)
-                    self.copyMAPIR(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], outphoto)
-                    os.unlink(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
+                    bit_depth = 16
+                    encode_ext = '.tif'
 
-            elif camera_model == "Survey3":
-                if self.PreProcessJPGBox.isChecked():
-                    color = self.merge(red, green, blue, 'JPG')
-                    cv2.imencode(".jpg", color)
-                else:
-                    color = self.merge(red, blue, green, "TIF")
-                    cv2.imencode(".tif", color)
-
-                cv2.imwrite(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], color)
-                self.copyExif(outphoto, outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
-
-                cv2.imwrite(outphoto, color)
-                self.copyExif(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], outphoto)
-                os.unlink(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
-
-            elif camera_model in self.DJIS:
-                img = self.merge(red, blue, green, "TIF")
-                cv2.imwrite(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], img)
-                self.copyExif(outphoto, outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
+                red, green, blue, _ = self.convert_normalized_image_to_bit_depth(bit_depth, red, green, blue)
+                img = cv2.merge((blue, green, red))
+                cv2.imencode(encode_ext, img)
 
                 cv2.imwrite(outphoto, img)
-                self.copyExif(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], outphoto)
-                os.unlink(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
+                self.copy_exif_from_temp_mapir_and_delete_temp(outphoto)
+
+            elif camera_model == "Survey3":
+                # TODO
+                if self.PreProcessJPGBox.isChecked():
+                    bit_depth = 8
+                    encode_ext = '.jpg'
+                else:
+                    bit_depth = 16
+                    encode_ext = '.tif'
+
+                red, green, blue, _ = self.convert_normalized_image_to_bit_depth(bit_depth, red, green, blue)
+                color = cv2.merge((blue, green, red))
+                cv2.imencode(encode_ext, color)
+                self.imwrite_with_exif(color, outphoto)
+
+            elif camera_model in self.DJIS:
+                bit_depth = 16
+
+                red, green, blue, _ = self.convert_normalized_image_to_bit_depth(bit_depth, red, green, blue)
+                img = cv2.merge((blue, green, red))
+                self.imwrite_with_exif(color, outphoto)
 
             elif camera_model == "Kernel 3.2":
                 cv2.imwrite(outphoto, img)
@@ -5236,6 +5339,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
         except Exception as e:
             exc_type, exc_obj,exc_tb = sys.exc_info()
+            print(str(e) + ' Line: ' + str(exc_tb.tb_lineno))
 
     def on_Process_Histogram_ClipBox_toggled(self):
         if self.Process_Histogram_ClipBox.checkState() == 2:
@@ -5255,13 +5359,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def bad_process_hcp_value(self):
         if "." in self.Process_HC_Value.text():
             return True
-
         if self.Process_Histogram_ClipBox.checkState() and not self.Process_HC_Value.text():
             return True
-
         elif (self.Process_Histogram_ClipBox.checkState() and (int(self.Process_HC_Value.text()) < 1 or int(self.Process_HC_Value.text()) > 100)):
             return True
-
         else:
             return False
 
@@ -5284,35 +5385,17 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         return color
 
     def check_if_rotate(self, link_id, array_type):
-        if array_type == 101 and link_id in [1,3]:
-            return True
-
-        elif array_type == 2 and link_id == 0:
-            return True
-
-        elif array_type == 4 and link_id == 1:
-            return True
-
-        elif array_type == 6 and link_id == 0:
-            return True
-
-        elif array_type == 8 and link_id in [1, 3]:
-            return True
-
-        elif array_type == 10 and link_id in [0, 2]:
-            return True
-
-        elif array_type == 12 and link_id in [1, 3, 5]:
-            return True
-
-        elif array_type == 14 and link_id in [0, 2, 4]:
-            return True
-
-        elif array_type == 29 and link_id in [0, 1, 2, 3, 4]:
-            return True
-
-        else:
-            return False
+        return (
+            (array_type == 101 and link_id in [1,3]) or
+            (array_type == 2 and link_id == 0) or
+            (array_type == 4 and link_id == 1) or
+            (array_type == 6 and link_id == 0) or
+            (array_type == 8 and link_id in [1, 3]) or
+            (array_type == 10 and link_id in [0, 2]) or
+            (array_type == 12 and link_id in [1, 3, 5]) or
+            (array_type == 14 and link_id in [0, 2, 4]) or
+            (array_type == 29 and link_id in [0, 1, 2, 3, 4])
+        )
 
     def remove_lines(self, img, h, w):
         diff_perc = .50
@@ -5470,15 +5553,15 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                             if band == "Red":
                                 color = color[:,:,2]
-                                color[color >= cutoff] = color.min()
+                                color[color >= cutoff] = color.max()
 
                             elif band == "Green":
                                 color = color[:,:,1]
-                                color[color >= cutoff] = color.min()
+                                color[color >= cutoff] = color.max()
 
                             elif band == "Blue":
                                 color = color[:,:,0]
-                                color[color >= cutoff] = color.min()
+                                color[color >= cutoff] = color.max()
 
                         cv2.imwrite(path, color)
 
