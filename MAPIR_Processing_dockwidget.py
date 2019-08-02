@@ -22,6 +22,7 @@
 """
 
 import os
+from os import listdir
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -57,7 +58,7 @@ import json
 import math
 import webbrowser
 import Calibration
-import geometry
+import Geometry
 from bit_depth_conversion import normalize, normalize_rgb
 from camera_specs import CameraSpecs
 
@@ -4723,6 +4724,32 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def get_dng_files_in_dir(dir_name):
         return glob.glob(dir_name + os.sep + "*.DNG")
 
+    def get_rgb_clipping_channel_max_mins(self, img, counter):
+        is_first_image = counter == 0
+
+        red = img[: ,: , 2]
+        green = img[:, :, 1]
+        blue = img[:, :, 0]
+
+        if is_first_image:
+            self.HC_max["redmax"] = self.get_clipping_value(red)
+            self.HC_max["greenmax"] = self.get_clipping_value(green)
+            self.HC_max["bluemax"] = self.get_clipping_value(blue)
+
+            self.min = min(red.min(), green.min(), blue.min())
+
+        else:
+            self.HC_max["redmax"] = max([self.get_clipping_value(red), self.HC_max["redmax"]])
+            self.HC_max["greenmax"] = max([self.get_clipping_value(green), self.HC_max["greenmax"]])
+            self.HC_max["bluemax"] = max([self.get_clipping_value(blue), self.HC_max["bluemax"]])
+
+            self.min = min(self.min, red.min(), green.min(), blue.min())
+
+    def delete_all_exiftool_tmp_files_in_dir(self, dir_path):
+        for file_name in listdir(dir_path):
+            if file_name.endswith('_exiftool_tmp'):
+                os.remove(os.path.join(dir_path,file_name))
+
     def preProcessHelper(self, infolder, outfolder, customerdata=True):
         if self.PreProcessMonoBandBox.isChecked():
             self.output_mono_band_validation()
@@ -4755,22 +4782,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     full_path = os.path.join(outfolder, file)
 
                     img = cv2.imread(full_path, -1)
-                    if counter == 0:
-                        self.HC_max["redmax"] = self.get_clipping_value(img[:, :, 2])
-                        self.HC_max["greenmax"] = self.get_clipping_value(img[:, :, 1])
-                        self.HC_max["bluemax"] = self.get_clipping_value(img[:, :, 0])
-
-                        # self.min = min(img[:, :, 0].min(), img[:, :, 1].min(), img[:, :, 2].min())
-
-                    else:
-                        self.HC_max["redmax"] = max([self.get_clipping_value(img[:, :, 2]), self.HC_max["redmax"]])
-                        self.HC_max["greenmax"] = max([self.get_clipping_value(img[:, :, 1]), self.HC_max["greenmax"]])
-                        self.HC_max["bluemax"] = max([self.get_clipping_value(img[:, :, 0]), self.HC_max["bluemax"]])
-
-                        # self.min = min([img[:, :, 0].min(), self.min])
-                        # self.min = min([img[:, :, 1].min(), self.min])
-                        # self.min = min([img[:, :, 2].min(), self.min])
-                    self.min = min(img[:, :, 0].min(), img[:, :, 1].min(), img[:, :, 2].min())
+                    self.get_rgb_clipping_channel_max_mins(img, counter)
                 counter += 1
 
             if self.Process_Histogram_ClipBox.isChecked():
@@ -4850,9 +4862,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     for input in files_to_process:
                         oldfirmware = False
                         if customerdata == True:
-                                # current_image_index = int((counter / 2) + 1) if first_two_files_are_raw_and_jpg else counter + 1
                                 current_image_index = int((counter / 2) + 1) if first_two_files_are_raw_and_jpg else counter + 1
-                                # total_image_count = int(len(infiles) / 2) if first_two_files_are_raw_and_jpg else len(infiles)
                                 total_image_count = len(files_to_process)
                                 log_string = "Processing Image: {} of {}  {} \n".format(str(current_image_index), str(total_image_count), input.split(os.sep)[1])
                                 self.PreProcessLog.append(log_string)
@@ -4944,22 +4954,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             cv2.imencode(".jpg", color)
 
                         if self.Process_Histogram_ClipBox.isChecked():
-                            if counter == 0:
-                                self.HC_max["redmax"] = self.get_clipping_value(color[:, :, 2])
-                                self.HC_max["greenmax"] = self.get_clipping_value(color[:, :, 1])
-                                self.HC_max["bluemax"] = self.get_clipping_value(color[:, :, 0])
-
-                                self.min = color[:, :, 0].min() if color[:, :, 0].min() < color[:, :, 1].min() else color[:, :, 1].min()
-                                self.min = color[:, :, 2].min() if color[:, :, 2].min() < self.min else self.min
-
-                            else:
-                                self.HC_max["redmax"] = max([self.get_clipping_value(color[:, :, 2]), self.HC_max["redmax"]])
-                                self.HC_max["greenmax"] = max([self.get_clipping_value(color[:, :, 1]), self.HC_max["greenmax"]])
-                                self.HC_max["bluemax"] = max([self.get_clipping_value(color[:, :, 0]), self.HC_max["bluemax"]])
-
-                                self.min = min([color[:, :, 0].min(), self.min])
-                                self.min = min([color[:, :, 1].min(), self.min])
-                                self.min = min([color[:, :, 2].min(), self.min])
+                            self.get_rgb_clipping_channel_max_mins(color, counter)
 
                         if self.PreProcessMonoBandBox.isChecked():
 
@@ -4989,7 +4984,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                                     self.min = color.min()
                                 else:
                                     self.HC_mono_max = max([self.get_clipping_value(color), self.HC_mono_max])
-                                    self.min = min([color.min(), self.min])
+                                    self.min = min(color.min(), self.min)
 
                         cv2.imwrite(outfolder + outputfilename, color)
 
@@ -5000,6 +4995,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             counter += 1
                         else:
                             counter += 2
+
+                    self.delete_all_exiftool_tmp_files_in_dir(outfolder)
 
                     if self.Process_Histogram_ClipBox.isChecked():
                         files = os.listdir(outfolder)
@@ -5493,28 +5490,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         cv2.imwrite(outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1], img)
                         self.copySimple(outphoto, outphoto.split('.')[0] + r"_TEMP." + outphoto.split('.')[1])
 
-
                         color = cv2.cvtColor(img, cv2.COLOR_BAYER_GB2RGB).astype("float32")
                         color = self.blur(color)
 
                         if self.Process_Histogram_ClipBox.isChecked():
-                            if count == 0:
-                                self.HC_max["redmax"] = self.get_clipping_value(color[:, :, 2])
-                                self.HC_max["greenmax"] = self.get_clipping_value(color[:, :, 1])
-                                self.HC_max["bluemax"] = self.get_clipping_value(color[:, :, 0])
-
-                                self.min = color[:, :, 0].min() if color[:, :, 0].min() < color[:, :, 1].min() else color[:, :, 1].min()
-                                self.min = color[:, :, 2].min() if color[:, :, 2].min() < self.min else self.min
-
-                            else:
-                                self.HC_max["redmax"] = max([self.get_clipping_value(color[:, :, 2]), self.HC_max["redmax"]])
-                                self.HC_max["greenmax"] = max([self.get_clipping_value(color[:, :, 1]), self.HC_max["greenmax"]])
-                                self.HC_max["bluemax"] = max([self.get_clipping_value(color[:, :, 0]), self.HC_max["bluemax"]])
-
-                                self.min = min([color[:, :, 0].min(), self.min])
-                                self.min = min([color[:, :, 1].min(), self.min])
-                                self.min = min([color[:, :, 2].min(), self.min])
-
+                            self.get_rgb_clipping_channel_max_mins(color, counter)
 
                         if self.PreProcessVignette.isChecked():
                             color = self.apply_vignette_dark_color(color, h, w)
@@ -5588,7 +5568,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                                 else:
                                     self.HC_mono_max = max([self.get_clipping_value(img), self.HC_mono_max])
-                                    self.min = min([img.min(), self.min])
+                                    self.min = min(img.min(), self.min)
 
 
                             if self.PreProcessVignette.isChecked():
@@ -6176,23 +6156,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         cmralign.append(r'-c')
         cmralign.append(self.AnalyzeInput.text() + os.sep + "mapir_kernel.camerarig")
         subprocess.call(cmralign)
-
-    # def on_DarkCurrentInputButton_released(self):
-    #   self.present_folder_select_dialog(self.DarkCurrentInput)
-
-    # def on_DarkCurrentOutputButton_released(self):
-    #   self.present_folder_select_dialog(self.DarkCurrentOutput)
-
-    # def on_DarkCurrentGoButton_released(self):
-    #     folder1 = []
-    #     folder1.extend(glob.glob(self.DarkCurrentInput.text() + os.sep + "*.tif?"))
-    #     for img in folder1:
-    #         QtWidgets.QApplication.processEvents()
-    #         self.KernelLog.append("Updating " + str(img))
-    #         subprocess.call(
-    #             [modpath + os.sep + r'exiftool.exe', '-m', r'-overwrite_original', r'-ifd0:blacklevelrepeatdim=2 2',  img], startupinfo=si)
-    #
-    #     self.KernelLog.append("Finished updating")
 
     def closeEvent(self, event):
         self.closingPlugin.emit()
