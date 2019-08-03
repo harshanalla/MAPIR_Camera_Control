@@ -4298,9 +4298,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                     QtWidgets.QApplication.processEvents()
                     return
 
-            line1 = geometry.distance(self.coords[0], self.coords[1])
-            line2 = geometry.distance(self.coords[1], self.coords[2])
-            line3 = geometry.distance(self.coords[2], self.coords[0])
+            line1 = Geometry.distance(self.coords[0], self.coords[1])
+            line2 = Geometry.distance(self.coords[1], self.coords[2])
+            line3 = Geometry.distance(self.coords[2], self.coords[0])
             hypotenuse = max([line1, line2, line3])
 
             #Finding Version 2 Target
@@ -4309,17 +4309,17 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 right = self.coords[1]
                 bottom = self.coords[2]
 
-                slope = geometry.slope(right, bottom)
+                slope = Geometry.slope(right, bottom)
                 dist = center[1] - (slope * center[0]) + ((slope * bottom[0]) - bottom[1])
                 dist /= np.sqrt(np.power(slope, 2) + 1)
                 # (center_y - slope * center_x + slope * bottom_x - bottom_y) / sqrt(slope^2 + 1)
 
-                slope_right_to_center = geometry.slope(right, center)
+                slope_right_to_center = Geometry.slope(right, center)
                 angle = abs(math.degrees(math.atan(slope_right_to_center)))
 
             else:
                 if hypotenuse == line1:
-                    slope = geometry.slope(self.coords[0], self.coords[1])
+                    slope = Geometry.slope(self.coords[0], self.coords[1])
                     dist = self.coords[2][1] - (slope * self.coords[2][0]) + ((slope * self.coords[1][0]) - self.coords[1][1])
                     dist /= np.sqrt(np.power(slope, 2) + 1)
                     center = self.coords[2]
@@ -4333,7 +4333,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         bottom = self.coords[1]
                         right = self.coords[0]
                 elif hypotenuse == line2:
-                    slope = geometry.slope(self.coords[1], self.coords[2])
+                    slope = Geometry.slope(self.coords[1], self.coords[2])
                     dist = self.coords[0][1] - (slope * self.coords[0][0]) + ((slope * self.coords[2][0]) - self.coords[2][1])
                     dist /= np.sqrt(np.power(slope, 2) + 1)
                     center = self.coords[0]
@@ -4347,7 +4347,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         bottom = self.coords[2]
                         right = self.coords[1]
                 else:
-                    slope = geometry.slope(self.coords[2], self.coords[0])
+                    slope = Geometry.slope(self.coords[2], self.coords[0])
                     dist = self.coords[1][1] - (slope * self.coords[1][0]) + ((slope * self.coords[0][0]) - self.coords[0][1])
                     dist /= np.sqrt(np.power(slope, 2) + 1)
                     center = self.coords[1]
