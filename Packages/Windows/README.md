@@ -8,9 +8,9 @@
 [July 30th, 2019 - With Kernel Vignette Correction Support](https://drive.google.com/file/d/1nMIS4jh-Ge6ErIBZ1tNG8jt7scWuQOtD/view?usp=sharing)
 
 Change Log
-* Add Firmware Version Number
-* Format imu values in kernel panel
-* Improved calibration target detection
+* Support for Kernel firmware version number
+* Display IMU values in Kernel panel for last captured photo
+* Improved reflectnace calibration and target detection
 * Other minor bug fixes
 
 ## Old Versions
