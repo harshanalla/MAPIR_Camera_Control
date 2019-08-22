@@ -55,10 +55,10 @@ CURVE_NUMBERS_MASTER = {
 }
 
 # This function adds the numbers above to adjust imu for curved arrays.
-def CurveAdjustment(atype=100, arid=0, imu=[0.0, 0.0, 0.0]):
+def CurveAdjustment(array_type=100, array_id=0, imu=[0.0, 0.0, 0.0]):
     try:
-        if atype == 100:
-            if arid == 0 or arid == 3:
+        if array_type == 100:
+            if array_id in [0, 2]:
                 imu[0] += CURVE_NUMBERS_MASTER["YAW"]
                 imu[1] += CURVE_NUMBERS_MASTER["PITCH"]
                 imu[2] += CURVE_NUMBERS_MASTER["ROLL"]
@@ -67,18 +67,18 @@ def CurveAdjustment(atype=100, arid=0, imu=[0.0, 0.0, 0.0]):
                 imu[1] += CURVE_NUMBERS_MASTER["PITCH"]
                 imu[2] -= CURVE_NUMBERS_MASTER["ROLL"]
 
-        elif atype == 101:
-            if arid == 0:
+        elif array_type == 101:
+            if array_id == 0:
                 imu[0] += CURVE_NUMBERS_MASTER["YAW"]
                 imu[1] += CURVE_NUMBERS_MASTER["PITCH"]
                 imu[2] += CURVE_NUMBERS_MASTER["ROLL"]
 
-            elif arid == 1:
+            elif array_id == 1:
                 imu[0] -= CURVE_NUMBERS_MASTER["YAW"]
                 imu[1] += CURVE_NUMBERS_MASTER["PITCH"]
                 imu[2] -= CURVE_NUMBERS_MASTER["ROLL"]
 
-            elif arid == 2:
+            elif array_id == 2:
                 imu[0] -= CURVE_NUMBERS_MASTER["YAW"]
                 imu[1] += CURVE_NUMBERS_MASTER["PITCH"]
                 imu[2] -= CURVE_NUMBERS_MASTER["ROLL"]

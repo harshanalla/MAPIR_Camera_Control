@@ -4771,7 +4771,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             counter = 0
 
             for input in infiles:
-                self.append_processing_image_message_to_preprocess_log(counter, infiles, input)
+                self.append_processing_image_message_to_preprocess_log(counter, infiles)
                 QtWidgets.QApplication.processEvents()
                 self.openDNG(infolder + input.split('.')[1] + "." + input.split('.')[2], outfolder, customerdata)
 
@@ -4809,7 +4809,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             for input in infiles:
                 csv_name = input[3:6]
 
-                self.append_processing_image_message_to_preprocess_log(counter, infiles, input)
+                self.append_processing_image_message_to_preprocess_log(counter, infiles)
                 QtWidgets.QApplication.processEvents()
 
                 filename = input.split('.')
@@ -5383,15 +5383,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
     def check_if_rotate(self, link_id, array_type):
         return (
-            (array_type == 101 and link_id in [1,3]) or
-            (array_type == 2 and link_id == 0) or
+            (array_type in [2, 6] and link_id == 0) or
             (array_type == 4 and link_id == 1) or
-            (array_type == 6 and link_id == 0) or
-            (array_type == 8 and link_id in [1, 3]) or
+            (array_type in [8, 100] and link_id in [1, 3]) or
             (array_type == 10 and link_id in [0, 2]) or
-            (array_type == 12 and link_id in [1, 3, 5]) or
-            (array_type == 14 and link_id in [0, 2, 4]) or
-            (array_type == 29 and link_id in [0, 1, 2, 3, 4])
+            (array_type in [12, 16, 29] and link_id in [1, 3, 5]) or
+            (array_type == 14 and link_id in [0, 2, 4])
         )
 
     def remove_lines(self, img, h, w):

@@ -12,7 +12,7 @@ def is_color_image(img):
 def show_detected_targets(target_img, corners, ids):
     draw_image = target_img.copy()
     aruco.drawDetectedMarkers(draw_image, corners, ids)
-    resize = cv2.resize(draw_image, (2000, 1500), interpolation=cv2.INTER_LINEAR)
+    resize = cv2.resize(draw_image, (1600, 1200), interpolation=cv2.INTER_LINEAR)
     cv2.imshow('frame', resize)
 
 def filter_detected_targets_by_id(corners, ids, target_id):
@@ -69,8 +69,8 @@ def get_image_corners(target_img_path):
         raise Exception('No calibration target was detected')
 
 
-	# color_img = cv2.imread(target_img_path, 1)
-	# show_detected_targets(color_img, corners, ids)
+    # color_img = cv2.imread(target_img_path, 1)
+    # show_detected_targets(color_img, corners, ids)
     # show_detected_targets(img, corners, ids)
 
     target_matches = filter_detected_targets_by_id(corners, ids, 13)[0]
