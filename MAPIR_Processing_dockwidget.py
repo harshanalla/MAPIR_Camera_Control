@@ -58,6 +58,7 @@ import json
 import math
 import webbrowser
 import Calibration
+import show_image
 import Geometry
 from bit_depth_conversion import normalize, normalize_rgb
 from camera_specs import CameraSpecs
@@ -1410,11 +1411,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         self.calcwindow.resize(685, 250)
         self.calcwindow.show()
         QtWidgets.QApplication.processEvents()
-    
+
     def kernel_viewer_zoom_in(self):
         factor = 1.15
         self.KernelViewer.scale(factor, factor)
-    
+
     def kernel_viewer_zoom_out(self):
         factor = 1.15
         self.KernelViewer.scale(1/factor, 1/factor)
@@ -3090,11 +3091,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 exc_type, exc_obj,exc_tb = sys.exc_info()
                 self.PreProcessLog.append(str(e))
 
-
-                # Pre-Process Steps: End
-
-                # Calibration Steps: Start
-
     def on_CalibrationInButton_released(self):
         self.present_folder_select_dialog(self.CalibrationInFolder)
         # with open(modpath + os.sep + "instring.txt", "r+") as instring:
@@ -4727,9 +4723,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def get_rgb_clipping_channel_max_mins(self, img, counter):
         is_first_image = counter == 0
 
-        red = img[: ,: , 2]
-        green = img[:, :, 1]
         blue = img[:, :, 0]
+        green = img[:, :, 1]
+        red = img[: ,: , 2]
 
         if is_first_image:
             self.HC_max["redmax"] = self.get_clipping_value(red)
@@ -4749,6 +4745,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         for file_name in listdir(dir_path):
             if file_name.endswith('_exiftool_tmp'):
                 os.remove(os.path.join(dir_path,file_name))
+
 
     def preProcessHelper(self, infolder, outfolder, customerdata=True):
         if self.PreProcessMonoBandBox.isChecked():
@@ -4786,14 +4783,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 counter += 1
 
             if self.Process_Histogram_ClipBox.isChecked():
-                files = os.listdir(outfolder)
-                for count, file in enumerate(files):
-                    QtWidgets.QApplication.processEvents()
-                    output_filepath = os.path.join(outfolder, file)
-
-                    log_string = "Clipping Histogram: {} of {}  {} \n".format((count + 1), len(files), file)
-                    self.PreProcessLog.append(log_string)
-                    self.clip_histogram(output_filepath)
+                self.histogram_clip_processed_files(outfolder, infolder)
 
 
         elif self.PreProcessCameraModel.currentText() in self.KERNELS:
@@ -4805,40 +4795,24 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             counter = 0
             self.csv_array = []
 
-
+            # process mapirs
             for input in infiles:
                 csv_name = input[3:6]
 
                 self.append_processing_image_message_to_preprocess_log(counter, infiles)
                 QtWidgets.QApplication.processEvents()
 
-                filename = input.split('.')
-                outputfilename = outfolder + filename[1] + '.tif'
-                self.openMapir(infolder + input.split('.')[1] + "." + input.split('.')[2],  outputfilename, input, outfolder, counter)
+                file_path = input.split('.')
+                file_name = file_path[1]
+                file_ext = file_path[2]
+                outputfilename = outfolder + file_name + '.tif'
+                self.openMapir(infolder + file_name + "." + file_ext,  outputfilename, input, outfolder, counter)
                 counter += 1
 
-            incomplete_files = [file for file in os.listdir(outfolder) if "_TEMP" in file]
-            for count, file in enumerate(incomplete_files):
-                QtWidgets.QApplication.processEvents()
-                mapir_filename = file.rsplit('.', 1)[0].replace("_TEMP", "") + ".mapir"
-                output_filename = file.replace("_TEMP", "")
-
-                mapir_filepath = os.path.join(infolder, mapir_filename)
-                output_filepath = os.path.join(outfolder, output_filename)
-
-                log_string = "Reprocessing Image: {} of {} {}\n".format(count + 1, len(incomplete_files), mapir_filename)
-                self.PreProcessLog.append(log_string)
-                self.openMapir(mapir_filepath,  output_filepath, mapir_filename, outfolder, 1)
+            self.reprocess_unprocessed_mapirs(outfolder, infolder)
 
             if self.Process_Histogram_ClipBox.isChecked():
-                files = os.listdir(outfolder)
-                for count, file in enumerate(files):
-                    QtWidgets.QApplication.processEvents()
-                    outputfilename = os.path.join(outfolder, file)
-
-                    log_string = "Clipping Histogram: {} of {}  {} \n".format((count + 1), len(files), file)
-                    self.PreProcessLog.append(log_string)
-                    self.clip_histogram(outputfilename, file, infolder)
+                self.histogram_clip_processed_files(outfolder, infolder)
         else:
             # Preprocess Survey Cameras
             os.chdir(infolder)
@@ -5011,6 +4985,31 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 else:
                     self.PreProcessLog.append(
                         "Incorrect file structure. Please arrange files in a RAW, JPG, RAW, JPG... format.")
+
+    def histogram_clip_processed_files(self, outfolder, infolder):
+
+        files = os.listdir(outfolder)
+        for count, file in enumerate(files):
+            QtWidgets.QApplication.processEvents()
+            outputfilename = os.path.join(outfolder, file)
+
+            log_string = "Clipping Histogram: {} of {}  {} \n".format((count + 1), len(files), file)
+            self.PreProcessLog.append(log_string)
+            self.clip_histogram(outputfilename, file, infolder)
+
+    def reprocess_unprocessed_mapirs(self, outfolder, infolder):
+        incomplete_files = [file for file in os.listdir(outfolder) if "_TEMP" in file]
+        for count, file in enumerate(incomplete_files):
+            QtWidgets.QApplication.processEvents()
+            mapir_filename = file.rsplit('.', 1)[0].replace("_TEMP", "") + ".mapir"
+            output_filename = file.replace("_TEMP", "")
+
+            mapir_filepath = os.path.join(infolder, mapir_filename)
+            output_filepath = os.path.join(outfolder, output_filename)
+
+            log_string = "Reprocessing Image: {} of {} {}\n".format(count + 1, len(incomplete_files), mapir_filename)
+            self.PreProcessLog.append(log_string)
+            self.openMapir(mapir_filepath, output_filepath, mapir_filename, outfolder, 1)
 
     @staticmethod
     def get_processing_image_message(counter, infiles):
@@ -5254,9 +5253,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         return img
 
     def clip_rgb_image(self, img):
-        red = img[:, :, 2]
         blue = img[:, :, 0]
         green = img[:, :, 1]
+        red = img[:, :, 2]
 
         self.global_HC_max = max(self.HC_max["redmax"], self.HC_max["bluemax"], self.HC_max["greenmax"])
 
@@ -5270,7 +5269,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         try:
             img = cv2.imread(outphoto, -1)
 
-            if self.PreProcessCameraModel.currentText() == "Kernel 14.4":
+            camera_model = self.PreProcessCameraModel.currentText()
+            filt = self.PreProcessFilter.currentText()
+            lens = self.PreProcessLens.currentText()
+
+            if camera_model == "Kernel 14.4":
                 filename = file.split(".")[0]
                 mapir_file = filename + ".mapir"
                 mapir_file_path = os.path.join(infolder, mapir_file)
@@ -5282,9 +5285,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 darkscale_true = self.PreProcessDarkBox.isChecked()
                 _, _, _, self.lensvals = self.conv.openRaw(mapir_file_path, outphoto, darkscale=darkscale_true)
 
-            camera_model = self.PreProcessCameraModel.currentText()
-            filt = self.PreProcessFilter.currentText()
-            lens = self.PreProcessLens.currentText()
+
 
             if self.PreProcessMonoBandBox.isChecked():
                 bit_depth = 16
@@ -5358,20 +5359,20 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             return True
         if self.Process_Histogram_ClipBox.checkState() and not self.Process_HC_Value.text():
             return True
-        elif (self.Process_Histogram_ClipBox.checkState() and (int(self.Process_HC_Value.text()) < 1 or int(self.Process_HC_Value.text()) > 100)):
+        elif (self.Process_Histogram_ClipBox.checkState() and (int(self.Process_HC_Value.text()) < 0 or int(self.Process_HC_Value.text()) > 100)):
             return True
         else:
             return False
 
     def blur(self, color):
-        red = color[:, :, 2]
         blue = color[:, :, 0]
         green = color[:, :, 1]
+        red = color[:, :, 2]
 
         BF = 0.2
         DF = (8 * BF) + 1
-        blur_kernel = np.array([[BF,BF,BF],[BF,1,BF],[BF,BF,BF]])/ DF;
-        green = cv2.filter2D(green,-1,blur_kernel)
+        blur_kernel = np.array([[BF,BF,BF],[BF,1,BF],[BF,BF,BF]])/ DF
+        green = cv2.filter2D(green, -1, blur_kernel)
         color =  cv2.merge((blue, green, red))
 
         return color
@@ -5457,7 +5458,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
             if self.Process_Histogram_ClipBox.isChecked():
                 if self.bad_process_hcp_value():
-                    self.PreProcessLog.append("Attention! Please select a Histogram Clipping Percentage value between 1-100.")
+                    self.PreProcessLog.append("Attention! Please select a Histogram Clipping Percentage value from 0 to 100.")
                     self.PreProcessLog.append("For example: for 20%, please enter 20\n")
 
             if inphoto.endswith('.mapir'):
@@ -5468,7 +5469,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 else:
                     _, _, _, self.lensvals = self.conv.openRaw(inphoto, outphoto, darkscale=False)
 
-                img = cv2.imread(outphoto, -1)
+                img = cv2.imread(outphoto, cv2.IMREAD_UNCHANGED)
                 ts = self.conv.META_PAYLOAD["GNSS_TIME_SECS"][1]
                 ns = self.conv.META_PAYLOAD["GNSS_TIME_NSECS"][1]
                 ts = ts + (ns / 1000000000)
@@ -5491,7 +5492,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         color = self.blur(color)
 
                         if self.Process_Histogram_ClipBox.isChecked():
-                            self.get_rgb_clipping_channel_max_mins(color, counter)
+                            self.get_rgb_clipping_channel_max_mins(color, count)
 
                         if self.PreProcessVignette.isChecked():
                             color = self.apply_vignette_dark_color(color, h, w)
@@ -5848,7 +5849,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             print(exifout)
 
     def copySimple(self, inphoto, outphoto):
-        ExifUtils.copy_simple(inphoto, outphoto)
+        ExifUtils.copy_simple(inphoto, outphoto, si, modpath)
 
     def copyMAPIR(self, inphoto, outphoto):
         if sys.platform == "win32":
