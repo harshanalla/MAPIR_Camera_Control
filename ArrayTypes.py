@@ -13,14 +13,13 @@ def AdjustYPR(atype=0, arid=0, imu=[0.0, 0.0, 0.0]):
             #imu[0] = imu[0] % 360
             #imu[2] = -imu[2]
         else:
-            #print("0 or 2: ", arid)
             imu[1] = -imu[1]
 
     if atype != 100:
         index = atype % 4
         orientation = arid % 2
         imu[0] += (index * 90.0)
-        if orientation:
+        if orientation: # Links 1 and 3
             imu[0] += 180.0
         imu[0] = imu[0] % 360
         if orientation:
@@ -57,6 +56,7 @@ CURVE_NUMBERS_MASTER = {
 # This function adds the numbers above to adjust imu for curved arrays.
 def CurveAdjustment(array_type=100, array_id=0, imu=[0.0, 0.0, 0.0]):
     try:
+
         if array_type == 100:
             if array_id in [0, 2]:
                 imu[0] += CURVE_NUMBERS_MASTER["YAW"]

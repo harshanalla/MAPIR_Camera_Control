@@ -4,9 +4,8 @@ import os
 class ExifUtils:
 
     @staticmethod
-    def copy_simple(inphoto, outphoto, startup_info, mod_path):
-        # startup_info = subprocess.STARTUPINFO()
-        # modpath = os.path.dirname(os.path.realpath(__file__))
+    def copy_simple(inphoto, outphoto, startup_info):
+        mod_path = os.path.dirname(os.path.realpath(__file__))
 
         exifout = subprocess.run(
             [mod_path + os.sep + r'exiftool.exe',  # r'-config', modpath + os.sep + r'mapir.config',

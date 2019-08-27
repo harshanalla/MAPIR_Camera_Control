@@ -4732,14 +4732,18 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.HC_max["greenmax"] = self.get_clipping_value(green)
             self.HC_max["bluemax"] = self.get_clipping_value(blue)
 
+            print('get_rgb_clipping_channel_max_mins')
             self.min = min(red.min(), green.min(), blue.min())
-
+            self.print_rgb_mins(blue, green, red)
+            print(self.min)
         else:
             self.HC_max["redmax"] = max([self.get_clipping_value(red), self.HC_max["redmax"]])
             self.HC_max["greenmax"] = max([self.get_clipping_value(green), self.HC_max["greenmax"]])
             self.HC_max["bluemax"] = max([self.get_clipping_value(blue), self.HC_max["bluemax"]])
 
             self.min = min(self.min, red.min(), green.min(), blue.min())
+            self.print_rgb_mins(blue, green, red)
+            print(self.min)
 
     def delete_all_exiftool_tmp_files_in_dir(self, dir_path):
         for file_name in listdir(dir_path):
@@ -5137,22 +5141,23 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
     def get_clipping_value(self, color):
         np.set_printoptions(threshold=np.nan, suppress=True)
-        HCP = int(self.Process_HC_Value.text()) / 100
-        unique, counts = np.unique(color, return_counts=True)
-        freq_array = np.asarray((unique, counts)).T
+        histogram_clip_percentage = float(self.Process_HC_Value.text())/ 100.0
+        return int(color.max() * (1.0 - histogram_clip_percentage))
+        # unique, counts = np.unique(color, return_counts=True)
+        # freq_array = np.asarray((unique, counts)).T
 
-        total_pixels = color.size
+        # total_pixels = color.size
 
-        num_pixels_greater_than_or_equal_to_unique_pixel_value = 0
+        # num_pixels_greater_than_or_equal_to_unique_pixel_value = 0
 
-        for unique_pixel_value in freq_array[::-1]:
-            value = unique_pixel_value[0]
-            frequency_of_value = unique_pixel_value[1]
+        # for unique_pixel_value in freq_array[::-1]:
+        #     value = unique_pixel_value[0]
+        #     frequency_of_value = unique_pixel_value[1]
 
-            num_pixels_greater_than_or_equal_to_unique_pixel_value += frequency_of_value
+        #     num_pixels_greater_than_or_equal_to_unique_pixel_value += frequency_of_value
 
-            if (num_pixels_greater_than_or_equal_to_unique_pixel_value / total_pixels) >= HCP:
-                return value
+        #     if (num_pixels_greater_than_or_equal_to_unique_pixel_value / total_pixels) >= histogram_clip_percentage:
+        #         return value
 
     def convert_to_bit_depth_and_merge(self, red, green, blue, filetype):
         if filetype == "TIF":
@@ -5252,16 +5257,41 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         img = MAPIR_ProcessingDockWidget.convert_normalized_layer_to_bit_depth(img, bit_depth)
         return img
 
+    def print_rgb_mins(self, blue, green, red):
+        redmin = red.min()
+        greenmin = green.min()
+        bluemin = blue.min()
+
+        print ('redmin: ' + str(redmin))
+        print ('greenmin: ' + str(greenmin))
+        print ('bluemin: ' + str(bluemin))
+
     def clip_rgb_image(self, img):
+        # cv2.imencode('.tif', img)
+        # cv2.imwrite(img, 'test.tif')
+        # cv2.imshow(img)
+        # self.imwrite_with_exif(img, out_path)
         blue = img[:, :, 0]
         green = img[:, :, 1]
         red = img[:, :, 2]
 
         self.global_HC_max = max(self.HC_max["redmax"], self.HC_max["bluemax"], self.HC_max["greenmax"])
-
+        print('before')
+        self.print_rgb_mins(blue, green, red)
+        print('clip_rgb_max')
         red, green, blue = self.clip_rgb_max(red, green, blue, self.global_HC_max)
+
+        self.print_rgb_mins(blue, green, red)
+        print('normalize_rgb')
         red, green, blue = normalize_rgb(red, green, blue, self.global_HC_max, self.min)
+
+        self.print_rgb_mins(blue, green, red)
+        print('clip_normalized_rgb_min_max')
         red, green, blue = self.clip_normalized_rgb_min_max(red, green, blue)
+
+        self.print_rgb_mins(blue, green, red)
+
+
 
         return img, red, green, blue
 
@@ -5355,21 +5385,33 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.PreProcessVignette.setChecked(True)
 
     def bad_process_hcp_value(self):
-        if "." in self.Process_HC_Value.text():
-            return True
+        # if "." in self.Process_HC_Value.text():
+        #     return True
         if self.Process_Histogram_ClipBox.checkState() and not self.Process_HC_Value.text():
             return True
-        elif (self.Process_Histogram_ClipBox.checkState() and (int(self.Process_HC_Value.text()) < 0 or int(self.Process_HC_Value.text()) > 100)):
+        elif (self.Process_Histogram_ClipBox.checkState() and (float(self.Process_HC_Value.text()) < 0.0 or float(self.Process_HC_Value.text()) > 100.0)):
             return True
         else:
             return False
+
+    def unsharp_mask(self, image, kernel_size=(3, 3), sigma=1.0, amount=1.0, threshold=0):
+        """Return a sharpened version of the image, using an unsharp mask."""
+        blurred = cv2.GaussianBlur(image, kernel_size, sigma)
+        sharpened = float(amount + 1) * image - float(amount) * blurred
+        sharpened = np.maximum(sharpened, np.zeros(sharpened.shape))
+        sharpened = np.minimum(sharpened, 65535 * np.ones(sharpened.shape))
+        sharpened = sharpened.round().astype(np.uint16)
+        if threshold > 0:
+            low_contrast_mask = np.absolute(image - blurred) < threshold
+            np.copyto(sharpened, image, where=low_contrast_mask)
+        return sharpened
 
     def blur(self, color):
         blue = color[:, :, 0]
         green = color[:, :, 1]
         red = color[:, :, 2]
 
-        BF = 0.2
+        BF = 0.2 # Blur Factor
         DF = (8 * BF) + 1
         blur_kernel = np.array([[BF,BF,BF],[BF,1,BF],[BF,BF,BF]])/ DF
         green = cv2.filter2D(green, -1, blur_kernel)
@@ -5458,7 +5500,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
             if self.Process_Histogram_ClipBox.isChecked():
                 if self.bad_process_hcp_value():
-                    self.PreProcessLog.append("Attention! Please select a Histogram Clipping Percentage value from 0 to 100.")
+                    self.PreProcessLog.append("Attention! Please enter a Histogram Clipping Percentage value from 0 to 100.")
                     self.PreProcessLog.append("For example: for 20%, please enter 20\n")
 
             if inphoto.endswith('.mapir'):
@@ -5490,13 +5532,19 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
                         color = cv2.cvtColor(img, cv2.COLOR_BAYER_GB2RGB).astype("float32")
                         color = self.blur(color)
+                        # kernel_size=(3,3)
+                        # color = self.unsharp_mask(color, (3,3), 1.0, 0.5, 0.0)
+                        # image, kernel_size=(3, 3), sigma=1.0, amount=1.0, threshold=0)
+                        # cv2.imshow(sharp_test)
 
-                        if self.Process_Histogram_ClipBox.isChecked():
-                            self.get_rgb_clipping_channel_max_mins(color, count)
+                        # cv2.imshow(color)
+
+                        print(self.min)
+                        print(self.HC_max)
 
                         if self.PreProcessVignette.isChecked():
                             color = self.apply_vignette_dark_color(color, h, w)
-
+                        print(self.min)
                         color = color / 65535.0
                         if self.PreProcessColorBox.isChecked():
                             if not self.PreProcessVignette.isChecked():
@@ -5505,9 +5553,15 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             color = self.color_correction(color)
 
                         color = (color * 65535.0).astype("uint16")
+                        print(self.min)
 
                         if self.check_if_rotate(self.conv.STD_PAYLOAD["LINK_ID"], self.conv.META_PAYLOAD["ARRAY_TYPE"][1]):
                             color = cv2.flip(color, -1)
+
+                        if self.Process_Histogram_ClipBox.isChecked():
+                            self.get_rgb_clipping_channel_max_mins(color, count)
+
+                        print(self.min)
 
                         if self.PreProcessJPGBox.isChecked():
                             color = color / 65535.0
@@ -5849,7 +5903,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             print(exifout)
 
     def copySimple(self, inphoto, outphoto):
-        ExifUtils.copy_simple(inphoto, outphoto, si, modpath)
+        ExifUtils.copy_simple(inphoto, outphoto, si)
 
     def copyMAPIR(self, inphoto, outphoto):
         if sys.platform == "win32":
