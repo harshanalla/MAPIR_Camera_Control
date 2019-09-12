@@ -193,6 +193,22 @@ class AdvancedOptions(QtWidgets.QDialog, ADVANCED_CLASS):
             filt = chr(res[2]) + chr(res[3]) + chr(res[4])
 
             self.CustomFilter.setText(str(filt))
+
+            buf = [0] * 512
+            buf[0] = self.parent.SET_REGISTER_READ_REPORT
+            buf[1] = eRegister.RG_DEBOUNCE_HIGH.value
+
+            db_trig_high = self.parent.writeToKernel(buf)[2]
+
+            buf = [0] * 512
+            buf[0] = self.parent.SET_REGISTER_READ_REPORT
+            buf[1] = eRegister.RG_DEBOUNCE_LOW.value
+
+            db_trig_low = self.parent.writeToKernel(buf)[2]
+
+            db_trig_value = db_trig_high*256 + db_trig_low
+            self.TriggerDebounce.setText(str(db_trig_value))
+
             QtWidgets.QApplication.processEvents()
 
         except Exception as e:
@@ -226,6 +242,27 @@ class AdvancedOptions(QtWidgets.QDialog, ADVANCED_CLASS):
             buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
             buf[1] = eRegister.RG_UNMOUNT_SD_CARD_S.value
             val = int(self.SDCTUM.text()) if 0 < int(self.SDCTUM.text()) < 255 else 255
+            buf[2] = val
+
+            self.parent.writeToKernel(buf)
+
+            trigger_debounce_high = math.floor(self.TriggerDebounce.text() / 255)
+            trigger_debounce_low = self.TriggerDebounce.text() % 255
+
+            buf = [0] * 512
+            buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
+            buf[1] = eRegister.RG_DEBOUNCE_HIGH.value
+
+            val = int(trigger_debounce_high) if 0 < int(trigger_debounce_high) < 255 else 255
+            buf[2] = val
+
+            self.parent.writeToKernel(buf)
+
+            buf = [0] * 512
+            buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
+            buf[1] = eRegister.RG_DEBOUNCE_LOW.value
+
+            val = int(trigger_debounce_low) if 0 < int(trigger_debounce_low) < 255 else 255
             buf[2] = val
 
             self.parent.writeToKernel(buf)
@@ -1503,6 +1540,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def firmware_version_is_old(self):
         return self.getRegister(eRegister.RG_FIRMWARE_INTERNAL_VERSION) == 0
 
+    def log_trigger_debounce_to_kernel_panel(self):
+        self.KernelPanel.append("Trigger Debounce High: " + str(self.getRegister(eRegister.RG_DEBOUNCE_HIGH.value)))
+        self.KernelPanel.append("Trigger Debounce Low: " + str(self.getRegister(eRegister.RG_DEBOUNCE_LOW.value)))
+
     def log_yaw_pitch_roll_to_kernel_panel(self):
         self.KernelPanel.append("Last Photo Captured Orientation:")
         self.append_imu_value_to_kernel_panel(
@@ -1669,6 +1710,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
             self.KernelPanel.append('')
             # self.log_acceleration_values_to_kernel_panel()
+            self.log_trigger_debounce_to_kernel_panel()
             self.log_yaw_pitch_roll_to_kernel_panel()
             self.KernelPanel.append('')
 
