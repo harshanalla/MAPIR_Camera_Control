@@ -2441,14 +2441,14 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     #########Pre-Process Steps: Start#################
     def on_PreProcessLens_currentIndexChanged(self):
         if self.PreProcessCameraModel.currentText() == "Kernel 14.4":
-            if self.PreProcessFilter.currentText() in ["644 (RGB)", "550/660/850"]:
+            if self.PreProcessFilter.currentText() in ["RGB", "RGN"]:
                 self.PreProcessVignette.setEnabled(True)
 
             else:
                 self.PreProcessVignette.setChecked(False)
                 self.PreProcessVignette.setEnabled(False)
 
-            if self.PreProcessFilter.currentText() == "644 (RGB)":
+            if self.PreProcessFilter.currentText() == "RGB":
                 self.PreProcessColorBox.setEnabled(True)
 
             else:
@@ -2456,26 +2456,26 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.PreProcessColorBox.setEnabled(False)
 
         elif self.PreProcessCameraModel.currentText() == "Kernel 3.2":
-            if self.PreProcessLens.currentText() == "3.5mm":
+            if self.PreProcessLens.currentText() in ["3.5mm", "5.5mm", "12.0mm", "16.0mm", "35.0mm"]:
                 self.PreProcessVignette.setEnabled(False)
 
 
     def on_PreProcessFilter_currentIndexChanged(self):
-        if (self.PreProcessCameraModel.currentText() == "Kernel 14.4" and self.PreProcessFilter.currentText() == "644 (RGB)"):
+        if (self.PreProcessCameraModel.currentText() == "Kernel 14.4" and self.PreProcessFilter.currentText() == "RGB"):
 
             self.PreProcessColorBox.setEnabled(True)
             self.PreProcessVignette.setEnabled(True)
 
         elif self.PreProcessCameraModel.currentText() == "Kernel 14.4":
-            if self.PreProcessFilter.currentText() not in ["644 (RGB)", "550/660/850"]:
+            if self.PreProcessFilter.currentText() not in ["RGB", "RGN"]:
                 self.PreProcessVignette.setChecked(False)
                 self.PreProcessVignette.setEnabled(False)
 
-            if self.PreProcessFilter.currentText() != "644 (RGB)":
+            if self.PreProcessFilter.currentText() != "RGB":
                 self.PreProcessColorBox.setChecked(False)
                 self.PreProcessColorBox.setEnabled(False)
 
-            if self.PreProcessFilter.currentText() in ["644 (RGB)", "550/660/850"]:
+            if self.PreProcessFilter.currentText() in ["RGB", "RGN"]:
                 self.PreProcessVignette.setEnabled(True)
 
         elif self.PreProcessCameraModel.currentText() == "Kernel 3.2":
@@ -2483,7 +2483,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             if (self.PreProcessLens.currentText() == "9.6mm" and
                 self.PreProcessFilter.currentText() in ["405", "450", "490", "518",
                                                        "550", "590", "615", "632",
-                                                       "685", "725", "780","808", 
+                                                       "685", "725", "780","808",
                                                        "850", "880","940"]):
 
                 self.PreProcessVignette.setEnabled(True)
@@ -2622,474 +2622,60 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             else:
                 self.PreProcessDarkBox.setEnabled(False)
 
-    def on_CalibrationCameraModel_currentIndexChanged(self):
+    @staticmethod
+    def populate_calibration_filter_dropdown(calibration_filter_menu, filters):
+        calibration_filter_menu.clear()
+        calibration_filter_menu.addItems(filters)
+        enable_menu = len(filters) > 1
+        calibration_filter_menu.setEnabled(enable_menu)
 
-        if self.CalibrationCameraModel.currentText() == "Kernel 1.2" or self.CalibrationCameraModel.currentText() == "Kernel 3.2":
-            self.CalibrationFilter.clear()
-            self.CalibrationFilter.addItems(["405", "450", "490", "518", "550", "590", "615", "632", "650", "685", "725", "780", "808", "850", "880","940","945"])
-            self.CalibrationFilter.setEnabled(True)
-            self.CalibrationLens.clear()
-            self.CalibrationLens.setEnabled(False)
-
-        elif self.CalibrationCameraModel.currentText() == "Kernel 14.4":
-            self.CalibrationFilter.clear()
-            self.CalibrationFilter.addItems(
-                ["550/660/850", "475/550/850", "644 (RGB)", "850", "OCN"])
-            self.CalibrationFilter.setEnabled(True)
-            self.CalibrationLens.clear()
-            self.CalibrationLens.setEnabled(False)
-
-        elif self.CalibrationCameraModel.currentText() == "Survey3":
-            self.CalibrationFilter.clear()
-            self.CalibrationFilter.addItems(["OCN", "RGN", "NGB", "RE", "NIR"])
-            self.CalibrationFilter.setEnabled(True)
-            self.CalibrationLens.clear()
-            self.CalibrationLens.addItems([" 3.37mm (Survey3W)", "8.25mm (Survey3N)"])
-            self.CalibrationLens.setEnabled(True)
-
-        elif self.CalibrationCameraModel.currentText() == "Survey2":
-            self.CalibrationFilter.clear()
-            self.CalibrationFilter.addItems(["Red + NIR (NDVI)", "NIR", "Red", "Green", "Blue", "RGB"])
-            self.CalibrationFilter.setEnabled(True)
-            self.CalibrationLens.clear()
-            self.CalibrationLens.addItems(["3.97mm"])
-            self.CalibrationLens.setEnabled(False)
-
-        elif self.CalibrationCameraModel.currentText() == "Survey1":
-            self.CalibrationFilter.clear()
-            self.CalibrationFilter.addItems(["Blue + NIR (NDVI)"])
-            self.CalibrationFilter.setEnabled(False)
-            self.CalibrationLens.clear()
-            self.CalibrationLens.addItems(["3.97mm"])
-            self.CalibrationLens.setEnabled(False)
-
-        elif self.CalibrationCameraModel.currentText() == "DJI Phantom 4":
-            self.CalibrationFilter.clear()
-            self.CalibrationFilter.addItems(["Red + NIR (NDVI)", "RGN"])
-            self.CalibrationFilter.setEnabled(True)
-            self.CalibrationLens.clear()
-            self.CalibrationLens.addItems(["3.97mm"])
-            self.CalibrationLens.setEnabled(False)
-
-        elif self.CalibrationCameraModel.currentText() == "DJI Phantom 4 Pro":
-            self.CalibrationFilter.clear()
-            self.CalibrationFilter.addItems(["Red + NIR (NDVI)", "RGN"])
-            self.CalibrationFilter.setEnabled(True)
-            self.CalibrationLens.clear()
-            self.CalibrationLens.addItems(["3.97mm"])
-            self.CalibrationLens.setEnabled(False)
-
-        elif self.CalibrationCameraModel.currentText() == "DJI Phantom 3a":
-            self.CalibrationFilter.clear()
-            self.CalibrationFilter.addItems(["RGN"])
-            self.CalibrationFilter.setEnabled(False)
-            self.CalibrationLens.clear()
-            self.CalibrationLens.addItems(["3.97mm"])
-            self.CalibrationLens.setEnabled(False)
-
-        elif self.CalibrationCameraModel.currentText() in ["DJI Phantom 3p", "DJI X3"]:
-            self.CalibrationFilter.clear()
-            self.CalibrationFilter.addItems(["Red + NIR (NDVI)"])
-            self.CalibrationFilter.setEnabled(False)
-            self.CalibrationLens.clear()
-            self.CalibrationLens.addItems(["3.97mm"])
-            self.CalibrationLens.setEnabled(False)
-
+    @staticmethod
+    def populate_calibration_lens_dropdown(calibration_lens_menu, lenses):
+        calibration_lens_menu.clear()
+        if lenses:
+            calibration_lens_menu.addItems(lenses)
+            enable_menu = len(lenses) > 1
+            calibration_lens_menu.setEnabled(enable_menu)
         else:
-            self.CalibrationLens.clear()
-            self.CalibrationFilter.setEnabled(False)
-            self.CalibrationLens.clear()
-            self.CalibrationLens.setEnabled(False)
+            calibration_lens_menu.setEnabled(False)
+
+    @staticmethod
+    def on_calibration_camera_model_change(calibration_camera_model, calibration_filter, calibration_lens):
+        model_name = calibration_camera_model.currentText()
+        calibration_filters_for_model = CameraSpecs.specs[model_name]["calibration"]["filters"]
+        calibration_lenses_for_model = CameraSpecs.specs[model_name]["calibration"]["lenses"]
+
+        model_names = [
+            "Kernel 1.2", "Kernel 3.2", "Kernel 14.4", "Survey3", "Survey2", "Survey1",
+            "DJI Phantom 4", "DJI Phantom 4 Pro", "DJI Phantom 3a", "DJI Phantom 3p", "DJI X3"
+        ]
+
+        if model_name in model_names:
+            MAPIR_ProcessingDockWidget.populate_calibration_filter_dropdown(calibration_filter, filters=calibration_filters_for_model)
+            MAPIR_ProcessingDockWidget.populate_calibration_lens_dropdown(calibration_lens, lenses=calibration_lenses_for_model)
+        else:
+            calibration_filter.clear()
+            calibration_filter.setEnabled(False)
+            calibration_lens.clear()
+            calibration_lens.setEnabled(False)
+
+    def on_CalibrationCameraModel_currentIndexChanged(self):
+        MAPIR_ProcessingDockWidget.on_calibration_camera_model_change(self.CalibrationCameraModel, self.CalibrationFilter, self.CalibrationLens)
 
     def on_CalibrationCameraModel_2_currentIndexChanged(self):
-        if self.CalibrationCameraModel_2.currentText() == "Kernel 1.2" or self.CalibrationCameraModel_2.currentText() == "Kernel 3.2":
-            self.CalibrationFilter_2.clear()
-            self.CalibrationFilter_2.addItems(["405", "450", "490", "518", "550", "590", "615", "632", "650", "685", "725", "780", "808", "850", "880","940","945"])
-            self.CalibrationFilter_2.setEnabled(True)
-            self.CalibrationLens_2.clear()
-            self.CalibrationLens_2.setEnabled(False)
-
-        elif self.CalibrationCameraModel_2.currentText() == "Kernel 14.4":
-            self.CalibrationFilter_2.clear()
-            self.CalibrationFilter_2.addItems(
-                ["550/660/850", "475/550/850", "644 (RGB)", "850", "OCN"])
-            self.CalibrationFilter_2.setEnabled(True)
-            self.CalibrationLens_2.clear()
-            self.CalibrationLens_2.setEnabled(False)
-
-        elif self.CalibrationCameraModel_2.currentText() == "Survey3":
-            self.CalibrationFilter_2.clear()
-            self.CalibrationFilter_2.addItems(["OCN", "RGN", "NGB", "RE", "NIR"])
-            self.CalibrationFilter_2.setEnabled(True)
-            self.CalibrationLens_2.clear()
-            self.CalibrationLens_2.addItems([" 3.37mm (Survey3W)", "8.25mm (Survey3N)"])
-            self.CalibrationLens_2.setEnabled(True)
-
-        elif self.CalibrationCameraModel_2.currentText() == "Survey2":
-            self.CalibrationFilter_2.clear()
-            self.CalibrationFilter_2.addItems(["Red + NIR (NDVI)", "NIR", "Red", "Green", "Blue", "RGB"])
-            self.CalibrationFilter_2.setEnabled(True)
-            self.CalibrationLens_2.clear()
-            self.CalibrationLens_2.addItems(["3.97mm"])
-            self.CalibrationLens_2.setEnabled(False)
-
-        elif self.CalibrationCameraModel_2.currentText() == "Survey1":
-            self.CalibrationFilter_2.clear()
-            self.CalibrationFilter_2.addItems(["Blue + NIR (NDVI)"])
-            self.CalibrationFilter_2.setEnabled(False)
-            self.CalibrationLens_2.clear()
-            self.CalibrationLens_2.addItems(["3.97mm"])
-            self.CalibrationLens_2.setEnabled(False)
-
-        elif self.CalibrationCameraModel_2.currentText() == "DJI Phantom 4":
-            self.CalibrationFilter_2.clear()
-            self.CalibrationFilter_2.addItems(["Red + NIR (NDVI)", "RGN"])
-            self.CalibrationFilter_2.setEnabled(True)
-            self.CalibrationLens_2.clear()
-            self.CalibrationLens_2.addItems(["3.97mm"])
-            self.CalibrationLens_2.setEnabled(False)
-
-        elif self.CalibrationCameraModel_2.currentText() == "DJI Phantom 4 Pro":
-            self.CalibrationFilter_2.clear()
-            self.CalibrationFilter_2.addItems(["Red + NIR (NDVI)", "RGN"])
-            self.CalibrationFilter_2.setEnabled(True)
-            self.CalibrationLens_2.clear()
-            self.CalibrationLens_2.addItems(["3.97mm"])
-            self.CalibrationLens_2.setEnabled(False)
-
-        elif self.CalibrationCameraModel_2.currentText() == "DJI Phantom 3a":
-            self.CalibrationFilter_2.clear()
-            self.CalibrationFilter_2.addItems(["RGN"])
-            self.CalibrationFilter_2.setEnabled(False)
-            self.CalibrationLens_2.clear()
-            self.CalibrationLens_2.addItems(["3.97mm"])
-            self.CalibrationLens_2.setEnabled(False)
-
-        elif self.CalibrationCameraModel_2.currentText() in ["DJI Phantom 3p", "DJI X3"]:
-            self.CalibrationFilter_2.clear()
-            self.CalibrationFilter_2.addItems(["Red + NIR (NDVI)"])
-            self.CalibrationFilter_2.setEnabled(False)
-            self.CalibrationLens_2.clear()
-            self.CalibrationLens_2.addItems(["3.97mm"])
-            self.CalibrationLens_2.setEnabled(False)
-
-        else:
-            self.CalibrationLens_2.clear()
-            self.CalibrationFilter_2.setEnabled(False)
-            self.CalibrationLens_2.clear()
-            self.CalibrationLens_2.setEnabled(False)
+        MAPIR_ProcessingDockWidget.on_calibration_camera_model_change(self.CalibrationCameraModel_2, self.CalibrationFilter_2, self.CalibrationLens_2)
 
     def on_CalibrationCameraModel_3_currentIndexChanged(self):
-        if self.CalibrationCameraModel_3.currentText() == "Kernel 1.2" or self.CalibrationCameraModel_3.currentText() == "Kernel 3.2":
-            self.CalibrationFilter_3.clear()
-            self.CalibrationFilter_3.addItems(["405", "450", "490", "518", "550", "590", "615", "632", "650", "685", "725", "780", "808", "850", "880","940","945"])
-            self.CalibrationFilter_3.setEnabled(True)
-            self.CalibrationLens_3.clear()
-            self.CalibrationLens_3.setEnabled(False)
-
-        elif self.CalibrationCameraModel_3.currentText() == "Kernel 14.4":
-            self.CalibrationFilter_3.clear()
-            self.CalibrationFilter_3.addItems(
-                ["550/660/850", "475/550/850", "644 (RGB)", "850", "OCN"])
-            self.CalibrationFilter_3.setEnabled(True)
-            self.CalibrationLens_3.clear()
-            self.CalibrationLens_3.setEnabled(False)
-
-        elif self.CalibrationCameraModel_3.currentText() == "Survey3":
-            self.CalibrationFilter_3.clear()
-            self.CalibrationFilter_3.addItems(["OCN", "RGN", "NGB", "RE", "NIR"])
-            self.CalibrationFilter_3.setEnabled(True)
-            self.CalibrationLens_3.clear()
-            self.CalibrationLens_3.addItems([" 3.37mm (Survey3W)", "8.25mm (Survey3N)"])
-            self.CalibrationLens_3.setEnabled(True)
-
-        elif self.CalibrationCameraModel_3.currentText() == "Survey2":
-            self.CalibrationFilter_3.clear()
-            self.CalibrationFilter_3.addItems(["Red + NIR (NDVI)", "NIR", "Red", "Green", "Blue", "RGB"])
-            self.CalibrationFilter_3.setEnabled(True)
-            self.CalibrationLens_3.clear()
-            self.CalibrationLens_3.addItems(["3.97mm"])
-            self.CalibrationLens_3.setEnabled(False)
-
-        elif self.CalibrationCameraModel_3.currentText() == "Survey1":
-            self.CalibrationFilter_3.clear()
-            self.CalibrationFilter_3.addItems(["Blue + NIR (NDVI)"])
-            self.CalibrationFilter_3.setEnabled(False)
-            self.CalibrationLens_3.clear()
-            self.CalibrationLens_3.addItems(["3.97mm"])
-            self.CalibrationLens_3.setEnabled(False)
-
-        elif self.CalibrationCameraModel_3.currentText() == "DJI Phantom 4":
-            self.CalibrationFilter_3.clear()
-            self.CalibrationFilter_3.addItems(["Red + NIR (NDVI)", "RGN"])
-            self.CalibrationFilter_3.setEnabled(True)
-            self.CalibrationLens_3.clear()
-            self.CalibrationLens_3.addItems(["3.97mm"])
-            self.CalibrationLens_3.setEnabled(False)
-
-        elif self.CalibrationCameraModel_3.currentText() == "DJI Phantom 4 Pro":
-            self.CalibrationFilter_3.clear()
-            self.CalibrationFilter_3.addItems(["Red + NIR (NDVI)", "RGN"])
-            self.CalibrationFilter_3.setEnabled(True)
-            self.CalibrationLens_3.clear()
-            self.CalibrationLens_3.addItems(["3.97mm"])
-            self.CalibrationLens_3.setEnabled(False)
-
-        elif self.CalibrationCameraModel_3.currentText() == "DJI Phantom 3a":
-            self.CalibrationFilter_3.clear()
-            self.CalibrationFilter_3.addItems(["RGN"])
-            self.CalibrationFilter_3.setEnabled(False)
-            self.CalibrationLens_3.clear()
-            self.CalibrationLens_3.addItems(["3.97mm"])
-            self.CalibrationLens_3.setEnabled(False)
-
-        elif self.CalibrationCameraModel_3.currentText() in ["DJI Phantom 3p", "DJI X3"]:
-            self.CalibrationFilter_3.clear()
-            self.CalibrationFilter_3.addItems(["Red + NIR (NDVI)"])
-            self.CalibrationFilter_3.setEnabled(False)
-            self.CalibrationLens_3.clear()
-            self.CalibrationLens_3.addItems(["3.97mm"])
-            self.CalibrationLens_3.setEnabled(False)
-
-        else:
-            self.CalibrationLens_3.clear()
-            self.CalibrationFilter_3.setEnabled(False)
-            self.CalibrationLens_3.clear()
-            self.CalibrationLens_3.setEnabled(False)
+        MAPIR_ProcessingDockWidget.on_calibration_camera_model_change(self.CalibrationCameraModel_3, self.CalibrationFilter_3, self.CalibrationLens_3)
 
     def on_CalibrationCameraModel_4_currentIndexChanged(self):
-        if self.CalibrationCameraModel_4.currentText() == "Kernel 1.2" or self.CalibrationCameraModel_4.currentText() == "Kernel 3.2":
-            self.CalibrationFilter_4.clear()
-            self.CalibrationFilter_4.addItems(["405", "450", "490", "518", "550", "590", "615", "632", "650", "685", "725", "780", "808", "850", "880","940","945"])
-            self.CalibrationFilter_4.setEnabled(True)
-            self.CalibrationLens_4.clear()
-            self.CalibrationLens_4.setEnabled(False)
-
-        elif self.CalibrationCameraModel_4.currentText() == "Kernel 14.4":
-            self.CalibrationFilter_4.clear()
-            self.CalibrationFilter_4.addItems(
-                ["550/660/850", "475/550/850", "644 (RGB)", "850", "OCN"])
-            self.CalibrationFilter_4.setEnabled(True)
-            self.CalibrationLens_4.clear()
-            self.CalibrationLens_4.setEnabled(False)
-
-        elif self.CalibrationCameraModel_4.currentText() == "Survey3":
-            self.CalibrationFilter_4.clear()
-            self.CalibrationFilter_4.addItems(["OCN", "RGN", "NGB", "RE", "NIR"])
-            self.CalibrationFilter_4.setEnabled(True)
-            self.CalibrationLens_4.clear()
-            self.CalibrationLens_4.addItems([" 3.37mm (Survey3W)", "8.25mm (Survey3N)"])
-            self.CalibrationLens_4.setEnabled(True)
-
-        elif self.CalibrationCameraModel_4.currentText() == "Survey2":
-            self.CalibrationFilter_4.clear()
-            self.CalibrationFilter_4.addItems(["Red + NIR (NDVI)", "NIR", "Red", "Green", "Blue", "RGB"])
-            self.CalibrationFilter_4.setEnabled(True)
-            self.CalibrationLens_4.clear()
-            self.CalibrationLens_4.addItems(["3.97mm"])
-            self.CalibrationLens_4.setEnabled(False)
-
-        elif self.CalibrationCameraModel_4.currentText() == "Survey1":
-            self.CalibrationFilter_4.clear()
-            self.CalibrationFilter_4.addItems(["Blue + NIR (NDVI)"])
-            self.CalibrationFilter_4.setEnabled(False)
-            self.CalibrationLens_4.clear()
-            self.CalibrationLens_4.addItems(["3.97mm"])
-            self.CalibrationLens_4.setEnabled(False)
-
-        elif self.CalibrationCameraModel_4.currentText() == "DJI Phantom 4":
-            self.CalibrationFilter_4.clear()
-            self.CalibrationFilter_4.addItems(["Red + NIR (NDVI)", "RGN"])
-            self.CalibrationFilter_4.setEnabled(True)
-            self.CalibrationLens_4.clear()
-            self.CalibrationLens_4.addItems(["3.97mm"])
-            self.CalibrationLens_4.setEnabled(False)
-
-        elif self.CalibrationCameraModel_4.currentText() == "DJI Phantom 4 Pro":
-            self.CalibrationFilter_4.clear()
-            self.CalibrationFilter_4.addItems(["Red + NIR (NDVI)", "RGN"])
-            self.CalibrationFilter_4.setEnabled(True)
-            self.CalibrationLens_4.clear()
-            self.CalibrationLens_4.addItems(["3.97mm"])
-            self.CalibrationLens_4.setEnabled(False)
-
-        elif self.CalibrationCameraModel_4.currentText() == "DJI Phantom 3a":
-            self.CalibrationFilter_4.clear()
-            self.CalibrationFilter_4.addItems(["RGN"])
-            self.CalibrationFilter_4.setEnabled(False)
-            self.CalibrationLens_4.clear()
-            self.CalibrationLens_4.addItems(["3.97mm"])
-            self.CalibrationLens_4.setEnabled(False)
-
-        elif self.CalibrationCameraModel_4.currentText() in ["DJI Phantom 3p", "DJI X3"]:
-            self.CalibrationFilter_4.clear()
-            self.CalibrationFilter_4.addItems(["Red + NIR (NDVI)"])
-            self.CalibrationFilter_4.setEnabled(False)
-            self.CalibrationLens_4.clear()
-            self.CalibrationLens_4.addItems(["3.97mm"])
-            self.CalibrationLens_4.setEnabled(False)
-
-        else:
-            self.CalibrationLens_4.clear()
-            self.CalibrationFilter_4.setEnabled(False)
-            self.CalibrationLens_4.clear()
-            self.CalibrationLens_4.setEnabled(False)
+        MAPIR_ProcessingDockWidget.on_calibration_camera_model_change(self.CalibrationCameraModel_4, self.CalibrationFilter_4, self.CalibrationLens_4)
 
     def on_CalibrationCameraModel_5_currentIndexChanged(self):
-        if self.CalibrationCameraModel_5.currentText() == "Kernel 1.2" or self.CalibrationCameraModel_5.currentText() == "Kernel 3.2":
-            self.CalibrationFilter_5.clear()
-            self.CalibrationFilter_5.addItems(["405", "450", "490", "518", "550", "590", "615", "632", "650", "685", "725", "780", "808", "850", "880","940","945"])
-            self.CalibrationFilter_5.setEnabled(True)
-            self.CalibrationLens_5.clear()
-            self.CalibrationLens_5.setEnabled(False)
-
-        elif self.CalibrationCameraModel_5.currentText() == "Kernel 14.4":
-            self.CalibrationFilter_5.clear()
-            self.CalibrationFilter_5.addItems(
-                ["550/660/850", "475/550/850", "644 (RGB)", "850", "OCN"])
-            self.CalibrationFilter_5.setEnabled(True)
-            self.CalibrationLens_5.clear()
-            self.CalibrationLens_5.setEnabled(False)
-
-        elif self.CalibrationCameraModel_5.currentText() == "Survey3":
-            self.CalibrationFilter_5.clear()
-            self.CalibrationFilter_5.addItems(["OCN", "RGN", "NGB", "RE", "NIR"])
-            self.CalibrationFilter_5.setEnabled(True)
-            self.CalibrationLens_5.clear()
-            self.CalibrationLens_5.addItems([" 3.37mm (Survey3W)", "8.25mm (Survey3N)"])
-            self.CalibrationLens_5.setEnabled(True)
-
-        elif self.CalibrationCameraModel_5.currentText() == "Survey2":
-            self.CalibrationFilter_5.clear()
-            self.CalibrationFilter_5.addItems(["Red + NIR (NDVI)", "NIR", "Red", "Green", "Blue", "RGB"])
-            self.CalibrationFilter_5.setEnabled(True)
-            self.CalibrationLens_5.clear()
-            self.CalibrationLens_5.addItems(["3.97mm"])
-            self.CalibrationLens_5.setEnabled(False)
-
-        elif self.CalibrationCameraModel_5.currentText() == "Survey1":
-            self.CalibrationFilter_5.clear()
-            self.CalibrationFilter_5.addItems(["Blue + NIR (NDVI)"])
-            self.CalibrationFilter_5.setEnabled(False)
-            self.CalibrationLens_5.clear()
-            self.CalibrationLens_5.addItems(["3.97mm"])
-            self.CalibrationLens_5.setEnabled(False)
-
-        elif self.CalibrationCameraModel_5.currentText() == "DJI Phantom 4":
-            self.CalibrationFilter_5.clear()
-            self.CalibrationFilter_5.addItems(["Red + NIR (NDVI)", "RGN"])
-            self.CalibrationFilter_5.setEnabled(True)
-            self.CalibrationLens_5.clear()
-            self.CalibrationLens_5.addItems(["3.97mm"])
-            self.CalibrationLens_5.setEnabled(False)
-
-        elif self.CalibrationCameraModel_5.currentText() == "DJI Phantom 4 Pro":
-            self.CalibrationFilter_5.clear()
-            self.CalibrationFilter_5.addItems(["Red + NIR (NDVI)", "RGN"])
-            self.CalibrationFilter_5.setEnabled(True)
-            self.CalibrationLens_5.clear()
-            self.CalibrationLens_5.addItems(["3.97mm"])
-            self.CalibrationLens_5.setEnabled(False)
-
-        elif self.CalibrationCameraModel_5.currentText() == "DJI Phantom 3a":
-            self.CalibrationFilter_5.clear()
-            self.CalibrationFilter_5.addItems(["RGN"])
-            self.CalibrationFilter_5.setEnabled(False)
-            self.CalibrationLens_5.clear()
-            self.CalibrationLens_5.addItems(["3.97mm"])
-            self.CalibrationLens_5.setEnabled(False)
-
-        elif self.CalibrationCameraModel_5.currentText() in ["DJI Phantom 3p", "DJI X3"]:
-            self.CalibrationFilter_5.clear()
-            self.CalibrationFilter_5.addItems(["Red + NIR (NDVI)"])
-            self.CalibrationFilter_5.setEnabled(False)
-            self.CalibrationLens_5.clear()
-            self.CalibrationLens_5.addItems(["3.97mm"])
-            self.CalibrationLens_5.setEnabled(False)
-
-        else:
-            self.CalibrationLens_5.clear()
-            self.CalibrationFilter_5.setEnabled(False)
-            self.CalibrationLens_5.clear()
-            self.CalibrationLens_5.setEnabled(False)
+        MAPIR_ProcessingDockWidget.on_calibration_camera_model_change(self.CalibrationCameraModel_5, self.CalibrationFilter_5, self.CalibrationLens_5)
 
     def on_CalibrationCameraModel_6_currentIndexChanged(self):
-        if self.CalibrationCameraModel_6.currentText() == "Kernel 1.2" or self.CalibrationCameraModel_6.currentText() == "Kernel 3.2":
-            self.CalibrationFilter_6.clear()
-            self.CalibrationFilter_6.addItems(["405", "450", "490", "518", "550", "590", "615", "632", "650", "685", "725", "780", "808", "850", "880","940","945"])
-            self.CalibrationFilter_6.setEnabled(True)
-            self.CalibrationLens_6.clear()
-            self.CalibrationLens_6.setEnabled(False)
-
-        elif self.CalibrationCameraModel_6.currentText() == "Kernel 14.4":
-            self.CalibrationFilter_6.clear()
-            self.CalibrationFilter_6.addItems(
-                ["550/660/850", "475/550/850", "644 (RGB)", "850", "OCN"])
-            self.CalibrationFilter_6.setEnabled(True)
-            self.CalibrationLens_6.clear()
-            self.CalibrationLens_6.setEnabled(False)
-
-        elif self.CalibrationCameraModel_6.currentText() == "Survey3":
-            self.CalibrationFilter_6.clear()
-            self.CalibrationFilter_6.addItems(["OCN", "RGN", "NGB", "RE", "NIR"])
-            self.CalibrationFilter_6.setEnabled(True)
-            self.CalibrationLens_6.clear()
-            self.CalibrationLens_6.addItems([" 3.37mm (Survey3W)", "8.25mm (Survey3N)"])
-            self.CalibrationLens_6.setEnabled(True)
-
-        elif self.CalibrationCameraModel_6.currentText() == "Survey2":
-            self.CalibrationFilter_6.clear()
-            self.CalibrationFilter_6.addItems(["Red + NIR (NDVI)", "NIR", "Red", "Green", "Blue", "RGB"])
-            self.CalibrationFilter_6.setEnabled(True)
-            self.CalibrationLens_6.clear()
-            self.CalibrationLens_6.addItems(["3.97mm"])
-            self.CalibrationLens_6.setEnabled(False)
-
-        elif self.CalibrationCameraModel_6.currentText() == "Survey1":
-            self.CalibrationFilter_6.clear()
-            self.CalibrationFilter_6.addItems(["Blue + NIR (NDVI)"])
-            self.CalibrationFilter_6.setEnabled(False)
-            self.CalibrationLens_6.clear()
-            self.CalibrationLens_6.addItems(["3.97mm"])
-            self.CalibrationLens_6.setEnabled(False)
-
-        elif self.CalibrationCameraModel_6.currentText() == "DJI Phantom 4":
-            self.CalibrationFilter_6.clear()
-            self.CalibrationFilter_6.addItems(["Red + NIR (NDVI)", "RGN"])
-            self.CalibrationFilter_6.setEnabled(True)
-            self.CalibrationLens_6.clear()
-            self.CalibrationLens_6.addItems(["3.97mm"])
-            self.CalibrationLens_6.setEnabled(False)
-
-        elif self.CalibrationCameraModel_6.currentText() == "DJI Phantom 4 Pro":
-            self.CalibrationFilter_6.clear()
-            self.CalibrationFilter_6.addItems(["Red + NIR (NDVI)", "RGN"])
-            self.CalibrationFilter_6.setEnabled(True)
-            self.CalibrationLens_6.clear()
-            self.CalibrationLens_6.addItems(["3.97mm"])
-            self.CalibrationLens_6.setEnabled(False)
-
-        elif self.CalibrationCameraModel_6.currentText() == "DJI Phantom 3a":
-            self.CalibrationFilter_6.clear()
-            self.CalibrationFilter_6.addItems(["RGN"])
-            self.CalibrationFilter_6.setEnabled(False)
-            self.CalibrationLens_6.clear()
-            self.CalibrationLens_6.addItems(["3.97mm"])
-            self.CalibrationLens_6.setEnabled(False)
-
-        elif self.CalibrationCameraModel_6.currentText() in ["DJI Phantom 3p", "DJI X3"]:
-            self.CalibrationFilter_6.clear()
-            self.CalibrationFilter_6.addItems(["Red + NIR (NDVI)"])
-            self.CalibrationFilter_6.setEnabled(False)
-            self.CalibrationLens_6.clear()
-            self.CalibrationLens_6.addItems(["3.97mm"])
-            self.CalibrationLens_6.setEnabled(False)
-
-        else:
-            self.CalibrationLens_6.clear()
-            self.CalibrationFilter_6.setEnabled(False)
-            self.CalibrationLens_6.clear()
-            self.CalibrationLens_6.setEnabled(False)
+       MAPIR_ProcessingDockWidget.on_calibration_camera_model_change(self.CalibrationCameraModel_6, self.CalibrationFilter_6, self.CalibrationLens_6)
 
     def on_PreProcessInButton_released(self):
         with open(modpath + os.sep + "instring.txt", "r+") as instring:
@@ -5151,11 +4737,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         blue = color[:, :, 0]
 
         lens_str = self.PreProcessLens.currentText().split("m")[0]
-        fil_str = self.PreProcessFilter.currentText()[:3]
+        fil_str = self.PreProcessFilter.currentText()
 
-        if "/" in self.PreProcessFilter.currentText():
-            fil_names = self.PreProcessFilter.currentText().split("/")
-            fil_str = fil_names[0] + "-" + fil_names[1] + "-" + fil_names[2]
+        # if "/" in self.PreProcessFilter.currentText():
+        #     fil_names = self.PreProcessFilter.currentText().split("/")
+        #     fil_str = fil_names[0] + "-" + fil_names[1] + "-" + fil_names[2]
 
         dark_frame_value = self.get_dark_frame_value(fil_str)
 
@@ -5746,9 +5332,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                             lens_str = self.PreProcessLens.currentText().split("m")[0]
                             fil_str = self.PreProcessFilter.currentText()[:3]
 
-                            if "/" in self.PreProcessFilter.currentText():
-                                fil_names = self.PreProcessFilter.currentText().split("/")
-                                fil_str = fil_names[0] + "-" + fil_names[1] + "-" + fil_names[2]
+                            # if "/" in self.PreProcessFilter.currentText():
+                            #     fil_names = self.PreProcessFilter.currentText().split("/")
+                            #     fil_str = fil_names[0] + "-" + fil_names[1] + "-" + fil_names[2]
 
                             dark_frame_value = self.get_dark_frame_value(fil_str)
 
@@ -6026,10 +5612,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                         # dd, h = divmod(h, 24)
 
                         if self.PreProcessVignette.isChecked():
-                            fil_str = self.PreProcessFilter.currentText()[:3]
-                            if "/" in self.PreProcessFilter.currentText():
-                                fil_names = self.PreProcessFilter.currentText().split("/")
-                                fil_str = fil_names[0] + "-" + fil_names[1] + "-" + fil_names[2]
+                            fil_str = self.PreProcessFilter.currentText()
+                            # if "/" in self.PreProcessFilter.currentText():
+                            #     fil_names = self.PreProcessFilter.currentText().split("/")
+                            #     fil_str = fil_names[0] + "-" + fil_names[1] + "-" + fil_names[2]
                             DFV = self.get_dark_frame_value(fil_str)
                         else:
                             DFV = None
