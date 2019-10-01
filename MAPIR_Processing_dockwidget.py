@@ -206,7 +206,7 @@ class AdvancedOptions(QtWidgets.QDialog, ADVANCED_CLASS):
 
             db_trig_low = self.parent.writeToKernel(buf)[2]
 
-            db_trig_value = db_trig_high*256 + db_trig_low
+            db_trig_value = db_trig_high*255 + db_trig_low
             self.TriggerDebounce.setText(str(db_trig_value))
 
             QtWidgets.QApplication.processEvents()
@@ -246,14 +246,14 @@ class AdvancedOptions(QtWidgets.QDialog, ADVANCED_CLASS):
 
             self.parent.writeToKernel(buf)
 
-            trigger_debounce_high = math.floor(self.TriggerDebounce.text() / 255)
-            trigger_debounce_low = self.TriggerDebounce.text() % 255
+            trigger_debounce_high = math.floor(int(self.TriggerDebounce.text()) / 255)
+            trigger_debounce_low = int(self.TriggerDebounce.text()) % 255
 
             buf = [0] * 512
             buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
             buf[1] = eRegister.RG_DEBOUNCE_HIGH.value
 
-            val = int(trigger_debounce_high) if 0 < int(trigger_debounce_high) < 255 else 255
+            val = int(trigger_debounce_high) if 0 <= int(trigger_debounce_high) <= 255 else 255
             buf[2] = val
 
             self.parent.writeToKernel(buf)
@@ -262,7 +262,7 @@ class AdvancedOptions(QtWidgets.QDialog, ADVANCED_CLASS):
             buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
             buf[1] = eRegister.RG_DEBOUNCE_LOW.value
 
-            val = int(trigger_debounce_low) if 0 < int(trigger_debounce_low) < 255 else 255
+            val = int(trigger_debounce_low) if 0 <= int(trigger_debounce_low) <= 255 else 255
             buf[2] = val
 
             self.parent.writeToKernel(buf)
@@ -272,6 +272,7 @@ class AdvancedOptions(QtWidgets.QDialog, ADVANCED_CLASS):
             buf[1] = eRegister.RG_VIDEO_ON_DELAY.value
             val = int(self.VCRD.text()) if 0 < int(self.VCRD.text()) < 255 else 255
             buf[2] = val
+
             self.parent.writeToKernel(buf)
 
             buf = [0] * 512
@@ -1578,7 +1579,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     def KernelUpdate(self):
         try:
             self.KernelExposureMode.blockSignals(True)
-
             self.KernelVideoOut.blockSignals(True)
             self.KernelFolderCount.blockSignals(True)
             self.KernelBeep.blockSignals(True)
@@ -1640,24 +1640,33 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.KernelLensSelect.addItems(["9.6mm", "3.5mm", "5.5mm", "12.0mm", "16.0mm", "35.0mm"])
 
                 self.KernelFilterSelect.clear()
-                kernel_3_2_filter_list = ["405",
-                                          "450",
-                                          "490",
-                                          "518",
-                                          "550",
-                                          "590",
-                                          "615",
-                                          "632",
-                                          "650",
-                                          "685",
-                                          "725",
-                                          "780",
-                                          "808",
-                                          "850",
-                                          "880",
-                                          "940",
-                                          "945",
-                                          "NO FILTER"]
+                kernel_3_2_filter_list = [
+                                        "250",
+                                        "350",
+                                        "390",
+                                        "405",
+                                        "450",
+                                        "490",
+                                        "510",
+                                        "518",
+                                        "550",
+                                        "590",
+                                        "615",
+                                        "632",
+                                        "650",
+                                        "685",
+                                        "709",
+                                        "725",
+                                        "750",
+                                        "780",
+                                        "808",
+                                        "830",
+                                        "850",
+                                        "880",
+                                        "940",
+                                        "945",
+                                        "1000",
+                                        "NO FILTER"]
 
                 self.KernelFilterSelect.addItems(kernel_3_2_filter_list)
 
@@ -1669,16 +1678,18 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.KernelLensSelect.setCurrentIndex(self.KernelLensSelect.findText(lens))
 
             beep = self.getRegister(eRegister.RG_BEEPER_ENABLE.value)
-            if beep != 0:
-                self.KernelBeep.setChecked(True)
-            else:
-                self.KernelBeep.setChecked(False)
+            # if beep != 0:
+            #     self.KernelBeep.setChecked(True)
+            # else:
+            #     self.KernelBeep.setChecked(False)
+            self.KernelBeep.setChecked(beep != 0)
 
             pwm = self.getRegister(eRegister.RG_PWM_TRIGGER.value)
-            if pwm != 0:
-                self.KernelPWMSignal.setChecked(True)
-            else:
-                self.KernelPWMSignal.setChecked(False)
+            # if pwm != 0:
+            #     self.KernelPWMSignal.setChecked(True)
+            # else:
+            #     self.KernelPWMSignal.setChecked(False)
+            self.KernelPWMSignal.setChecked(pwm != 0)
 
             self.KernelPanel.clear()
 
@@ -1710,7 +1721,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
             self.KernelPanel.append('')
             # self.log_acceleration_values_to_kernel_panel()
-            self.log_trigger_debounce_to_kernel_panel()
             self.log_yaw_pitch_roll_to_kernel_panel()
             self.KernelPanel.append('')
 
@@ -1723,6 +1733,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
             self.KernelPanel.append("Serial Number: " + serno)
             self.log_firmware_version_to_kernel_panel()
+            self.KernelPanel.append('')
+            self.log_trigger_debounce_to_kernel_panel()
+
             # self.KernelPanel.append("Camera Firmware: " + str(self.getRegister(eRegister.RG_FIRMWARE_ID.value)) + '.' + str(self.getRegister(eRegister.RG_FIRMWARE_MINOR_ID)) + '.' + str(self.getRegister(eRegister.RG_FIRMWARE_INTERNAL_VERSION)))
 
             self.KernelExposureMode.blockSignals(False)
