@@ -37,39 +37,33 @@ class Calculator(QtWidgets.QDialog, RASTER_CLASS):
         # self.RasterZ.addItem(self.parent.KernelBrowserFile.text().split(os.sep)[-1] + " @Band2")
         # self.RasterZ.addItem(self.parent.KernelBrowserFile.text().split(os.sep)[-1] + " @Band3")
         self.parent.ViewerCalcButton.setEnabled(False)
+
     def on_RasterApplyButton_released(self):
         try:
-            self.processIndex()
-            self.parent.ViewerIndexBox.setEnabled(True)
-            if self.parent.LUTwindow == None or not self.parent.LUTwindow.isVisible():
-                self.parent.LUTButton.setStyleSheet("QComboBox {width: 111; height: 27;}")
-                self.parent.LUTButton.setEnabled(True)
-
-            if self.parent.ViewerIndexBox.isChecked():
-                self.parent.applyRaster()
-            else:
-                self.parent.ViewerIndexBox.setChecked(True)
-
+            self.on_raster_ok_or_apply_button_released()
         except Exception as e:
             print(e)
 
     def on_RasterOkButton_released(self):
         try:
-            self.processIndex()
-            self.parent.ViewerIndexBox.setEnabled(True)
-            if self.parent.LUTwindow == None or not self.parent.LUTwindow.isVisible():
-                self.parent.LUTButton.setStyleSheet("QComboBox {width: 111; height: 27;}")
-                self.parent.LUTButton.setEnabled(True)
-
-            if self.parent.ViewerIndexBox.isChecked():
-                self.parent.applyRaster()
-            else:
-                self.parent.ViewerIndexBox.setChecked(True)
+            self.on_raster_ok_or_apply_button_released()
             self.parent.ViewerCalcButton.setEnabled(True)
-
             self.close()
         except Exception as e:
             print(e)
+
+    def on_raster_ok_or_apply_button_released(self):
+        self.processIndex()
+        self.parent.ViewerIndexBox.setEnabled(True)
+        if self.parent.LUTwindow == None or not self.parent.LUTwindow.isVisible():
+            self.parent.LUTButton.setStyleSheet("QComboBox {width: 111; height: 27;}")
+            self.parent.LUTButton.setEnabled(True)
+
+        if self.parent.ViewerIndexBox.isChecked():
+            self.parent.applyRaster()
+        else:
+            self.parent.ViewerIndexBox.setChecked(True)
+
 
     def on_RasterCloseButton_released(self):
         self.parent.ViewerCalcButton.setEnabled(True)
@@ -83,6 +77,7 @@ class Calculator(QtWidgets.QDialog, RASTER_CLASS):
             self.parent.index_to_save = copy.deepcopy(self.ndvi)
             self.parent.LUT_Min = copy.deepcopy(np.percentile(self.ndvi, 2))
             self.parent.LUT_Max = copy.deepcopy(np.percentile(self.ndvi, 98))
+
             midpoint = (self.parent.LUT_Max - self.parent.LUT_Min) / 2
             steps = midpoint * 1 / 3
             self.parent.legend_max.setText(str(round(self.parent.LUT_Max, 2)))
@@ -92,6 +87,7 @@ class Calculator(QtWidgets.QDialog, RASTER_CLASS):
             self.parent.legend_min.setText(str(round(self.parent.LUT_Min, 2)))
             self.parent.legend_neg2thirds.setText(str(round(self.parent.LUT_Max - (steps * 5), 2)))
             self.parent.legend_neg1third.setText(str(round(self.parent.LUT_Max - (steps * 4), 2)))
+
             QtWidgets.QApplication.processEvents()
             self.ndvi -= self.ndvi.min()
             self.ndvi /= (self.ndvi.max())
