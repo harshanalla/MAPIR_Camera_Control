@@ -40,30 +40,25 @@ class Applicator(QtWidgets.QDialog, LUT_Class):
             print(e)
 
     def on_RasterApplyButton_released(self):
-        self.processLUT()
-        self.parent.LUTBox.setEnabled(True)
-
-        if self.parent.LUTBox.isChecked():
-            self.parent.applyLUT()
-        else:
-            self.parent.LUTBox.setChecked(True)
+        self.process_and_apply_lut()
 
     def on_RasterOkButton_released(self):
-        try:
-            self.processLUT()
-        except Exception as e:
-            print(e)
-        self.parent.LUTBox.setEnabled(True)
-
-        if self.parent.LUTBox.isChecked():
-            self.parent.applyLUT()
-        else:
-            self.parent.LUTBox.setChecked(True)
-
+        self.process_and_apply_lut()
         self.parent.LUTButton.setStyleSheet("QComboBox {width: 111; height: 27;}")
         self.parent.LUTButton.setEnabled(True)
-
         self.close()
+
+    def process_and_apply_lut(self):
+        try:
+            self.processLUT()
+            self.parent.LUTBox.setEnabled(True)
+
+            if self.parent.LUTBox.isChecked():
+                self.parent.applyLUT()
+            else:
+                self.parent.LUTBox.setChecked(True)
+        except Exception as e:
+            print(e)
 
     def on_RasterCloseButton_released(self):
         self.parent.LUTButton.setStyleSheet("QComboBox {width: 111; height: 27;}")
