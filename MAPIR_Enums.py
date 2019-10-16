@@ -149,13 +149,13 @@ class eRegister(IntEnum):
     RG_FILE_CNT_4 = 91
     RG_VIDEO_ON_DELAY = 92
     # ACTIVE
-    RG_VIDEO_FRAME_RATE     = 101
+    RG_VIDEO_FRAME_RATE = 101
     RG_UNMOUNT_SD_CARD_S = 102
-    RG_SHUTTER              = 111
-    RG_DAC                  = 121
+    RG_SHUTTER = 111
+    RG_DAC = 121
     RG_HDMI = 122
     RG_DAC_LINK = 123
-    RG_TRIGGER_MODE         = 130
+    RG_TRIGGER_MODE = 130
     RG_PWM_TRIGGER = 131
     RG_AE_MIN_SHUTTER = 132
     RG_AE_MAX_SHUTTER = 133
@@ -179,6 +179,8 @@ class eRegister(IntEnum):
     RG_ACC_YAW_2 = 174
     RG_ACC_YAW_3 = 175
     RG_FIRMWARE_INTERNAL_VERSION = 176
+    RG_DEBOUNCE_HIGH = 177
+    RG_DEBOUNCE_LOW = 178
     RG_ACTIVE_CAMERA_SOURCE = 191
     RG_ACC_PITCH_0 = 192
     RG_ACC_PITCH_1 = 193

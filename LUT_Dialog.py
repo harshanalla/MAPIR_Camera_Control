@@ -40,30 +40,25 @@ class Applicator(QtWidgets.QDialog, LUT_Class):
             print(e)
 
     def on_RasterApplyButton_released(self):
-        self.processLUT()
-        self.parent.LUTBox.setEnabled(True)
-
-        if self.parent.LUTBox.isChecked():
-            self.parent.applyLUT()
-        else:
-            self.parent.LUTBox.setChecked(True)
+        self.process_and_apply_lut()
 
     def on_RasterOkButton_released(self):
-        try:
-            self.processLUT()
-        except Exception as e:
-            print(e)
-        self.parent.LUTBox.setEnabled(True)
-
-        if self.parent.LUTBox.isChecked():
-            self.parent.applyLUT()
-        else:
-            self.parent.LUTBox.setChecked(True)
-
+        self.process_and_apply_lut()
         self.parent.LUTButton.setStyleSheet("QComboBox {width: 111; height: 27;}")
         self.parent.LUTButton.setEnabled(True)
-
         self.close()
+
+    def process_and_apply_lut(self):
+        try:
+            self.processLUT()
+            self.parent.LUTBox.setEnabled(True)
+
+            if self.parent.LUTBox.isChecked():
+                self.parent.applyLUT()
+            else:
+                self.parent.LUTBox.setChecked(True)
+        except Exception as e:
+            print(e)
 
     def on_RasterCloseButton_released(self):
         self.parent.LUTButton.setStyleSheet("QComboBox {width: 111; height: 27;}")
@@ -198,8 +193,11 @@ class Applicator(QtWidgets.QDialog, LUT_Class):
             range_ = copy.deepcopy(self.parent.calcwindow.ndvi)
             temp = copy.deepcopy(self.parent.calcwindow.ndvi)
 
-            workingmin = (((self._min / (abs((round(self.parent.LUT_Min, 2))) if self._min < 0 else round(self.parent.LUT_Min, 2) * -1)) + 1)/2) * 255
-            workingmax = (((self._max / (abs((round(self.parent.LUT_Max, 2))) if self._max > 0 else round(self.parent.LUT_Min, 2) * -1)) + 1)/2) * 255
+            global_lut_min = round(self.parent.LUT_Min, 2)
+            global_lut_max = round(self.parent.LUT_Max, 2)
+
+            workingmin = (((self._min / (abs((global_lut_min)) if self._min < 0 else global_lut_min * -1)) + 1)/2) * 255
+            workingmax = (((self._max / (abs((global_lut_max)) if self._max > 0 else global_lut_min * -1)) + 1)/2) * 255
 
             range_[range_ < workingmin] = workingmin
             range_[range_ > workingmax] = workingmax

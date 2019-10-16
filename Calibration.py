@@ -12,7 +12,7 @@ def is_color_image(img):
 def show_detected_targets(target_img, corners, ids):
     draw_image = target_img.copy()
     aruco.drawDetectedMarkers(draw_image, corners, ids)
-    resize = cv2.resize(draw_image, (2000, 1500), interpolation=cv2.INTER_LINEAR)
+    resize = cv2.resize(draw_image, (1600, 1200), interpolation=cv2.INTER_LINEAR)
     cv2.imshow('frame', resize)
 
 def filter_detected_targets_by_id(corners, ids, target_id):
@@ -58,19 +58,25 @@ def get_image_corners(target_img_path):
     img = prep_target_image_for_detection(target_img_path)
     aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_250)
 
-    mode_stretched = mode_threshold_contrast_stretch(img)
-    corners, ids, _ = aruco.detectMarkers(mode_stretched, aruco_dict)
+    corners, ids, _= aruco.detectMarkers(img, aruco_dict)
+    # show_detected_targets(img, corners, ids)
+
+    if corners == []:
+        mode_stretched = mode_threshold_contrast_stretch(img)
+        corners, ids, _ = aruco.detectMarkers(mode_stretched, aruco_dict)
+        # show_detected_targets(mode_stretched, corners, ids)
 
     if corners == []:
         mid_stretched = midpoint_threshold_contrast_stretch(img)
         corners, ids, _ = aruco.detectMarkers(mid_stretched, aruco_dict)
+        # show_detected_targets(mid_stretched, corners, ids)
 
-    elif corners == []:
+    if corners == []:
         raise Exception('No calibration target was detected')
 
 
-	# color_img = cv2.imread(target_img_path, 1)
-	# show_detected_targets(color_img, corners, ids)
+    # color_img = cv2.imread(target_img_path, 1)
+    # show_detected_targets(color_img, corners, ids)
     # show_detected_targets(img, corners, ids)
 
     target_matches = filter_detected_targets_by_id(corners, ids, 13)[0]
