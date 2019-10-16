@@ -193,8 +193,11 @@ class Applicator(QtWidgets.QDialog, LUT_Class):
             range_ = copy.deepcopy(self.parent.calcwindow.ndvi)
             temp = copy.deepcopy(self.parent.calcwindow.ndvi)
 
-            workingmin = (((self._min / (abs((round(self.parent.LUT_Min, 2))) if self._min < 0 else round(self.parent.LUT_Min, 2) * -1)) + 1)/2) * 255
-            workingmax = (((self._max / (abs((round(self.parent.LUT_Max, 2))) if self._max > 0 else round(self.parent.LUT_Min, 2) * -1)) + 1)/2) * 255
+            global_lut_min = round(self.parent.LUT_Min, 2)
+            global_lut_max = round(self.parent.LUT_Max, 2)
+
+            workingmin = (((self._min / (abs((global_lut_min)) if self._min < 0 else global_lut_min * -1)) + 1)/2) * 255
+            workingmax = (((self._max / (abs((global_lut_max)) if self._max > 0 else global_lut_min * -1)) + 1)/2) * 255
 
             range_[range_ < workingmin] = workingmin
             range_[range_ > workingmax] = workingmax

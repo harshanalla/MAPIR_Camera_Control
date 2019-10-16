@@ -58,14 +58,20 @@ def get_image_corners(target_img_path):
     img = prep_target_image_for_detection(target_img_path)
     aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_250)
 
-    mode_stretched = mode_threshold_contrast_stretch(img)
-    corners, ids, _ = aruco.detectMarkers(mode_stretched, aruco_dict)
+    corners, ids, _= aruco.detectMarkers(img, aruco_dict)
+    # show_detected_targets(img, corners, ids)
+
+    if corners == []:
+        mode_stretched = mode_threshold_contrast_stretch(img)
+        corners, ids, _ = aruco.detectMarkers(mode_stretched, aruco_dict)
+        # show_detected_targets(mode_stretched, corners, ids)
 
     if corners == []:
         mid_stretched = midpoint_threshold_contrast_stretch(img)
         corners, ids, _ = aruco.detectMarkers(mid_stretched, aruco_dict)
+        # show_detected_targets(mid_stretched, corners, ids)
 
-    elif corners == []:
+    if corners == []:
         raise Exception('No calibration target was detected')
 
 
