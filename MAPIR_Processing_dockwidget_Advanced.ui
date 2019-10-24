@@ -117,7 +117,7 @@
       </item>
      </layout>
     </item>
-    <item>
+    <!-- <item>
      <layout class="QHBoxLayout" name="horizontalLayout_6">
       <item>
        <widget class="QLabel" name="label_5">
@@ -134,7 +134,7 @@
        </widget>
       </item>
      </layout>
-    </item>
+    </item> -->
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_7">
       <item>
