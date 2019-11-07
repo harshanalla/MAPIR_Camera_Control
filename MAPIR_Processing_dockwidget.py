@@ -3890,7 +3890,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
             image = cv2.imread(image_path, -1)
 
-            if self.check_if_RBG(camera_model, fil, lens):
+            if self.check_if_RGB(camera_model, fil, lens):
                 if len(image.shape) < 3:
                     raise IndexError("RGB filter was selected but input folders contain MONO images")
             else:
