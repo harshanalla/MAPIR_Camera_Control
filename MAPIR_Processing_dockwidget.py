@@ -194,20 +194,20 @@ class AdvancedOptions(QtWidgets.QDialog, ADVANCED_CLASS):
 
             self.CustomFilter.setText(str(filt))
 
-            buf = [0] * 512
-            buf[0] = self.parent.SET_REGISTER_READ_REPORT
-            buf[1] = eRegister.RG_DEBOUNCE_HIGH.value
+            # buf = [0] * 512
+            # buf[0] = self.parent.SET_REGISTER_READ_REPORT
+            # buf[1] = eRegister.RG_DEBOUNCE_HIGH.value
 
-            db_trig_high = self.parent.writeToKernel(buf)[2]
+            # db_trig_high = self.parent.writeToKernel(buf)[2]
 
-            buf = [0] * 512
-            buf[0] = self.parent.SET_REGISTER_READ_REPORT
-            buf[1] = eRegister.RG_DEBOUNCE_LOW.value
+            # buf = [0] * 512
+            # buf[0] = self.parent.SET_REGISTER_READ_REPORT
+            # buf[1] = eRegister.RG_DEBOUNCE_LOW.value
 
-            db_trig_low = self.parent.writeToKernel(buf)[2]
+            # db_trig_low = self.parent.writeToKernel(buf)[2]
 
-            db_trig_value = db_trig_high*255 + db_trig_low
-            self.TriggerDebounce.setText(str(db_trig_value))
+            # db_trig_value = db_trig_high*255 + db_trig_low
+            # self.TriggerDebounce.setText(str(db_trig_value))
 
             QtWidgets.QApplication.processEvents()
 
@@ -246,26 +246,26 @@ class AdvancedOptions(QtWidgets.QDialog, ADVANCED_CLASS):
 
             self.parent.writeToKernel(buf)
 
-            trigger_debounce_high = math.floor(int(self.TriggerDebounce.text()) / 255)
-            trigger_debounce_low = int(self.TriggerDebounce.text()) % 255
+            # trigger_debounce_high = math.floor(int(self.TriggerDebounce.text()) / 255)
+            # trigger_debounce_low = int(self.TriggerDebounce.text()) % 255
 
-            buf = [0] * 512
-            buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-            buf[1] = eRegister.RG_DEBOUNCE_HIGH.value
+            # buf = [0] * 512
+            # buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
+            # buf[1] = eRegister.RG_DEBOUNCE_HIGH.value
 
-            val = int(trigger_debounce_high) if 0 <= int(trigger_debounce_high) <= 255 else 255
-            buf[2] = val
+            # val = int(trigger_debounce_high) if 0 <= int(trigger_debounce_high) <= 255 else 255
+            # buf[2] = val
 
-            self.parent.writeToKernel(buf)
+            # self.parent.writeToKernel(buf)
 
-            buf = [0] * 512
-            buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-            buf[1] = eRegister.RG_DEBOUNCE_LOW.value
+            # buf = [0] * 512
+            # buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
+            # buf[1] = eRegister.RG_DEBOUNCE_LOW.value
 
-            val = int(trigger_debounce_low) if 0 <= int(trigger_debounce_low) <= 255 else 255
-            buf[2] = val
+            # val = int(trigger_debounce_low) if 0 <= int(trigger_debounce_low) <= 255 else 255
+            # buf[2] = val
 
-            self.parent.writeToKernel(buf)
+            # self.parent.writeToKernel(buf)
 
             buf = [0] * 512
             buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
@@ -1539,11 +1539,15 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         self.KernelPanel.append(self.get_imu_value_string(label, reg_values))
 
     def firmware_version_is_old(self):
-        return self.getRegister(eRegister.RG_FIRMWARE_INTERNAL_VERSION) == 0
+        firmware_id = self.getRegister(eRegister.RG_FIRMWARE_ID)
+        firmware_minor_id = self.getRegister(eRegister.RG_FIRMWARE_MINOR_ID)
+        firmware_internal_version = self.getRegister(eRegister.RG_FIRMWARE_INTERNAL_VERSION)
 
-    def log_trigger_debounce_to_kernel_panel(self):
-        self.KernelPanel.append("Trigger Debounce High: " + str(self.getRegister(eRegister.RG_DEBOUNCE_HIGH.value)))
-        self.KernelPanel.append("Trigger Debounce Low: " + str(self.getRegister(eRegister.RG_DEBOUNCE_LOW.value)))
+        return firmware_id == 2 and firmware_minor_id == 0 and firmware_internal_version == 0
+
+    # def log_trigger_debounce_to_kernel_panel(self):
+    #     self.KernelPanel.append("Trigger Debounce High: " + str(self.getRegister(eRegister.RG_DEBOUNCE_HIGH.value)))
+    #     self.KernelPanel.append("Trigger Debounce Low: " + str(self.getRegister(eRegister.RG_DEBOUNCE_LOW.value)))
 
     def log_yaw_pitch_roll_to_kernel_panel(self):
         self.KernelPanel.append("Last Photo Captured Orientation:")
@@ -1739,7 +1743,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.KernelPanel.append("Serial Number: " + serno)
             self.log_firmware_version_to_kernel_panel()
             self.KernelPanel.append('')
-            self.log_trigger_debounce_to_kernel_panel()
+            # self.log_trigger_debounce_to_kernel_panel()
 
             # self.KernelPanel.append("Camera Firmware: " + str(self.getRegister(eRegister.RG_FIRMWARE_ID.value)) + '.' + str(self.getRegister(eRegister.RG_FIRMWARE_MINOR_ID)) + '.' + str(self.getRegister(eRegister.RG_FIRMWARE_INTERNAL_VERSION)))
 
@@ -3886,11 +3890,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
             image = cv2.imread(image_path, -1)
 
-            if self.check_if_RGB(camera_model, fil, lens) and len(image.shape) < 3:
-                raise IndexError("RGB filter was selected but input folders contain MONO images")
-
-            elif not self.check_if_RGB(camera_model, fil, lens) and len(image.shape) > 2:
-                raise IndexError("Mono filter was selected but input folders contain RGB images")
+            if self.check_if_RGB(camera_model, fil, lens):
+                if len(image.shape) < 3:
+                    raise IndexError("RGB filter was selected but input folders contain MONO images")
+            else:
+                if len(image.shape) > 2:
+                    raise IndexError("Mono filter was selected but input folders contain RGB images")
 
             #Fiducial Finder only needs to be run for Version 2, calib.txt will only be written for Version 2
             if version == "V2":

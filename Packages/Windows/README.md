@@ -3,15 +3,15 @@
 
 ## Current Version
 
-[July 30th, 2019](https://drive.google.com/file/d/1WYBxmmLtogm9sVqaJih2_cAS0JjmaVuS/view?usp=sharing)
+[October 27th, 2019](https://drive.google.com/file/d/1WYBxmmLtogm9sVqaJih2_cAS0JjmaVuS/view?usp=sharing)
 
-[July 30th, 2019 - With Kernel Vignette Correction Support](https://drive.google.com/file/d/1KKHMJE0lWzSiJt1dXXNZQJV2bDV1iqDq/view?usp=sharing)
-
+[October 27th, 2019 - With Kernel Vignette Correction Support](https://drive.google.com/file/d/1KKHMJE0lWzSiJt1dXXNZQJV2bDV1iqDq/view?usp=sharing)
 
 Change Log
 * Improved calibration target detection
 * Updated kernel filter & lens menus
 * Other minor bug fixes
+
 
 ## Old Versions
 
