@@ -2491,7 +2491,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.PreProcessMonoBandBox.setEnabled(False)
             if (self.PreProcessLens.currentText() == "9.6mm" and
                 self.PreProcessFilter.currentText() in ["405", "450", "490", "518",
-                                                       "550", "590", "615", "632",
+                                                       "550", "590", "615", "632", "650",
                                                        "685", "725", "780","808",
                                                        "850", "880","940"]):
 
@@ -3923,7 +3923,9 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 while threshcounter <= 255:
                     ret, thresh = cv2.threshold(denoised, threshcounter, 255, 0)
 
-                    if os.name == "nt":
+                    major = cv2.__version__.split('.')[0]
+                    if major == '3':
+                    # if os.name == "nt":
                         _, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
                     else:
                         contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
