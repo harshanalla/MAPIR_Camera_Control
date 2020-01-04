@@ -2958,6 +2958,13 @@ p, li { white-space: pre-wrap; }
                      </widget>
                     </item>
                     <item>
+                     <widget class="QPushButton" name="KernelMavlinkButton">
+                      <property name="text">
+                       <string>Adjust Mavlink Settings</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
                      <widget class="QPushButton" name="KernelAdvancedSettingsButton">
                       <property name="text">
                        <string>Advanced Options</string>

@@ -106,6 +106,7 @@ if sys.platform == "win32":
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_base.ui'))
 MODAL_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_modal.ui'))
 CAN_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_CAN.ui'))
+MAVLINK_MODAL_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_mavlink_modal.ui'))
 TIME_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_time.ui'))
 # DEL_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_delete.ui'))
 TRANSFER_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_transfer.ui'))
@@ -461,6 +462,99 @@ class KernelCAN(QtWidgets.QDialog, CAN_CLASS):
         buf[4] = sample2
 
         self.parent.writeToKernel(buf)
+        self.close()
+
+    def on_ModalCancelButton_released(self):
+        self.close()
+
+class KernelMavlinkModal(QtWidgets.QDialog, MAVLINK_MODAL_CLASS):
+    parent = None
+
+    def __init__(self, parent=None):
+        """Constructor."""
+        super(KernelMavlinkModal, self).__init__(parent=parent)
+        self.parent = parent
+        self.setupUi(self)
+
+        # buf = [0] * 512
+        # buf[0] = self.parent.SET_REGISTER_READ_REPORT
+        # buf[1] = eRegister.RG_MAVLINK_TYPE.value
+        # mavlink_type = self.parent.writeToKernel(buf)[2]
+        # self.KernelMavlinkCommsType.setCurrentIndex(mavlink_type)
+
+        # buf = [0] * 512
+        # buf[0] = self.parent.SET_REGISTER_BLOCK_READ_REPORT
+        # buf[1] = eRegister.RG_MAVLINK_SERIAL_PORT_IDX.value
+        # serial_port_index = self.parent.writeToKernel(buf)[2]
+        # self.KernelMavlinkSerialPortIndex.setText(str(mavlink_type))
+
+
+
+
+        # buf[2] = 2
+        # bitrate = self.parent.writeToKernel(buf)[2:4]
+        # bitval = ((bitrate[0] << 8) & 0xff00) | bitrate[1]
+        # self.KernelBitRate.setCurrentIndex(self.KernelBitRate.findText(str(bitval)))
+
+        # buf = [0] * 512
+        # buf[0] = self.parent.SET_REGISTER_BLOCK_READ_REPORT
+        # buf[1] = eRegister.RG_CAN_SAMPLE_POINT_1.value
+        # buf[2] = 2
+        # samplepoint = self.parent.writeToKernel(buf)[2:4]
+
+
+        # sample = ((samplepoint[0] << 8) & 0xff00) | samplepoint[1]
+        # self.KernelSamplePoint.setText(str(sample))
+
+    def on_KernelMavlinkCommsType_currentIndexChanged(self):
+        if self.KernelMavlinkCommsType.currentIndex() == 0:
+            self.label_17.hide()
+            self.KernelMavlinkSerialPortIndex.hide()
+            self.label_18.hide()
+            self.KernelMavlinkSerialPortBaud.hide()
+            self.label_19.hide()
+            self.KernelMavlinkSerialPortRTSCTS.hide()
+        else:
+            self.label_17.show()
+            self.KernelMavlinkSerialPortIndex.show()
+            self.label_18.show()
+            self.KernelMavlinkSerialPortBaud.show()
+            self.label_19.show()
+            self.KernelMavlinkSerialPortRTSCTS.show()
+
+
+    def on_ModalSaveButton_released(self):
+        # buf = [0] * 512
+        # buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
+        # buf[1] = eRegister.RG_CAN_NODE_ID.value
+        # nodeid = int(self.KernelNodeID.text())
+        # buf[2] = nodeid
+
+        # self.parent.writeToKernel(buf)
+        # buf = [0] * 512
+        # buf[0] = self.parent.SET_REGISTER_BLOCK_WRITE_REPORT
+        # buf[1] = eRegister.RG_CAN_BIT_RATE_1.value
+        # buf[2] = 2
+
+        # bitrate = int(self.KernelBitRate.currentText())
+        # bit1 = (bitrate >> 8) & 0xff
+        # bit2 = bitrate & 0xff
+        # buf[3] = bit1
+        # buf[4] = bit2
+
+        # self.parent.writeToKernel(buf)
+        # buf = [0] * 512
+        # buf[0] = self.parent.SET_REGISTER_BLOCK_WRITE_REPORT
+        # buf[1] = eRegister.RG_CAN_SAMPLE_POINT_1.value
+        # buf[2] = 2
+
+        # samplepoint = int(self.KernelSamplePoint.text())
+        # sample1 = (samplepoint >> 8) & 0xff
+        # sample2 = samplepoint & 0xff
+        # buf[3] = sample1
+        # buf[4] = sample2
+
+        # self.parent.writeToKernel(buf)
         self.close()
 
     def on_ModalCancelButton_released(self):
@@ -2431,15 +2525,15 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         #     print(e)
         #     print("Line: " + str(exc_tb.tb_lineno))
 
+    def on_KernelMavlinkButton_released(self):
+        self.modalwindow = KernelMavlinkModal(self)
+        self.modalwindow.resize(400, 200)
+        self.modalwindow.exec_()
+
     def on_KernelTimeButton_released(self):
         self.modalwindow = KernelTime(self)
         self.modalwindow.resize(400, 200)
         self.modalwindow.exec_()
-        # try:
-        #     self.KernelUpdate()
-        # except Exception as e:
-        # exc_type, exc_obj,exc_tb = sys.exc_info()
-        #     print(e + ' ) + exc_tb.tb_lineno
 
     def writeToIntervalLine(self):
         self.KernelIntervalLine.clear()
