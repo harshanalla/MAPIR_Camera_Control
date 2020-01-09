@@ -13,7 +13,7 @@ hidapi==0.7.99.post21
 importlib-metadata==0.8
 kiwisolver==1.0.1
 macholib==1.11
-matplotlib==3.0.2
+# matplotlib==3.0.2
 mock==2.0.0
 more-itertools==5.0.0
 numpy==1.15.4

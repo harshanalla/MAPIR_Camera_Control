@@ -470,7 +470,6 @@ class KernelMavlinkModal(QtWidgets.QDialog, MAVLINK_MODAL_CLASS):
         super(KernelMavlinkModal, self).__init__(parent=parent)
         self.parent = parent
         self.setupUi(self)
-        self.on_KernelMavlinkCommsType_currentIndexChanged()
 
         buf = [0] * 512
         buf[0] = self.parent.SET_REGISTER_READ_REPORT
@@ -478,23 +477,27 @@ class KernelMavlinkModal(QtWidgets.QDialog, MAVLINK_MODAL_CLASS):
         mavlink_type = self.parent.writeToKernel(buf)[2]
         self.KernelMavlinkCommsType.setCurrentIndex(int(mavlink_type))
 
+        self.on_KernelMavlinkCommsType_currentIndexChanged()
+
         buf = [0] * 512
         buf[0] = self.parent.SET_REGISTER_READ_REPORT
         buf[1] = eRegister.RG_MAVLINK_SERIAL_PORT_IDX.value
         serial_port_index = self.parent.writeToKernel(buf)[2]
-        self.KernelMavlinkCommsType.setCurrentIndex(int(serial_port_index))
+        self.KernelMavlinkSerialPortIndex.setCurrentIndex(int(serial_port_index))
 
         buf = [0] * 512
         buf[0] = self.parent.SET_REGISTER_READ_REPORT
         buf[1] = eRegister.RG_MAVLINK_SERIAL_PORT_BAUD.value
         serial_port_baud = self.parent.writeToKernel(buf)[2]
-        self.KernelMavlinkCommsType.setCurrentIndex(int(serial_port_baud))
+        self.KernelMavlinkSerialPortBaud.setCurrentIndex(int(serial_port_baud))
 
         buf = [0] * 512
         buf[0] = self.parent.SET_REGISTER_READ_REPORT
         buf[1] = eRegister.RG_MAVLINK_SERIAL_PORT_RTSCTS.value
         serial_port_rtscts = self.parent.writeToKernel(buf)[2]
-        self.KernelMavlinkCommsType.setCurrentIndex(int(serial_port_rtscts))
+        self.KernelMavlinkSerialPortRTSCTS.setCurrentIndex(int(serial_port_rtscts))
+
+        # self.parent.log_mavlink_settings_to_kernel_panel()
 
     def on_KernelMavlinkCommsType_currentIndexChanged(self):
         if self.KernelMavlinkCommsType.currentIndex() != 1:
@@ -539,6 +542,7 @@ class KernelMavlinkModal(QtWidgets.QDialog, MAVLINK_MODAL_CLASS):
         buf[2] = int(self.KernelMavlinkSerialPortRTSCTS.currentIndex())
         self.parent.writeToKernel(buf)
 
+        # self.parent.log_mavlink_settings_to_kernel_panel()
         self.close()
 
     def on_ModalCancelButton_released(self):
@@ -1626,6 +1630,14 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     # def log_trigger_debounce_to_kernel_panel(self):
     #     self.KernelPanel.append("Trigger Debounce High: " + str(self.getRegister(eRegister.RG_DEBOUNCE_HIGH.value)))
     #     self.KernelPanel.append("Trigger Debounce Low: " + str(self.getRegister(eRegister.RG_DEBOUNCE_LOW.value)))
+
+    def log_mavlink_settings_to_kernel_panel(self):
+        self.KernelPanel.append("Mavlink Settings:")
+        self.KernelPanel.append("RG_MAVLINK_TYPE: " + str(self.getRegister(eRegister.RG_MAVLINK_TYPE.value)))
+        self.KernelPanel.append("RG_MAVLINK_SERIAL_PORT_IDX: " + str(self.getRegister(eRegister.RG_MAVLINK_SERIAL_PORT_IDX.value)))
+        self.KernelPanel.append("RG_MAVLINK_SERIAL_PORT_BAUD: " + str(self.getRegister(eRegister.RG_MAVLINK_SERIAL_PORT_BAUD.value)))
+        self.KernelPanel.append("RG_MAVLINK_SERIAL_PORT_RTSCTS: " + str(self.getRegister(eRegister.RG_MAVLINK_SERIAL_PORT_RTSCTS.value)))
+
 
     def log_yaw_pitch_roll_to_kernel_panel(self):
         self.KernelPanel.append("Last Photo Captured Orientation:")
