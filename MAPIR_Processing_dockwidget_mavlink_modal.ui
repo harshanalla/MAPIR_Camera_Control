@@ -69,21 +69,6 @@
            <string>1</string>
           </property>
          </item>
-         <item>
-          <property name="text">
-           <string>2</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>3</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>4</string>
-          </property>
-         </item>
         </widget>
        </item>
        <item row="2" column="0">
@@ -94,7 +79,7 @@
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QComboBox" name="KernelMavlinkSerialPortBaud">
+                <widget class="QComboBox" name="KernelMavlinkSerialPortBaud">
          <item>
           <property name="text">
            <string>1200</string>
@@ -137,6 +122,11 @@
          </item>
          <item>
           <property name="text">
+           <string>115200</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
            <string>256000</string>
           </property>
          </item>
@@ -156,11 +146,6 @@
           </property>
          </item>
         </widget>
-        <!-- <widget class="QLineEdit" name="KernelMavlinkSerialPortBaud">
-         <property name="placeholderText">
-          <string>Serial port baud...</string>
-         </property>
-        </widget> -->
        </item>
        <item row="3" column="0">
         <widget class="QLabel" name="label_19">
