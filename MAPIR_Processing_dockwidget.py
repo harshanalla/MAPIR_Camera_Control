@@ -158,30 +158,14 @@ class AdvancedOptions(QtWidgets.QDialog, ADVANCED_CLASS):
 
         self.setupUi(self)
         try:
-            buf = [0] * 512
-            buf[0] = self.parent.SET_REGISTER_READ_REPORT
-            buf[1] = eRegister.RG_UNMOUNT_SD_CARD_S.value
-            # if self.SDCTUM.text():
-            #     buf[2] = int(self.SDCTUM.text()) if 0 <= int(self.SDCTUM.text()) < 255 else 255
+            SD_card_time_to_unmount = self.parent.read_register_value_from_kernel(eRegister.RG_UNMOUNT_SD_CARD_S)
+            self.SDCTUM.setText(str(SD_card_time_to_unmount))
 
-            res = self.parent.writeToKernel(buf)[2]
-            self.SDCTUM.setText(str(res))
+            video_capture_restart_delay = self.parent.read_register_value_from_kernel(eRegister.RG_VIDEO_ON_DELAY)
+            self.VCRD.setText(str(video_capture_restart_delay))
 
-            buf = [0] * 512
-            buf[0] = self.parent.SET_REGISTER_READ_REPORT
-            buf[1] = eRegister.RG_VIDEO_ON_DELAY.value
-            # buf[2] = int(self.VCRD.text()) if 0 <= int(self.VCRD.text()) < 255 else 255
-
-            res = self.parent.writeToKernel(buf)[2]
-            self.VCRD.setText(str(res))
-
-            buf = [0] * 512
-            buf[0] = self.parent.SET_REGISTER_READ_REPORT
-            buf[1] = eRegister.RG_PHOTO_FORMAT.value
-
-
-            res = self.parent.writeToKernel(buf)[2]
-            self.KernelPhotoFormat.setCurrentIndex(int(res))
+            kernel_photo_format = self.parent.read_register_value_from_kernel(eRegister.RG_PHOTO_FORMAT)
+            self.KernelPhotoFormat.setCurrentIndex(int(kernel_photo_format))
 
             buf = [0] * 512
             buf[0] = self.parent.SET_REGISTER_BLOCK_READ_REPORT
@@ -238,14 +222,9 @@ class AdvancedOptions(QtWidgets.QDialog, ADVANCED_CLASS):
         # self.parent.yesdelete = self.DeleteBox.isChecked()
         # self.parent.selection_made = True
         try:
+            SD_card_time_to_unmount = int(self.SDCTUM.text()) if 0 < int(self.SDCTUM.text()) < 255 else 255
+            self.parent.write_register_value_to_kernel(eRegister.RG_UNMOUNT_SD_CARD_S, SD_card_time_to_unmount)
 
-            buf = [0] * 512
-            buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-            buf[1] = eRegister.RG_UNMOUNT_SD_CARD_S.value
-            val = int(self.SDCTUM.text()) if 0 < int(self.SDCTUM.text()) < 255 else 255
-            buf[2] = val
-
-            self.parent.writeToKernel(buf)
 
             # trigger_debounce_high = math.floor(int(self.TriggerDebounce.text()) / 255)
             # trigger_debounce_low = int(self.TriggerDebounce.text()) % 255
@@ -268,20 +247,9 @@ class AdvancedOptions(QtWidgets.QDialog, ADVANCED_CLASS):
 
             # self.parent.writeToKernel(buf)
 
-            buf = [0] * 512
-            buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-            buf[1] = eRegister.RG_VIDEO_ON_DELAY.value
-            val = int(self.VCRD.text()) if 0 < int(self.VCRD.text()) < 255 else 255
-            buf[2] = val
-
-            self.parent.writeToKernel(buf)
-
-            buf = [0] * 512
-            buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-            buf[1] = eRegister.RG_PHOTO_FORMAT.value
-            buf[2] = int(self.KernelPhotoFormat.currentIndex())
-            self.parent.writeToKernel(buf)
-
+            video_capture_restart_delay = int(self.VCRD.text()) if 0 < int(self.VCRD.text()) < 255 else 255
+            self.parent.write_register_value_to_kernel(eRegister.RG_VIDEO_ON_DELAY, video_capture_restart_delay)
+            self.parent.write_register_value_to_kernel(eRegister.RG_PHOTO_FORMAT, int(self.KernelPhotoFormat.currentIndex()))
 
             buf = [0] * 512
             buf[0] = self.parent.SET_REGISTER_BLOCK_WRITE_REPORT
@@ -400,12 +368,8 @@ class KernelCAN(QtWidgets.QDialog, CAN_CLASS):
         self.parent = parent
 
         self.setupUi(self)
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_READ_REPORT
-        buf[1] = eRegister.RG_CAN_NODE_ID.value
-        nodeid = self.parent.writeToKernel(buf)[2]
-        # buf[2] = nodeid
-        self.KernelNodeID.setText(str(nodeid))
+        node_id = self.parent.read_register_value_from_kernel(eRegister.RG_CAN_NODE_ID)
+        self.KernelNodeID.setText(str(node_id))
 
         buf = [0] * 512
         buf[0] = self.parent.SET_REGISTER_BLOCK_READ_REPORT
@@ -428,12 +392,7 @@ class KernelCAN(QtWidgets.QDialog, CAN_CLASS):
         self.KernelSamplePoint.setText(str(sample))
 
     def on_ModalSaveButton_released(self):
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-        buf[1] = eRegister.RG_CAN_NODE_ID.value
-        nodeid = int(self.KernelNodeID.text())
-        buf[2] = nodeid
-        self.parent.writeToKernel(buf)
+        self.parent.write_register_value_to_kernel(eRegister.RG_CAN_NODE_ID, int(self.KernelNodeID.text()))
 
         buf = [0] * 512
         buf[0] = self.parent.SET_REGISTER_BLOCK_WRITE_REPORT
@@ -471,30 +430,17 @@ class KernelMavlinkModal(QtWidgets.QDialog, MAVLINK_MODAL_CLASS):
         self.parent = parent
         self.setupUi(self)
 
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_READ_REPORT
-        buf[1] = eRegister.RG_MAVLINK_TYPE.value
-        mavlink_type = self.parent.writeToKernel(buf)[2]
+        mavlink_type = self.parent.read_register_value_from_kernel(eRegister.RG_MAVLINK_TYPE)
         self.KernelMavlinkCommsType.setCurrentIndex(int(mavlink_type))
-
         self.on_KernelMavlinkCommsType_currentIndexChanged()
 
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_READ_REPORT
-        buf[1] = eRegister.RG_MAVLINK_SERIAL_PORT_IDX.value
-        serial_port_index = self.parent.writeToKernel(buf)[2]
+        serial_port_index = self.parent.read_register_value_from_kernel(eRegister.RG_MAVLINK_SERIAL_PORT_IDX)
         self.KernelMavlinkSerialPortIndex.setCurrentIndex(int(serial_port_index))
 
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_READ_REPORT
-        buf[1] = eRegister.RG_MAVLINK_SERIAL_PORT_BAUD.value
-        serial_port_baud = self.parent.writeToKernel(buf)[2]
+        serial_port_baud = self.parent.read_register_value_from_kernel(eRegister.RG_MAVLINK_SERIAL_PORT_BAUD)
         self.KernelMavlinkSerialPortBaud.setCurrentIndex(int(serial_port_baud))
 
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_READ_REPORT
-        buf[1] = eRegister.RG_MAVLINK_SERIAL_PORT_RTSCTS.value
-        serial_port_rtscts = self.parent.writeToKernel(buf)[2]
+        serial_port_rtscts = self.parent.read_register_value_from_kernel(eRegister.RG_MAVLINK_SERIAL_PORT_RTSCTS)
         self.KernelMavlinkSerialPortRTSCTS.setCurrentIndex(int(serial_port_rtscts))
 
         # self.parent.log_mavlink_settings_to_kernel_panel()
@@ -517,31 +463,10 @@ class KernelMavlinkModal(QtWidgets.QDialog, MAVLINK_MODAL_CLASS):
 
 
     def on_ModalSaveButton_released(self):
-
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-        buf[1] = eRegister.RG_MAVLINK_TYPE.value
-        buf[2] = int(self.KernelMavlinkCommsType.currentIndex())
-        self.parent.writeToKernel(buf)
-
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-        buf[1] = eRegister.RG_MAVLINK_SERIAL_PORT_IDX.value
-        buf[2] = int(self.KernelMavlinkSerialPortIndex.currentIndex())
-        self.parent.writeToKernel(buf)
-
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-        buf[1] = eRegister.RG_MAVLINK_SERIAL_PORT_BAUD.value
-        buf[2] = int(self.KernelMavlinkSerialPortBaud.currentIndex())
-        self.parent.writeToKernel(buf)
-
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-        buf[1] = eRegister.RG_MAVLINK_SERIAL_PORT_RTSCTS.value
-        buf[2] = int(self.KernelMavlinkSerialPortRTSCTS.currentIndex())
-        self.parent.writeToKernel(buf)
-
+        self.parent.write_register_value_to_kernel(eRegister.RG_MAVLINK_TYPE, int(self.KernelMavlinkCommsType.currentIndex()))
+        self.parent.write_register_value_to_kernel(eRegister.RG_MAVLINK_SERIAL_PORT_IDX, int(self.KernelMavlinkSerialPortIndex.currentIndex()))
+        self.parent.write_register_value_to_kernel(eRegister.RG_MAVLINK_SERIAL_PORT_BAUD, int(self.KernelMavlinkSerialPortBaud.currentIndex()))
+        self.parent.write_register_value_to_kernel(eRegister.RG_MAVLINK_SERIAL_PORT_RTSCTS, int(self.KernelMavlinkSerialPortRTSCTS.currentIndex()))
         # self.parent.log_mavlink_settings_to_kernel_panel()
         self.close()
 
@@ -1137,6 +1062,24 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             exc_type, exc_obj,exc_tb = sys.exc_info()
             print(e)
             print("Line: " + str(exc_tb.tb_lineno))
+
+    def write_register_value_to_kernel(self, reg_enum, new_value):
+        buf = [0] * 512
+        buf[0] = self.SET_REGISTER_WRITE_REPORT
+        buf[1] = reg_enum.value
+        buf[2] = new_value
+        return self.writeToKernel(buf)
+
+    def read_register_value_from_kernel(self, reg_enum):
+        buf = [0] * 512
+        buf[0] = self.SET_REGISTER_READ_REPORT
+        buf[1] = reg_enum.value
+        return self.writeToKernel(buf)[2]
+
+    # buf = [0] * 512
+    # buf[0] = self.parent.SET_REGISTER_READ_REPORT
+    # buf[1] = eRegister.RG_MAVLINK_SERIAL_PORT_RTSCTS.value
+    # serial_port_rtscts = self.parent.writeToKernel(buf)[2]
 
     def exitTransfer(self, drv='C'):
         tmtf = r":/dcim/tmtf.txt"
@@ -1997,6 +1940,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             return []
         drive_bitmask = ctypes.cdll.kernel32.GetLogicalDrives()
         return list(itertools.compress(string.ascii_uppercase, map(lambda x: ord(x) - ord('0'), bin(drive_bitmask)[:1:-1])))
+
     def on_KernelTransferButton_toggled(self):
         self.KernelLog.append(' ')
         currentcam = None
