@@ -2028,6 +2028,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
                 self.modalwindow = KernelTransfer(self)
                 self.modalwindow.resize(400, 200)
                 self.modalwindow.exec_()
+                # MODAL CLOSED
                 # self.KernelLog.append("We made it out of transfer window")
                 if self.yestransfer:
                     # self.KernelLog.append("Transfer was enabled")
@@ -2131,19 +2132,23 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.KernelMESettingsButton.setEnabled(True)
             self.KernelAESettingsButton.setEnabled(False)
 
-            buf = [0] * 512
-            buf[0] = self.SET_REGISTER_WRITE_REPORT
-            buf[1] = eRegister.RG_SHUTTER.value
-            buf[2] = 9
+            self.write_register_value_to_kernel(eRegister.RG_SHUTTER, 9)
 
-            res = self.writeToKernel(buf)
+            # buf = [0] * 512
+            # buf[0] = self.SET_REGISTER_WRITE_REPORT
+            # buf[1] = eRegister.RG_SHUTTER.value
+            # buf[2] = 9
 
-            buf = [0] * 512
-            buf[0] = self.SET_REGISTER_WRITE_REPORT
-            buf[1] = eRegister.RG_ISO.value
-            buf[2] = 1
+            # res = self.writeToKernel(buf)
 
-            res = self.writeToKernel(buf)
+            self.write_register_value_to_kernel(eRegister.RG_ISO, 1)
+
+            # buf = [0] * 512
+            # buf[0] = self.SET_REGISTER_WRITE_REPORT
+            # buf[1] = eRegister.RG_ISO.value
+            # buf[2] = 1
+
+            # res = self.writeToKernel(buf)
 
             QtWidgets.QApplication.processEvents()
         else: #Auto
