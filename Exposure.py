@@ -129,6 +129,7 @@ class A_EXP_Control(QtWidgets.QDialog, A_EXP_CLASS):
 
 
     def on_ModalSaveButton_released(self):
+
         buf = [0] * 512
         buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
         buf[1] = eRegister.RG_AE_SELECTION.value
