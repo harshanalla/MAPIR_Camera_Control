@@ -42,33 +42,18 @@ class M_EXP_Control(QtWidgets.QDialog, M_EXP_CLASS):
     # def on_KernelISO_currentIndexChanged(self):
 
     def on_ModalSaveButton_released(self):
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-        buf[1] = eRegister.RG_SHUTTER.value
-        buf[2] = self.KernelShutterSpeed.currentIndex() + 1
 
-        res = self.parent.writeToKernel(buf)
+        new_kernel_shutter_speed = self.KernelShutterSpeed.currentIndex() + 1
+        self.parent.write_register_value_to_kernel(eRegister.RG_SHUTTER, new_kernel_shutter_speed)
 
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-        buf[1] = eRegister.RG_ISO.value
-        buf[2] = int(int(self.KernelISO.currentText()) / 100)
+        new_iso = int(int(self.KernelISO.currentText()) / 100)
+        self.parent.write_register_value_to_kernel(eRegister.RG_ISO, new_iso)
 
-        res = self.parent.writeToKernel(buf)
         self.close()
+
     def on_ModalCancelButton_released(self):
-        # buf = [0] * 512
-        # buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-        # buf[1] = eRegister.RG_SHUTTER.value
-        # buf[2] = self._initial_Shutter
-        # res = self.parent.writeToKernel(buf)
-        #
-        # buf = [0] * 512
-        # buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-        # buf[1] = eRegister.RG_ISO.value
-        # buf[2] = self._initial_ISO
-        #
-        # res = self.parent.writeToKernel(buf)
+        # self.parent.write_register_value_to_kernel(eRegister.RG_SHUTTER, self._initial_Shutter)
+        # self.parent.write_register_value_to_kernel(eRegister.RG_ISO, self._initial_ISO)
         self.close()
 #Class for handling Auto Exposure Settings
 class A_EXP_Control(QtWidgets.QDialog, A_EXP_CLASS):
@@ -85,100 +70,26 @@ class A_EXP_Control(QtWidgets.QDialog, A_EXP_CLASS):
         super(A_EXP_Control, self).__init__(parent=parent)
         self.parent = parent
         self.setupUi(self)
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_READ_REPORT
-        buf[1] = eRegister.RG_AE_SELECTION.value
-        self._initial_Algorithm = self.parent.writeToKernel(buf)[2]
+
+        self._initial_Algorithm = self.parent.read_register_value_from_kernel(eRegister.RG_AE_SELECTION)
         self.AutoAlgorithm.setCurrentIndex(self._initial_Algorithm)
-
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_READ_REPORT
-        buf[1] = eRegister.RG_AE_MAX_SHUTTER.value
-
-        self.AutoMaxShutter.setCurrentIndex(self.parent.writeToKernel(buf)[2])
-
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_READ_REPORT
-        buf[1] = eRegister.RG_AE_MIN_SHUTTER.value
-
-        self.AutoMinShutter.setCurrentIndex(self.parent.writeToKernel(buf)[2])
-
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_READ_REPORT
-        buf[1] = eRegister.RG_AE_MAX_GAIN.value
-
-        self.AutoMaxISO.setCurrentIndex(self.parent.writeToKernel(buf)[2])
-
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_READ_REPORT
-        buf[1] = eRegister.RG_AE_F_STOP.value
-
-        self.AutoFStop.setCurrentIndex(self.parent.writeToKernel(buf)[2])
-
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_READ_REPORT
-        buf[1] = eRegister.RG_AE_GAIN.value
-
-        self.AutoGain.setCurrentIndex(self.parent.writeToKernel(buf)[2])
-
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_READ_REPORT
-        buf[1] = eRegister.RG_AE_SETPOINT.value
-
-        self.AutoSetpoint.setCurrentIndex(self.parent.writeToKernel(buf)[2])
-
+        self.AutoMaxShutter.setCurrentIndex(self.parent.read_register_value_from_kernel(eRegister.RG_AE_MAX_SHUTTER))
+        self.AutoMinShutter.setCurrentIndex(self.parent.read_register_value_from_kernel(eRegister.RG_AE_MIN_SHUTTER))
+        self.AutoMaxISO.setCurrentIndex(self.parent.read_register_value_from_kernel(eRegister.RG_AE_MAX_GAIN))
+        self.AutoFStop.setCurrentIndex(self.parent.read_register_value_from_kernel(eRegister.RG_AE_F_STOP))
+        self.AutoGain.setCurrentIndex(self.parent.read_register_value_from_kernel(eRegister.RG_AE_GAIN))
+        self.AutoSetpoint.setCurrentIndex(self.parent.read_register_value_from_kernel(eRegister.RG_AE_SETPOINT))
 
     def on_ModalSaveButton_released(self):
-
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-        buf[1] = eRegister.RG_AE_SELECTION.value
-        buf[2] = self.AutoAlgorithm.currentIndex()
-        res = self.parent.writeToKernel(buf)
-
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-        buf[1] = eRegister.RG_AE_MAX_SHUTTER.value
-        buf[2] = self.AutoMaxShutter.currentIndex()
-
-        res = self.parent.writeToKernel(buf)
-
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-        buf[1] = eRegister.RG_AE_MIN_SHUTTER.value
-        buf[2] = self.AutoMinShutter.currentIndex()
-
-        res = self.parent.writeToKernel(buf)
-
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-        buf[1] = eRegister.RG_AE_MAX_GAIN.value
-        buf[2] = self.AutoMaxISO.currentIndex()
-
-        res = self.parent.writeToKernel(buf)
-
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-        buf[1] = eRegister.RG_AE_F_STOP.value
-        buf[2] = self.AutoFStop.currentIndex()
-
-        res = self.parent.writeToKernel(buf)
-
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-        buf[1] = eRegister.RG_AE_GAIN.value
-        buf[2] = self.AutoGain.currentIndex()
-
-        res = self.parent.writeToKernel(buf)
-
-        buf = [0] * 512
-        buf[0] = self.parent.SET_REGISTER_WRITE_REPORT
-        buf[1] = eRegister.RG_AE_SETPOINT.value
-        buf[2] = self.AutoSetpoint.currentIndex()
-
-        res = self.parent.writeToKernel(buf)
-
+        self.parent.write_register_value_to_kernel(eRegister.RG_AE_SELECTION, self.AutoAlgorithm.currentIndex())
+        self.parent.write_register_value_to_kernel(eRegister.RG_AE_MAX_SHUTTER, self.AutoMaxShutter.currentIndex())
+        self.parent.write_register_value_to_kernel(eRegister.RG_AE_MIN_SHUTTER, self.AutoMinShutter.currentIndex())
+        self.parent.write_register_value_to_kernel(eRegister.RG_AE_MAX_GAIN, self.AutoMaxISO.currentIndex())
+        self.parent.write_register_value_to_kernel(eRegister.RG_AE_F_STOP, self.AutoFStop.currentIndex())
+        self.parent.write_register_value_to_kernel(eRegister.RG_AE_GAIN, self.AutoGain.currentIndex())
+        self.parent.write_register_value_to_kernel(eRegister.RG_AE_SETPOINT, self.AutoSetpoint.currentIndex())
         self.close()
+
     def on_ModalCancelButton_released(self):
 
 
