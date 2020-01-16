@@ -45,7 +45,7 @@ a = Analysis(['MAPIR_Camera_Control.py'],
                 ('MAPIR_Processing_dockwidget_BandOrder.ui', '.'),
                 ('MAPIR_Processing_dockwidget_Advanced.ui', '.'),
                 ('MAPIR_Processing_dockwidget_matrix.ui', '.'),
-                ('MAPIR_Processing_dockwidget_mavlink_modal.ui', '.'),
+                ('MAPIR_Processing_dockwidget_mavlink_modal.ui', '.')
                 ('vig_405.txt', '.'),
                 ('vig_450.txt', '.'),
                 ('vig_490.txt', '.'),

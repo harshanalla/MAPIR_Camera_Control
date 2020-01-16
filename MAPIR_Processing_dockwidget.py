@@ -106,7 +106,7 @@ if sys.platform == "win32":
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_base.ui'))
 MODAL_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_modal.ui'))
 CAN_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_CAN.ui'))
-MAVLINK_MODAL_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_mavlink_modal.ui'))
+# MAVLINK_MODAL_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_mavlink_modal.ui'))
 TIME_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_time.ui'))
 # DEL_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_delete.ui'))
 TRANSFER_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MAPIR_Processing_dockwidget_transfer.ui'))
@@ -397,57 +397,57 @@ class KernelCAN(QtWidgets.QDialog, CAN_CLASS):
     def on_ModalCancelButton_released(self):
         self.close()
 
-class KernelMavlinkModal(QtWidgets.QDialog, MAVLINK_MODAL_CLASS):
-    parent = None
+# class KernelMavlinkModal(QtWidgets.QDialog, MAVLINK_MODAL_CLASS):
+#     parent = None
 
-    def __init__(self, parent=None):
-        """Constructor."""
-        super(KernelMavlinkModal, self).__init__(parent=parent)
-        self.parent = parent
-        self.setupUi(self)
+#     def __init__(self, parent=None):
+#         """Constructor."""
+#         super(KernelMavlinkModal, self).__init__(parent=parent)
+#         self.parent = parent
+#         self.setupUi(self)
 
-        mavlink_type = self.parent.read_register_value_from_kernel(eRegister.RG_MAVLINK_TYPE)
-        self.KernelMavlinkCommsType.setCurrentIndex(int(mavlink_type))
-        self.on_KernelMavlinkCommsType_currentIndexChanged()
+#         mavlink_type = self.parent.read_register_value_from_kernel(eRegister.RG_MAVLINK_TYPE)
+#         self.KernelMavlinkCommsType.setCurrentIndex(int(mavlink_type))
+#         self.on_KernelMavlinkCommsType_currentIndexChanged()
 
-        serial_port_index = self.parent.read_register_value_from_kernel(eRegister.RG_MAVLINK_SERIAL_PORT_IDX)
-        self.KernelMavlinkSerialPortIndex.setCurrentIndex(int(serial_port_index))
+#         serial_port_index = self.parent.read_register_value_from_kernel(eRegister.RG_MAVLINK_SERIAL_PORT_IDX)
+#         self.KernelMavlinkSerialPortIndex.setCurrentIndex(int(serial_port_index))
 
-        serial_port_baud = self.parent.read_register_value_from_kernel(eRegister.RG_MAVLINK_SERIAL_PORT_BAUD)
-        self.KernelMavlinkSerialPortBaud.setCurrentIndex(int(serial_port_baud))
+#         serial_port_baud = self.parent.read_register_value_from_kernel(eRegister.RG_MAVLINK_SERIAL_PORT_BAUD)
+#         self.KernelMavlinkSerialPortBaud.setCurrentIndex(int(serial_port_baud))
 
-        serial_port_rtscts = self.parent.read_register_value_from_kernel(eRegister.RG_MAVLINK_SERIAL_PORT_RTSCTS)
-        self.KernelMavlinkSerialPortRTSCTS.setCurrentIndex(int(serial_port_rtscts))
+#         serial_port_rtscts = self.parent.read_register_value_from_kernel(eRegister.RG_MAVLINK_SERIAL_PORT_RTSCTS)
+#         self.KernelMavlinkSerialPortRTSCTS.setCurrentIndex(int(serial_port_rtscts))
 
-        # self.parent.log_mavlink_settings_to_kernel_panel()
+#         # self.parent.log_mavlink_settings_to_kernel_panel()
 
-    def on_KernelMavlinkCommsType_currentIndexChanged(self):
-        if self.KernelMavlinkCommsType.currentIndex() != 1:
-            self.label_17.hide()
-            self.KernelMavlinkSerialPortIndex.hide()
-            self.label_18.hide()
-            self.KernelMavlinkSerialPortBaud.hide()
-            self.label_19.hide()
-            self.KernelMavlinkSerialPortRTSCTS.hide()
-        else:
-            self.label_17.show()
-            self.KernelMavlinkSerialPortIndex.show()
-            self.label_18.show()
-            self.KernelMavlinkSerialPortBaud.show()
-            self.label_19.show()
-            self.KernelMavlinkSerialPortRTSCTS.show()
+#     def on_KernelMavlinkCommsType_currentIndexChanged(self):
+#         if self.KernelMavlinkCommsType.currentIndex() != 1:
+#             self.label_17.hide()
+#             self.KernelMavlinkSerialPortIndex.hide()
+#             self.label_18.hide()
+#             self.KernelMavlinkSerialPortBaud.hide()
+#             self.label_19.hide()
+#             self.KernelMavlinkSerialPortRTSCTS.hide()
+#         else:
+#             self.label_17.show()
+#             self.KernelMavlinkSerialPortIndex.show()
+#             self.label_18.show()
+#             self.KernelMavlinkSerialPortBaud.show()
+#             self.label_19.show()
+#             self.KernelMavlinkSerialPortRTSCTS.show()
 
 
-    def on_ModalSaveButton_released(self):
-        self.parent.write_register_value_to_kernel(eRegister.RG_MAVLINK_TYPE, int(self.KernelMavlinkCommsType.currentIndex()))
-        self.parent.write_register_value_to_kernel(eRegister.RG_MAVLINK_SERIAL_PORT_IDX, int(self.KernelMavlinkSerialPortIndex.currentIndex()))
-        self.parent.write_register_value_to_kernel(eRegister.RG_MAVLINK_SERIAL_PORT_BAUD, int(self.KernelMavlinkSerialPortBaud.currentIndex()))
-        self.parent.write_register_value_to_kernel(eRegister.RG_MAVLINK_SERIAL_PORT_RTSCTS, int(self.KernelMavlinkSerialPortRTSCTS.currentIndex()))
-        # self.parent.log_mavlink_settings_to_kernel_panel()
-        self.close()
+#     def on_ModalSaveButton_released(self):
+#         self.parent.write_register_value_to_kernel(eRegister.RG_MAVLINK_TYPE, int(self.KernelMavlinkCommsType.currentIndex()))
+#         self.parent.write_register_value_to_kernel(eRegister.RG_MAVLINK_SERIAL_PORT_IDX, int(self.KernelMavlinkSerialPortIndex.currentIndex()))
+#         self.parent.write_register_value_to_kernel(eRegister.RG_MAVLINK_SERIAL_PORT_BAUD, int(self.KernelMavlinkSerialPortBaud.currentIndex()))
+#         self.parent.write_register_value_to_kernel(eRegister.RG_MAVLINK_SERIAL_PORT_RTSCTS, int(self.KernelMavlinkSerialPortRTSCTS.currentIndex()))
+#         # self.parent.log_mavlink_settings_to_kernel_panel()
+#         self.close()
 
-    def on_ModalCancelButton_released(self):
-        self.close()
+#     def on_ModalCancelButton_released(self):
+#         self.close()
 
 class KernelTime(QtWidgets.QDialog, TIME_CLASS):
     parent = None
@@ -1534,12 +1534,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
     #     self.KernelPanel.append("Trigger Debounce High: " + str(self.getRegister(eRegister.RG_DEBOUNCE_HIGH.value)))
     #     self.KernelPanel.append("Trigger Debounce Low: " + str(self.getRegister(eRegister.RG_DEBOUNCE_LOW.value)))
 
-    def log_mavlink_settings_to_kernel_panel(self):
-        self.KernelPanel.append("Mavlink Settings:")
-        self.KernelPanel.append("RG_MAVLINK_TYPE: " + str(self.getRegister(eRegister.RG_MAVLINK_TYPE.value)))
-        self.KernelPanel.append("RG_MAVLINK_SERIAL_PORT_IDX: " + str(self.getRegister(eRegister.RG_MAVLINK_SERIAL_PORT_IDX.value)))
-        self.KernelPanel.append("RG_MAVLINK_SERIAL_PORT_BAUD: " + str(self.getRegister(eRegister.RG_MAVLINK_SERIAL_PORT_BAUD.value)))
-        self.KernelPanel.append("RG_MAVLINK_SERIAL_PORT_RTSCTS: " + str(self.getRegister(eRegister.RG_MAVLINK_SERIAL_PORT_RTSCTS.value)))
+    # def log_mavlink_settings_to_kernel_panel(self):
+    #     self.KernelPanel.append("Mavlink Settings:")
+    #     self.KernelPanel.append("RG_MAVLINK_TYPE: " + str(self.getRegister(eRegister.RG_MAVLINK_TYPE.value)))
+    #     self.KernelPanel.append("RG_MAVLINK_SERIAL_PORT_IDX: " + str(self.getRegister(eRegister.RG_MAVLINK_SERIAL_PORT_IDX.value)))
+    #     self.KernelPanel.append("RG_MAVLINK_SERIAL_PORT_BAUD: " + str(self.getRegister(eRegister.RG_MAVLINK_SERIAL_PORT_BAUD.value)))
+    #     self.KernelPanel.append("RG_MAVLINK_SERIAL_PORT_RTSCTS: " + str(self.getRegister(eRegister.RG_MAVLINK_SERIAL_PORT_RTSCTS.value)))
 
 
     def log_yaw_pitch_roll_to_kernel_panel(self):
@@ -2363,10 +2363,10 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         #     print(e)
         #     print("Line: " + str(exc_tb.tb_lineno))
 
-    def on_KernelMavlinkButton_released(self):
-        self.modalwindow = KernelMavlinkModal(self)
-        self.modalwindow.resize(400, 200)
-        self.modalwindow.exec_()
+    # def on_KernelMavlinkButton_released(self):
+    #     self.modalwindow = KernelMavlinkModal(self)
+    #     self.modalwindow.resize(400, 200)
+    #     self.modalwindow.exec_()
 
     def on_KernelTimeButton_released(self):
         self.modalwindow = KernelTime(self)
