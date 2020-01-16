@@ -179,18 +179,8 @@ class AdvancedOptions(QtWidgets.QDialog, ADVANCED_CLASS):
 
             self.CustomFilter.setText(str(filt))
 
-            # buf = [0] * 512
-            # buf[0] = self.parent.SET_REGISTER_READ_REPORT
-            # buf[1] = eRegister.RG_DEBOUNCE_HIGH.value
-
-            # db_trig_high = self.parent.writeToKernel(buf)[2]
-
-            # buf = [0] * 512
-            # buf[0] = self.parent.SET_REGISTER_READ_REPORT
-            # buf[1] = eRegister.RG_DEBOUNCE_LOW.value
-
-            # db_trig_low = self.parent.writeToKernel(buf)[2]
-
+            # db_trig_high = self.parent.read_register_value_from_kernel(eRegister.RG_DEBOUNCE_HIGH)
+            # db_trig_low = self.parent.read_register_value_from_kernel(eRegister.RG_DEBOUNCE_LOW)
             # db_trig_value = db_trig_high*255 + db_trig_low
             # self.TriggerDebounce.setText(str(db_trig_value))
 
@@ -1076,11 +1066,6 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         buf[1] = reg_enum.value
         return self.writeToKernel(buf)[2]
 
-    # buf = [0] * 512
-    # buf[0] = self.parent.SET_REGISTER_READ_REPORT
-    # buf[1] = eRegister.RG_MAVLINK_SERIAL_PORT_RTSCTS.value
-    # serial_port_rtscts = self.parent.writeToKernel(buf)[2]
-
     def exitTransfer(self, drv='C'):
         tmtf = r":/dcim/tmtf.txt"
 
@@ -1134,11 +1119,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             for cam in all_cameras:
                 if cam['product_string'] == 'HID Gadget':
                     self.camera = cam['path']
-                    buf = [0] * 512
-                    buf[0] = self.SET_REGISTER_READ_REPORT
-                    buf[1] = eRegister.RG_CAMERA_LINK_ID.value
 
-                    arid = self.writeToKernel(buf)[2]
+                    arid = self.read_register_value_from_kernel(eRegister.RG_CAMERA_LINK_ID)
                     self.paths.insert(arid, cam['path'])
 
                     self.camera = cam['path']
@@ -1748,17 +1730,11 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
             self.KernelPanel.append('')
 
-
-            buf = [0] * 512
-            buf[0] = self.SET_REGISTER_READ_REPORT
-            buf[1] = eRegister.RG_CAMERA_ARRAY_TYPE.value
-            artype = str(self.writeToKernel(buf)[2])
+            artype = self.read_register_value_from_kernel(eRegister.RG_CAMERA_ARRAY_TYPE)
             self.KernelArraySelect.setCurrentIndex(int(self.KernelArraySelect.findText(artype)))
             self.KernelPanel.append("Array Type: " + str(artype))
-            buf = [0] * 512
-            buf[0] = self.SET_REGISTER_READ_REPORT
-            buf[1] = eRegister.RG_CAMERA_LINK_ID.value
-            arid = self.writeToKernel(buf)[2]
+
+            arid = self.read_register_value_from_kernel(eRegister.RG_CAMERA_LINK_ID)
             self.KernelPanel.append("Array ID: " + str(arid))
 
             self.KernelPanel.append('')
@@ -1901,15 +1877,8 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         sens = str(self.getRegister(eRegister.RG_SENSOR_ID.value))
         lens = str(self.getRegister(eRegister.RG_LENS_ID.value))
 
-        buf = [0] * 512
-        buf[0] = self.SET_REGISTER_READ_REPORT
-        buf[1] = eRegister.RG_CAMERA_ARRAY_TYPE.value
-        artype = str(self.writeToKernel(buf)[2])
-
-        buf = [0] * 512
-        buf[0] = self.SET_REGISTER_READ_REPORT
-        buf[1] = eRegister.RG_CAMERA_LINK_ID.value
-        arid = str(self.writeToKernel(buf)[2])
+        artype = str(self.read_register_value_from_kernel(eRegister.RG_CAMERA_ARRAY_TYPE))
+        arid = str(self.read_register_value_from_kernel(eRegister.RG_CAMERA_LINK_ID))
 
         return (filt, sens, lens, arid, artype)
     def on_KernelMatrixButton_toggled(self):
@@ -2133,22 +2102,7 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
             self.KernelAESettingsButton.setEnabled(False)
 
             self.write_register_value_to_kernel(eRegister.RG_SHUTTER, 9)
-
-            # buf = [0] * 512
-            # buf[0] = self.SET_REGISTER_WRITE_REPORT
-            # buf[1] = eRegister.RG_SHUTTER.value
-            # buf[2] = 9
-
-            # res = self.writeToKernel(buf)
-
             self.write_register_value_to_kernel(eRegister.RG_ISO, 1)
-
-            # buf = [0] * 512
-            # buf[0] = self.SET_REGISTER_WRITE_REPORT
-            # buf[1] = eRegister.RG_ISO.value
-            # buf[2] = 1
-
-            # res = self.writeToKernel(buf)
 
             QtWidgets.QApplication.processEvents()
         else: #Auto
