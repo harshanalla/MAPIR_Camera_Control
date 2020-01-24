@@ -2166,28 +2166,17 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
 
             buf[0] = self.SET_COMMAND_REPORT
             if self.KernelCaptureMode.currentIndex() == 0:
-
-
-
                 buf[1] = eCommand.CM_CAPTURE_PHOTO.value
-
-
             elif self.KernelCaptureMode.currentIndex() == 1:
                 buf[1] = eCommand.CM_CONTINUOUS.value
-
             elif self.KernelCaptureMode.currentIndex() == 2:
-
                 buf[1] = eCommand.CM_TIME_LAPSE.value
-
             elif self.KernelCaptureMode.currentIndex() == 3:
-
                 buf[1] = eCommand.CM_RECORD_VIDEO.value
             elif self.KernelCaptureMode.currentIndex() == 4:
-
                 buf[1] = eCommand.CM_RECORD_LOOPING_VIDEO.value
             else:
                 self.KernelLog.append("Invalid capture mode.")
-
             if self.capturing == False:
                 buf[2] = 1
                 self.capturing = True
@@ -2384,14 +2373,12 @@ class MAPIR_ProcessingDockWidget(QtWidgets.QMainWindow, FORM_CLASS):
         if self.PreProcessCameraModel.currentText() == "Kernel 14.4":
             if self.PreProcessFilter.currentText() in ["RGB", "RGN"]:
                 self.PreProcessVignette.setEnabled(True)
-
             else:
                 self.PreProcessVignette.setChecked(False)
                 self.PreProcessVignette.setEnabled(False)
 
             if self.PreProcessFilter.currentText() == "RGB":
                 self.PreProcessColorBox.setEnabled(True)
-
             else:
                 self.PreProcessColorBox.setChecked(False)
                 self.PreProcessColorBox.setEnabled(False)
